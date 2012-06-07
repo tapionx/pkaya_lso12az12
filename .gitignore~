@@ -1,0 +1,4 @@
+# Ignoro i file creati dopo la compilazione
+kernel
+bin
+*.o
