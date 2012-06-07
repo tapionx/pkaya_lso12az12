@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<meta charset="utf-8">
+        <head>
+                <link rel="stylesheet" type="text/css" href="docum.css">
+                <link href='http://fonts.googleapis.com/css?family=Belgrano|Share' rel='stylesheet' type='text/css'>
+                <title>lso12az12 - Documentazione fase 1 progetto PKaya 2011/2012</title>
+				<style type="text/css">
+				#imgkaya
+				{
+					float:right;
+				}
+				h1
+				{
+					font-family: 'Belgrano', serif;
+				}
+				h2
+				{
+					font-family: 'Share', cursive;
+				}
+				body
+				{
+					margin:auto;
+					width: 70%;
+				}
+				</style>
+        </head>
+        <body>
+                <h1>lso12az12 - Documentazione fase 1 progetto PKaya 2011/2012</h1>
+                <img id="imgkaya" src="http://img546.imageshack.us/img546/3137/kaya.jpg" />
+                <h3>Componenti del gruppo:</h3>
+                <ul>
+                        <li>Marco Chiappetta</li>
+                        <li>Mattia D'Ambrosio</li>
+                        <li>Laura Guidotti</li>
+                        <li>Riccardo Serafini</li>
+                </ul>
+                <p>La prima fase del progetto PKaya consiste nella realizzazione del livello 2 del sistema operativo ideato da Dijkstra (modello a 7 livelli), cioè quello che gestisce le code dei processi in esecuzione nel sistema operativo. Si compone in due moduli separati, un modulo che gestisce le Process Block List (PCB), ed uno che gestisce le Active Semaphore List (ASL).</p>
+                <h2>pcb.c</h2>
+                <p>In questo modulo vengono gestite 3 diverse parti del sistema operativo. Una parte relativa alla allocazione e deallocazione dei PCB, una parte relativa alle code dei processi PCB e una terza che gestisce gli alberi di PCB. Ogni parte contiene delle funzioni che compiono semplici operazioni sulle liste e che tutte insieme forniscono un'interfaccia utile per gestire le code dei processi del sistema operativo.</p>
+                <h2>Allocazione e Deallocazione dei PCB</h2>
+                <p>In questa parte vengono dichiarate le due strutture dati fondamentali per la coda di processi: l'array di PCB (pcbFree_table) che contiene allocati tutti i processi del sistema operativo e l'elemento sentinella pcbFree_h che punta alla lista dei processi. Queste strutture dati sono dichiarate come variabili globali per essere visibili da tutte le funzioni e come HIDDEN (static) per evitare che vengano accedute dall'esterno di questo strato di astrazione. Inoltre vengono dichiarate 3 funzioni fondamentali per allocare e deallocare i processi liberi dalla lista.</p>
+                <div class="funzione">
+                        <h3>#01 - void initPcbs()</h3>
+                        <p>Questa funzione inizializza la lista dei processi liberi (pcbFree) inizializzando i puntatori dell'elemento sentinella ed inserendo tanti elementi quanti sono le strutture allocate nell'array dei pcbFree_table. Il valore massimo di processi caricabili nella lista è di 20 (MAXPROC)</p>
+                </div>
+                <div class="funzione">
+                        <h3>#02 - void freePcb(pcb_t *p)</h3>
+                        <p>Questa funzione inserisce nella lista dei processi liberi il processo passato come parametro. Viene semplicemente chiamata la procedura list_add senza modificare i campi della struttura del processo, perchè questi verranno poi inizializzati quando il processo verrà di nuovo allocato e quindi eliminato dalla lista dei pcbFree.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#03 - pcb_t* allocPcb()</h3>
+                        <p>Questa funzione estrae un elemento dalla lista dei processi liberi e viene chiamata quando un nuovo processo viene attivato. Se la lista dei processi liberi è vuota, e quindi sono in esecuzione il massimo numero di processi contemporaneamente, la funzione restituisce NULL. Se invece è disponibile uno slot per il nuovo processo, prima viene fatto un POP e il processo viene staccato dalla lista, poi vengono inizializzati i campi della struttura dati a zero, servendoci della funzione realizzata ad hoc (initState_t)</p>
+                </div>
+                <h2>Gestione delle code dei PCB</h2>
+                <p>Le code dei processi sono implementate attraverso una lista dinamica circolare doppiamente connessa con sentinella. Questa parte contiene le funzioni che permettono di manipolare la coda dei processi allocati, che sono ordinati secondo priorità decrescente, quindi il primo processo è quello che ha priorità più elevata.</p>
+                <div class="funzione">
+                        <h3>#04 - void mkEmptyProcQ(struct list_head *head)</h3>
+                        <p>Questa funzione inizializza la coda dei processi (pcb) semplicemente modificando i puntatori della sentinella, facendoli puntare a se stessa. In questo modo è come se si eliminassero tutti i processi dalla coda.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#05 - int emptyProcQ(struct list_head *head)</h3>
+                        <p>Questa funzione controlla se la coda dei processi puntata dall'elemento sentinella passato come parametro è vuota o contiene almeno un elemento. Nel caso in cui sia vuota restituisce TRUE, altrimenti FALSE.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#06 - void insertProcQ(struct list_head* head, pcb_t* p)</h3>
+                        <p>Questa funzione inserisce nella coda dei processi puntata da head il processo puntato da p. Se la lista è vuota il processo viene direttamente inserito dopo la sentinella, altrimenti si esegue un ciclo che scorre tutte le posizioni della coda. Visto che la coda dei processi è ordinata secondo la prorità decrescente degli stessi, ad ogni ciclo viene controllato se la priorità dell'elemento da inserire è maggiore dell'elemento che si sta controllando. Se questa condizione si verifica il processo viene inserito in testa alla coda a partire dall'elemento selezionato in poi. In questo modo ci si assicura che la coda dei processi segua sempre l'ordinamento. Naturalmente se tutti i processi hanno priorità maggiore, p viene inserito in fondo.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#07 - pcb_t *headProcQ(struct list_head *head)</h3>
+                        <p>Questa funzione restituisce il puntatore al primo elemento della coda dei processi puntata da head (elemento sentinella). Se la coda è vuota viene restituito NULL, altrimenti si estrae l'indirizzo del contenitore dell'elemento puntato dalla sentinella e lo si ritorna.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#08 - pcb_t* removeProcQ(struct list_head *head)</h3>
+                        <p>Questa funzione elimina il primo processo della coda dei PCB puntata da head e ne restituisce il puntatore. Se la coda è vuota viene restituito NULL, altrimenti si estrae il puntatore al PCB che contiene il concatenatore puntato dalla sentinella della coda e la si elimina utilizzando list_del</p>
+                </div>
+                <div class="funzione">
+                        <h3>#09 - pcb_t *outProcQ(struct list_head *head, pcb_t *p)</h3>
+                        <p>Questa funzione rimuove dalla coda dei processi puntata da head l'elemento PCB puntato da p. Viene effettuato un ciclo che scorre tutti gli elementi della coda e per ogni elemento si verifica che l'indirizzo del pcb preso in considerazione corrisponda con l'indirizzo del pcb da rimuovere (p). Se questo avviene il processo viene eliminato dalla coda con list_del, altrimenti si arriva alla fine della coda e si ritorna NULL.</p>
+                </div>
+                <h2>Gestione dell'albero di PCB</h2>
+                <p>Oltre che in semplici code, i processi possono essere organizzati in alberi gerarchici, in quanto un processo può fare fork() e generare un figlio, il quale a sua volta può generare altri figli e cosi via. L'albero viene realizzato allo stesso modo delle code, con puntatori a liste dinamiche. Ogni nodo ha un puntatore alla lista dei figli ed alla lista dei fratelli (p_child e p_sib).</p>
+                <div class="funzione">
+                        <h3>#10 - int emptyChild(pcb_t *p) </h3>
+                        <p>Questa funzione controlla se la lista dei figli del processo puntato da p è vuota o contiene almeno un elemento. Questo controllo viene fatto con la procedura list_empty.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#11 - void insertChild(pcb_t *prnt,pcb_t *p) </h3>
+                        <p>Questa funzione inserisce il pcb puntato da p come figlio del pcb puntato da prnt. Il figlio viene inserito in coda alla lista dei figli del processo attraverso la procedura list_add_tail. Non viene ritornato nulla da questa funzione.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#12 - pcb_t* removeChild(pcb_t *p)</h3>
+                        <p>Questa funzione elimina il primo figlio dalla lista dei figli del pcb puntato da p. Se la lista dei figli è vuota, quindi p non ha figli viene restituito NULL, altrimenti viene estratto l'indirizzo del primo figlio da ritornare e viene chiamata la procedura list_del su di esso. La funzione restituisce il puntatore al pcb eliminato.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#13 - pcb_t* outChild(pcb_t *p) </h3>
+                        <p>Questa funzione rimuove il PCB puntato da p dalla lista dei figli del padre. Se il PCB puntato da p non ha un padre, restituisce NULL. Altrimenti restituisce l'elemento rimosso, ovvero p. A differenza della funzione precedente, (removeChild), p può trovarsi in una posizione arbitraria, ovvero non necessariamente il primo figlio del padre.</p>
+                </div>
+                <h2>asl.c</h2>
+                <h2>Semafori</h2>
+                <p>In PKaya si gestisce l'accesso alle risorse da parte di più processi contemporaneamente attraverso l'utilizzo dei semafori. I semafori sono realizzati attraverso una struttura dati che funge da descrittore (semd), la quale contiene i puntatori necessari a collegare il semaforo con le code dei processi e due interi che rappresentano la chiave e il valore di ogni semaforo. I semafori vengono allocati in un array di MAXPROC elementi dichiarato come globale ed HIDDEN (static) per impedirne l'accesso dagli strati superiori del sistema operativo. In questa parte inoltre vengono dichiarate come globali ed hidden gli elementi sentinella che puntano alla lista dei semafori liberi (semdFree_h) e alla lista della lista dei semafori (ASL), (semd_h).</p>
+                <div class="funzione">
+                        <h3>#14 - semd_t* getSemd(int key)</h3>
+                        <p>Questa funzione prende in input una key di un SEMD presente nella lista degli ASL, e restituisce il suo puntatore. Altrimenti se l'elemento non esiste nella ASL viene restituito NULL. </p>
+                </div>
+                <div class="funzione">
+                        <h3>#15 - int insertBlocked(int key, pcb_t *p)</h3>
+                        <p>Vengono dati in input a questa funzione una chiave, key, e un puntatore p*, ad una struttura pcb_t . Il PCB puntato da p viene inserito nella coda dei processi bloccati, associata al SEMD con chiave uguale a key. Se il semaforo corrispondente non è presente nella ASL, alloca un nuovo SEMD dalla lista di quelli liberi (semdFree) e lo inserisce nella ASL, settando i campi in maniera opportuna (i.e. key e s_procQ). Se la lista dei semd liberi è vuota, allora non è possibile allocare un nuovo SEMD , quindi viene restituito TRUE. Altrimenti in tutti gli altri casi viene restituito FALSE. In questa funzione abbiamo utilizzato la funzione getSemd, per controllare se il SEMD con chiave uguale a key, è presente nella ASL.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#16 - pcb_t* removeBlocked(int key)</h3>
+                        <p>Questa funzione prende in input una key, e ritorna il primo PCB dalla coda dei processi bloccati (s_procQ) associata al SEMD della ASL con chiave uguale a key. Se questo descrittore non esiste nella ASL, restituisce NULL. Altrimenti, restituisce l'elemento che abbiamo rimosso. Se s_procQ diventa vuota, rimuove il descrittore corrispondente dalla ASL e lo inserisce nella semdFree.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#17 - pcb_t* outBlocked(pcb_t* p)</h3>
+                        <p>Con questa funzione viene rimosso il PCB puntato da p dalla coda del semaforo su cui è bloccato (indicato da p->p_semKey). Se il PCB non compare in tale coda, allora restituisce NULL (condizione di errore). Altrimenti, restituisce p.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#18 - pcb_t* headBlocked(int key)</h3>
+                        <p>Restituisce (senza rimuovere) il puntatore al PCB che si trova in testa alla coda dei processi associata al SEMD con chiave key. Ritorna NULL se il SEMD non compare nella ASL oppure se compare ma la sua coda dei processi è vuota.</p>
+                </div>
+                <div class="funzione">
+                        <h3>#19 - void outChildBlocked(pcb_t* p)</h3>
+                        <p>Questa funzione elimina il processo puntato da p ed elimina anche tutti i processi discendenti di p ricorsivamente. Il caso base consiste nel pcb avente lista dei figli vuota: in tal caso ci si limita ad eliminare il pcb dato come parametro. Il caso ricorsivo consiste nel pcb avente uno o più figli: in tal caso la funzione viene richiamata ricorsivamente sulla lista dei figli in modo da discendere tutto l'albero fino alle foglie e infine, risalendo di volta in volta, eliminare i pcb che non hanno più figli perché già eliminati</p>
+                </div>
+                <div class="funzione">
+                        <h3>#20 - void initASL()</h3>
+                        <p>Questa funzione inizializza la lista dei semdFree inserendo tutti gli elementi della tabella dei semd.  Viene inizializzata la sentinella con INIT_LIST_HEAD e viene fatto un ciclo tante volte quanto è il numero massimo di processi (MAXPROC) che aggiunge con list_add il processo alla lista dei semdFree. Questa funzione viene chiamata solo una volta all'avvio del sistema.</p>
+                </div>                
+        </body>
+</html>
+

@@ -6,7 +6,7 @@ PROGETTO DI SISTEMI OPERATIVI A.A. 2011/2012 (phase1)
 Basta invocare il target all del Makefile. Questo genererà SOLTANTO il file elf nella directory bin.
 Per generare i file necessari a uMPS2 (in particolare il core e la symbol table) vedere punto (2).
 
-2) Generazione dei file phase1.core.umps e phase1.stab.umps
+2) Generazione dei file phase1_kernel.core.umps e phase1_kernel.stab.umps
 
 È necessario invocare il target kernel del Makefile. Da terminale basta dare il comando:
 
