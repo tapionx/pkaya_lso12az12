@@ -1,0 +1,26 @@
+PROGETTO DI SISTEMI OPERATIVI A.A. 2011/2012 (phase1)
+-----------------------------------------------------
+
+1) Compilazione e generazione del file eseguibile relativo al kernel
+
+Basta invocare il target all del Makefile. Questo genererà SOLTANTO il file elf nella directory bin.
+Per generare i file necessari a uMPS2 (in particolare il core e la symbol table) vedere punto (2).
+
+2) Generazione dei file phase1.core.umps e phase1.stab.umps
+
+È necessario invocare il target kernel del Makefile. Da terminale basta dare il comando:
+
+cd $(PATH_TO_PROJECT)
+make kernel
+
+I file verranno generati nella directory kernel
+
+3) Rimozione dei file e ricompilazione
+
+Un classico make clean farà in modo che le directory bin e kernel vengano eliminate (insieme a tutti
+i file oggetto generati in fase di compilazione).
+Sarà dunque possibile ricompilare l'intero progetto da zero.
+
+
+Gruppo: lso12az12
+
