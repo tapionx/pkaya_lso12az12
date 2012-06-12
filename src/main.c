@@ -42,4 +42,8 @@ int main(void)
     /* Inserire il processo test nella Ready Queue allocPcb() */
 
 	addokbuf("White Flag ON\n");
+
+    /* test print() */
+    int n = 42;
+    print(n);
 }

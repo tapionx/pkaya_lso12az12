@@ -135,3 +135,41 @@ void adderrbuf(char *strp) {
 		
 	PANIC();
 }
+
+
+/* SMART PRINTING INT UTILITY */
+/* http://opensource.apple.com/source/groff/groff-10/groff/libgroff/itoa.c */
+
+#define INT_DIGITS 19       /* enough for 64 bit integer */
+
+/* Converts Int to String */
+char *itoa(int i)
+{
+  /* Room for INT_DIGITS digits, - and '\0' */
+  static char buf[INT_DIGITS + 2];
+  char *p = buf + INT_DIGITS + 1;   /* points to terminating '\0' */
+  if (i >= 0) {
+    do {
+      *--p = '0' + (i % 10);
+      i /= 10;
+    } while (i != 0);
+    return p;
+  }
+  else {            /* i < 0 */
+    do {
+      *--p = '0' - (i % 10);
+      i /= 10;
+    } while (i != 0);
+    *--p = '-';
+  }
+  return p;
+}
+
+/* Converts Int to String and prints it */
+void print(int n)
+{
+    addokbuf(itoa(n));
+    addokbuf("\n");
+}
+
+

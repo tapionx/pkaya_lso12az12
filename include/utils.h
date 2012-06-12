@@ -21,4 +21,7 @@ unsigned int termprint(char * str, unsigned int term);
 void addokbuf(char *strp);
 void adderrbuf(char *strp);
 
-
+/* converts int to string */
+char *itoa(int i);
+/* converts int to strings and prints it */
+void print(int n);
