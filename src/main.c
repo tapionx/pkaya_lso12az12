@@ -31,12 +31,24 @@
 
 /******************* MAIN TEST **********************/
 
-int main(void){
-	initPcbs();
+int main(void)
+{
+    /* Popolare le 4 "New Areas" nel "ROM Reserved Frame" */
+
+    /* Inizializzare le strutture dati di fase 1 */
+    initPcbs();
 	initASL();
-	/* Enable all the CPUs */
-	addokbuf("Enabling all the CPUs!\n");
-	
-	
-	
+
+    /* Inizializzare le variabili dello scheduler */
+
+    int processCount;
+    int softBlockCount;
+    pcb_t* currentProcess;
+    /* Ready Queue */
+
+    /* Inizializzare i semafori a 0, un semaforo per ogni sub-device */
+
+    /* Inserire il processo test nella Ready Queue allocPcb() */
+
+	addokbuf("White Flag ON\n");
 }
