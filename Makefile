@@ -15,7 +15,7 @@ OBJECTS = $(MODULES)/umps2/crtso.o $(MODULES)/umps2/libumps.o \
 	$(MODULES)/pcb.o $(MODULES)/asl.o $(MODULES)/myp2test.o \
 	$(MODULES)/utils.o
 LDSCRIPT = $(SCRIPT)/elf32ltsmip.h.umpscore.x
-KERNELELF = ./bin/phase2_kernel
+KERNELELF = ./bin/kernel
 
 
 # Alias for kernelelf
