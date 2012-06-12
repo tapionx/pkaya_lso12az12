@@ -27,7 +27,32 @@
 #define TRANCOMMAND   3
 #define BUSY      3
 
- 
+/* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
+void initState_t(state_t* newState)     
+{
+	int i; /* Counter */
+    newState->entry_hi = 0;
+    newState->cause = 0;
+    newState->status = 0;
+    newState->pc_epc = 0;
+    /* scorro tutti i registri */
+    for (i = 0; i<29; i++)
+        newState->gpr[i] = 0;
+    newState->hi = 0;
+    newState->lo = 0;
+}
+
+/* This function is a debugging function. Through the emulator you can
+ * see the value of both the parameters.
+ * line : the line of the source where you're debugging
+ * var : the value of the variable you want to check
+ * REMEMBER TO ADD A BREAKPOINT FOR THIS FUNCTION */
+void debug(int row, int var){
+	return;
+}
+
+/* PRINTING */
+
 char okbuf[2048];			/* sequence of progress messages */
 char errbuf[128];			/* contains reason for failing */
 char msgbuf[128];			/* nonrecoverable error message before shut down */
@@ -109,13 +134,4 @@ void adderrbuf(char *strp) {
 	termprint(strp, 0);
 		
 	PANIC();
-}
-
-/* This function is a debugging function. Through the emulator you can
- * see the value of both the parameters.
- * line : the line of the source where you're debugging
- * var : the value of the variable you want to check
- * REMEMBER TO ADD A BREAKPOINT FOR THIS FUNCTION */
-void debug(int row, int var){
-	return;
 }

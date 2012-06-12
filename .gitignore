@@ -6,3 +6,6 @@ obj/*.o
 # Ignoro i backup dei vari editor
 *~
 *.swp
+
+# Ignoro la directory personale
+personal

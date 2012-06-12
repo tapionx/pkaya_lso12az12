@@ -6,22 +6,6 @@ HIDDEN pcb_t pcbFree_table[MAXPROC];
 /* Elemento sentinella (dummy) della lista pcbFree */
 HIDDEN LIST_HEAD(pcbFree_h);
 
-
-/* Funzione ausiliaria per la creazione di state_t vuoti*/
-HIDDEN void initState_t(state_t* newState)      
-{
-	int i; /* Counter */
-    newState->entry_hi = 0;
-    newState->cause = 0;
-    newState->status = 0;
-    newState->pc_epc = 0;
-    /* scorro tutti i registri */
-    for (i = 0; i<29; i++)
-        newState->gpr[i] = 0;
-    newState->hi = 0;
-    newState->lo = 0;
-}
-
 /************ GESTIONE DEI PCB **************/
 
 
