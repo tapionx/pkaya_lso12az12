@@ -2,16 +2,18 @@
 # This Makefile creates valid core and stab files to be used with the  #
 # uMPS2 emulator using Process Control Block and Active Semaphore List #
 # interfaces. Made for phase1, use it with phase2.                     #
-#                              					       #
-# Gruppo: lso12az12			                               #
+#                              					       				   #
+# Gruppo: lso12az12			                               			   #
 ########################################################################
 
 # Macros
-MODULES = ./lib
+MODULES = ./obj
+SOURCES = ./src
+INCLUDES = ./include
 SCRIPT = ./script
-OBJECTS = $(MODULES)/umps2/crtso.o $(MODULES)/umps2/libumps.o \
-	$(MODULES)/pcb/pcb.o $(MODULES)/asl/asl.o $(MODULES)/p2test/myp2test.o \
-	$(MODULES)/utils/utils.o
+OBJECTS = $(MODULES)/crtso.o $(MODULES)/libumps.o \
+	$(MODULES)/pcb.o $(MODULES)/asl.o $(MODULES)/myp2test.o \
+	$(MODULES)/utils.o
 LDSCRIPT = $(SCRIPT)/elf32ltsmip.h.umpscore.x
 KERNELELF = ./bin/phase2_kernel
 
@@ -34,36 +36,16 @@ kernel : all
 	@echo "\n\n>>>>>>>>>>>>>> KERNEL CREATED <<<<<<<<<<<<\n\n"
 	
 # Joins the obj files to create the kernel elf
-kernelelf : pcbdir asldir p2testdir utilsdir
+kernelelf : src
 	-mkdir bin
 	mipsel-linux-ld -T $(LDSCRIPT) $(OBJECTS) -o $(KERNELELF)
 	@echo "\nFinished creating the kernel elf file! CHECK FOR ERRORS CONVERTING IT INTO CORE AND STAB FILES!\n"
 	
-# Creates pcb obj file
-pcbdir :
-	cd $(MODULES)/pcb ; make all
-
-# Creates asl obj file
-asldir : 
-	cd $(MODULES)/asl ; make all
-	
-# Creates utils obj file
-utilsdir :
-	cd $(MODULES)/utils ; make all
-	
-# Creates p1test obj file
-p1testdir : 
-	cd $(MODULES)/p1test ; make all
-	
-# Creates p2test obj file
-p2testdir :
-	cd $(MODULES)/p2test ; make all
+# Creates obj files
+src :
+	mipsel-linux-gcc -I $(INCLUDES) ./src/*.c -c
 
 # Clean and tidy (doesn't remove umps2 related object files)
 clean :
-	rm -Rf bin kernel
-	find $(MODULES)/pcb -name "*.o" | xargs rm -f
-	find $(MODULES)/asl -name "*.o" | xargs rm -f
-	find $(MODULES)/p1test -name "*.o" | xargs rm -f
-	find $(MODULES)/p2test -name "*.o" | xargs rm -f
-	find $(MODULES)/utils -name "*.o" | xargs rm -f
+	rm -rf bin kernel
+	rm -rf ./obj/*.o
