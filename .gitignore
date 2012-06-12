@@ -1,7 +1,6 @@
 # Ignoro i file creati dopo la compilazione
 kernel
 bin
-obj/*.o
 # Ignoro i backup dei vari editor
 *~
 *.swp
