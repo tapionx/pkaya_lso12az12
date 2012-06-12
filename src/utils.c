@@ -6,27 +6,27 @@
 #include "listx.h"
 #include "types11.h"
 
-#ifndef MAXSEM
-	#define	MAXSEM	MAXPROC
-	
-	#define MAX_PCB_PRIORITY		10
-	#define MIN_PCB_PRIORITY		0
-	#define DEFAULT_PCB_PRIORITY		5
-	
-	
-	#define TRANSMITTED	5
-	#define TRANSTATUS    2
-	#define ACK	1
-	#define PRINTCHR	2
-	#define CHAROFFSET	8
-	#define STATUSMASK	0xFF
-	#define	TERM0ADDR	0x10000250
-	#define DEVREGSIZE 16       
-	#define READY     1
-	#define DEVREGLEN   4
-	#define TRANCOMMAND   3
-	#define BUSY      3
-#endif
+
+#define	MAXSEM	MAXPROC
+
+#define MAX_PCB_PRIORITY		10
+#define MIN_PCB_PRIORITY		0
+#define DEFAULT_PCB_PRIORITY		5
+
+
+#define TRANSMITTED	5
+#define TRANSTATUS    2
+#define ACK	1
+#define PRINTCHR	2
+#define CHAROFFSET	8
+#define STATUSMASK	0xFF
+#define	TERM0ADDR	0x10000250
+#define DEVREGSIZE 16       
+#define READY     1
+#define DEVREGLEN   4
+#define TRANCOMMAND   3
+#define BUSY      3
+
  
 char okbuf[2048];			/* sequence of progress messages */
 char errbuf[128];			/* contains reason for failing */
@@ -109,4 +109,13 @@ void adderrbuf(char *strp) {
 	termprint(strp, 0);
 		
 	PANIC();
+}
+
+/* This function is a debugging function. Through the emulator you can
+ * see the value of both the parameters.
+ * line : the line of the source where you're debugging
+ * var : the value of the variable you want to check
+ * REMEMBER TO ADD A BREAKPOINT FOR THIS FUNCTION */
+void debug(int row, int var){
+	return;
 }

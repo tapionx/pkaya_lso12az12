@@ -8,11 +8,14 @@ extern char *mp;
 
 typedef unsigned int devreg;
 
-/* Prototypes */
+/* term printing */
 devreg termstat(memaddr *stataddr);
 unsigned int termprint(char * str, unsigned int term);
 void addokbuf(char *strp);
 void adderrbuf(char *strp);
+
+/* debugging functions */
+void debug(int row, int var); /* value of the var variable at the row line in source */
 
 
 
