@@ -18,6 +18,7 @@ HIDDEN struct list_head semd_h;
  * a key. Se non esiste un elemento nella ASL con chiave uguale a key,
  * viene restituito NULL.
  * 
+ * TODO: si può trasformare l'iterazione sulla lista dei semafori in un accesso diretto poiché alla chiave key corrisponde il semaforo key 
 */
 semd_t* getSemd(int key)
 {
@@ -56,7 +57,7 @@ int insertBlocked(int key, pcb_t *p)
 {
 	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
 	if (key > MAXPROC) 
-		return 1;
+		return TRUE;
     /* richiamo la funzione che mi trova il puntatore al semaforo, se presente nell'ASL altrimenti NULL */
     semd_t* psem = getSemd(key);
     /* Setto la chiave del semaforo su cui p e' bloccato */
@@ -67,7 +68,7 @@ int insertBlocked(int key, pcb_t *p)
         /* la inserisco nella coda dei processi bloccati del semd_t */
         insertProcQ(&(psem->s_procQ), p);
         /* ritorno falso */
-        return 0; 
+        return FALSE; 
     }  
     /* Se la lista SemdFree non è vuota.. */
     if (!(list_empty(&(semdFree_h)))) 
@@ -87,12 +88,12 @@ int insertBlocked(int key, pcb_t *p)
         /* Infine inserisco il processo bloccato sul semaforo */
         insertProcQ(&(allocsemd->s_procQ), p);
 		/* ritorno falso */
-        return 0; 
+        return FALSE; 
     }
     else 
     {
 		/* ...altrimenti mi faccio restituire true perchè semdFree è vuota */
-        return (list_empty(&(semdFree_h))); 
+        return TRUE; 
     }
 
 }
