@@ -11,9 +11,6 @@ MODULES = ./obj
 SOURCES = ./src
 INCLUDES = ./include
 SCRIPT = ./script
-OBJECTS = $(MODULES)/umps2/crtso.o $(MODULES)/umps2/libumps.o \
-	$(MODULES)/pcb.o $(MODULES)/asl.o $(MODULES)/myp2test.o \
-	$(MODULES)/utils.o
 LDSCRIPT = $(SCRIPT)/elf32ltsmip.h.umpscore.x
 KERNELELF = ./bin/kernel
 
@@ -38,7 +35,7 @@ kernel : all
 # Joins the obj files to create the kernel elf
 kernelelf : source
 	-mkdir bin
-	mipsel-linux-ld -T $(LDSCRIPT) $(OBJECTS) -o $(KERNELELF)
+	mipsel-linux-ld -T $(LDSCRIPT) $(MODULES)/*.o $(MODULES)/umps2/*.o -o $(KERNELELF)
 	@echo "\nFinished creating the kernel elf file! CHECK FOR ERRORS CONVERTING IT INTO CORE AND STAB FILES!\n"
 	
 # Creates obj files
