@@ -5,7 +5,7 @@
 
 /* Handler per le System Call */
 /* Invocate da extern unsigned int SYSCALL(number, arg1, arg2, arg3); */
-void sysbp_handle()
+void sysbp_handler()
 { 
 	/* recuperare il numero della SYSCALL invocata dal registro reg_a0 */
 	U32 num_syscall;
@@ -39,25 +39,19 @@ void sysbp_handle()
 			/* SOLLEVARE ERRORE */
 			break;
 	}
-	
-	debug(1, 155);
-	while(1);
 }
 
-void trap_handle()
+void trap_handler()
 {
-	debug(2, 155);
-	while(1);
+
 }
 
-void tlb_handle()
+void tlb_handler()
 {
-	debug(3, 155);
-	while(1);
+
 }
 
-void ints_handle()
+void ints_handler()
 {
-	debug(4, 155);
-	while(1);
+
 }

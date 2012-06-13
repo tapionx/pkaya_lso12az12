@@ -1,8 +1,6 @@
 /** Utilities, constants and tools */
-void initCPU(int, state_t*, CPU*);
-void initCPUs(state_t *, CPU *);
 
-/* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
+/* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU a 0 */
 void initState_t(state_t* newState);
 
 /* debugging functions */

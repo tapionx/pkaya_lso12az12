@@ -7,7 +7,7 @@
 #include "asl.e"
 
 /* Custom */
-#include "types.h"
+#include "init.h"
 #include "utils.h"
 #include "myconst.h"
 #include "handlers.h"
@@ -17,17 +17,9 @@
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
 
-CPU procs[NUM_CPU];
-state_t init;
+/******************* MAIN **********************/
 
-/******************* MAIN TEST **********************/
-
-int main(void)
+void main(void)
 {	
-	/* init default */
-	initState_t(&init);
-	/* Popolare le 4 "New Areas" nel "ROM Reserved Frame" */
-	/* ... ed accendere le CPU */
-	initCPUs(&init,procs);
-	print("CPU initialized: %", NUM_CPU);
+	initCPUs();
 }

@@ -7,7 +7,6 @@
 
 /* Custom */
 #include "handlers.h"
-#include "types.h"
 #include "myconst.h"
 
 
@@ -42,35 +41,7 @@ void debug(int row, int var){
 	return;
 }
 
-/* Funzione che, dato l'id di una CPU, provvede a inizializzarne i registri come da specifica */
-void initCPU(int id, state_t *init, CPU cpus[])
-{
-	debug(39, id);
-	CPU *cur = &(cpus[id]);
-	cur->id = id;
-	/* common init */
-	init->reg_sp = RAMTOP;
-	init->status = STATUS_TE|STATUS_IEc|STATUS_INT_UNMASKED;
-	init->status = init->status & ~STATUS_VMc & ~STATUS_KUc;
-	/* specific init */
-	init->pc_epc = (memaddr)sysbp_handle;
-	INITCPU(id, init, &(cur->new.SysBp));
-	init->pc_epc = (memaddr)trap_handle;
-	INITCPU(id, init, &(cur->new.Trap));
-	init->pc_epc = (memaddr)tlb_handle;
-	INITCPU(id, init, &(cur->new.Tlb));
-	init->pc_epc = (memaddr)ints_handle;
-	INITCPU(id, init, &(cur->new.Ints));
-} 
 
-
-/* Funzione che, dato il numero di CPU installate, provvede ad inizializzarle con gli handler corretti */
-void initCPUs(state_t *init, CPU cpus[]){
-	int i;
-	for (i=1; i<NUM_CPU; i++){
-		initCPU(i, init, cpus);
-	}
-}
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
 void initState_t(state_t* newState)     
 {
