@@ -29,5 +29,5 @@ int main(void)
 	/* Popolare le 4 "New Areas" nel "ROM Reserved Frame" */
 	/* ... ed accendere le CPU */
 	initCPUs(&init,procs);
-	addokbuf("CPUs initialized\n");
+	print("CPU initialized: %", NUM_CPU);
 }

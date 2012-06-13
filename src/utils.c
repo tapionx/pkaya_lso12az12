@@ -213,12 +213,12 @@ void print(char* s, int n)
     {
         if(s[i] != token)
         {
-            c[0] = s[i];
+            c[0] = (int)s[i];
             addokbuf(c);
         }
         else
         {
-            addokbuf(itoa(n);
+            addokbuf(itoa(n));
         }
         i++;
     }
