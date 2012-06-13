@@ -78,5 +78,6 @@ int main(void)
 
     /* test print() */
     int n = 42;
-    print(n);
+    print("IL numero e': % yuhu!",n);
+    
 }
