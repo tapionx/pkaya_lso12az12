@@ -1,7 +1,7 @@
-void sysbp();
+void sysbp_handle();
 
-void trap();
+void trap_handle();
 
-void tlb();
+void tlb_handle();
 
-void ints();
+void ints_handle();

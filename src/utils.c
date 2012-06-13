@@ -53,13 +53,13 @@ void initCPU(int id, state_t *init, CPU cpus[])
 	init->status = STATUS_TE|STATUS_IEc|STATUS_INT_UNMASKED;
 	init->status = init->status & ~STATUS_VMc & ~STATUS_KUc;
 	/* specific init */
-	init->pc_epc = (memaddr)sysbp;
+	init->pc_epc = (memaddr)sysbp_handle;
 	INITCPU(id, init, &(cur->new.SysBp));
-	init->pc_epc = (memaddr)trap;
+	init->pc_epc = (memaddr)trap_handle;
 	INITCPU(id, init, &(cur->new.Trap));
-	init->pc_epc = (memaddr)tlb;
+	init->pc_epc = (memaddr)tlb_handle;
 	INITCPU(id, init, &(cur->new.Tlb));
-	init->pc_epc = (memaddr)ints;
+	init->pc_epc = (memaddr)ints_handle;
 	INITCPU(id, init, &(cur->new.Ints));
 } 
 
