@@ -21,11 +21,11 @@
 /* New e Old Area */
 #define NUM_AREAS 8
 #define NEW_SYSBP 0
-#define NEW_TRAP 1
-#define NEW_TLB 2
-#define NEW_INTS 3
-#define OLD_SYSBP 4
-#define OLD_TRAP 5
-#define OLD_TLB 6
+#define NEW_TRAP 2
+#define NEW_TLB 4
+#define NEW_INTS 6
+#define OLD_SYSBP 1
+#define OLD_TRAP 3
+#define OLD_TLB 5
 #define OLD_INTS 7
 

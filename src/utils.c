@@ -29,9 +29,6 @@
 #define TRANCOMMAND   3
 #define BUSY      3
 
-/* Struttura di default delle new area (PC va cambiato a seconda del tipo!) */
-HIDDEN state_t default_state;
-
 /* This function is a debugging function. Through the emulator you can
  * see the value of both the parameters.
  * line : the line of the source where you're debugging
@@ -43,18 +40,18 @@ void debug(int row, int var){
 
 
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
-void initState_t(state_t* newState)     
+void cleanState(state_t* state)     
 {
 	int i; /* Counter */
-    newState->entry_hi = 0;
-    newState->cause = 0;
-    newState->status = 0;
-    newState->pc_epc = 0;
+    state->entry_hi = 0;
+    state->cause = 0;
+    state->status = 0;
+    state->pc_epc = 0;
     /* scorro tutti i registri */
     for (i = 0; i<29; i++)
-        newState->gpr[i] = 0;
-    newState->hi = 0;
-    newState->lo = 0;
+        state->gpr[i] = 0;
+    state->hi = 0;
+    state->lo = 0;
 }
 
 /******************************************************************************

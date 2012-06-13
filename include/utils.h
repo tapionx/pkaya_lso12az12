@@ -1,7 +1,7 @@
 /** Utilities, constants and tools */
 
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU a 0 */
-void initState_t(state_t* newState);
+void cleanState(state_t *state);
 
 /* debugging functions */
 void debug(int row, int var); /* value of the var variable at the row line in source */

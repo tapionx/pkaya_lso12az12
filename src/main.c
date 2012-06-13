@@ -17,9 +17,18 @@
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
 
+/* Global kernel variables */
+state_t new_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
+state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
+
 /******************* MAIN **********************/
 
-void main(void)
+int main(void)
 {	
-	initCPUs();
+	/* Inizializzo le new area di tutte le CPU */
+	initNewAreas(new_old_areas, NUM_CPU);
+	
+	/* 
+	
+	return 0;
 }

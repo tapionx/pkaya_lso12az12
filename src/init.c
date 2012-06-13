@@ -8,23 +8,30 @@
 #include "myconst.h"
 #include "handlers.h"
 
-state_t new_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
+/* Questa funzione si occupa di inizializzare un singolo slot di 
+ * new area, passato come parametro, secondo le specifiche di phase2 */
+HIDDEN void initNewArea(state_t toinit[], const int nareas){
+	int i;
+	for (i=0; i<NUM_AREAS; i+=2){ /* new area hanno id pari, max 8 aree */
+		cleanState(&(toinit[i])); /* clean */
+		toinit[i].reg_sp = RAMTOP;
+		toinit[i].status = STATUS_IEc|STATUS_TE; /* everything is 0 by default */
+		switch(i){
+			case NEW_SYSBP: toinit[i].pc_epc = (memaddr)sysbp_handler; break;
+			case NEW_TRAP: toinit[i].pc_epc = (memaddr)trap_handler; break;
+			case NEW_TLB: toinit[i].pc_epc = (memaddr)tlb_handler; break;
+			case NEW_INTS: toinit[i].pc_epc = (memaddr)ints_handler; break;
+			default: PANIC();
+		}
+	}
+}
 
-/* Si occupa di avviare tutte le CPU (populando le relative new area) specificate nel valore NUM_CPU */
-void initCPUs(){
-	/* Default values per le new area */
-	state_t defaults;
-	initState_t(&(defaults));
-	defaults.reg_sp = RAMTOP;
-	defaults.status = 0|STATUS_IEc|STATUS_TE; /* 0 is safe */
-	/* Init: per ogni cpu bisogna inizializzare le 4 new area come da specifica */
-	int id=1; /* partiamo dalla seconda CPU */
-	for (id; id<NUM_CPU; id++){
-		new_old_areas[id][NEW_SYSBP].pc_epc = (memaddr)sysbp_handler;
-		new_old_areas[id][NEW_TRAP].pc_epc = (memaddr)trap_handler;
-		new_old_areas[id][NEW_TLB].pc_epc = (memaddr)tlb_handler;
-		new_old_areas[id][NEW_INTS].pc_epc = (memaddr)ints_handler;
-		INITCPU(id, &defaults, &(new_old_areas[id]));
+/* Questa funzione si occupa di inizializzare le new area di tutte le
+ * cpu installate */
+void initNewAreas(state_t toinit[][NUM_AREAS], const int ncpu, const int nareas){
+	int id;
+	for (id=0; id<ncpu; id++){ /* per ogni cpu installata */
+		initNewArea(toinit[id], nareas);
 	}
 }
 

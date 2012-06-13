@@ -53,7 +53,7 @@ pcb_t* allocPcb()
    allocPpcb->p_parent = NULL;
    INIT_LIST_HEAD(&(allocPpcb->p_child));
    INIT_LIST_HEAD(&(allocPpcb->p_sib));
-   initState_t(&(allocPpcb->p_s));
+   cleanState(&(allocPpcb->p_s));
    allocPpcb->priority = 0;
    allocPpcb->p_semkey = 0;
    /* Ritorno il puntatore al pcb_t */
