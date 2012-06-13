@@ -202,11 +202,26 @@ char *itoa(int i)
   return p;
 }
 
-/* Converts Int to String and prints it */
-void print(int n)
+/* Printf like function, replace % with int */
+void print(char* s, int n)
 {
-    addokbuf(itoa(n));
-    addokbuf("\n");
+    char token = '%';
+    int i = 0;
+    char* c[2];
+    c[1] = '\0';
+    while(s[i] != '\0')
+    {
+        if(s[i] != token)
+        {
+            c[0] = s[i];
+            addokbuf(c);
+        }
+        else
+        {
+            addokbuf(itoa(n);
+        }
+        i++;
+    }
 }
 
 

@@ -30,5 +30,4 @@ int main(void)
 	/* ... ed accendere le CPU */
 	initCPUs(&init,procs);
 	addokbuf("CPUs initialized\n");
-   	
 }
