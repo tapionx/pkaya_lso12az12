@@ -18,15 +18,16 @@
 int main(void)
 {
 	/* Popolare le 4 "New Areas" nel "ROM Reserved Frame" */
-	/* Popolare le 4 "New Areas" nel "ROM Reserved Frame" */
-	/* Ogni CPU può essere rappresentata tramite una struttura dati
+	/* ... ed accendere le CPU */
+    
+    /* Ogni CPU può essere rappresentata tramite una struttura dati
 	 * all'interno della quale memorizziamo l'ID della CPU e le varie
 	 * aree Old/New */
 	typedef struct Areas{
-		state_t Sysbp;
-		state_t Trap;
-		state_t Tlb;
-		state_t Ints;
+		state_t Sysbp;  /* System Call & Break Points */
+		state_t Trap;   /* Program Trap */
+		state_t Tlb;    /* Translation Lookaside Buffer */
+		state_t Ints;   /* Interrupts */
 	} Areas;
 	 
 	typedef struct CPU{
@@ -59,8 +60,8 @@ int main(void)
 	
     /* Inizializzare le strutture dati di fase 1 */
     initPcbs();
-	initASL();
-	addokbuf("Phase1 structures initialized!\n");
+    initASL();
+    addokbuf("Phase1 structures initialized!\n");
 	
     /* Inizializzare le variabili dello scheduler */
 
