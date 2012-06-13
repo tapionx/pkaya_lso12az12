@@ -1,14 +1,17 @@
-/******************************************************************************
- * I/O Routines to write on a terminal
- ******************************************************************************/
+/*************************** Funzioni e valori di utilita' **********************************/
+
 #include "const.h"
 #include "uMPStypes.h"
 #include "listx.h"
 #include "types11.h"
 
+/* Custom */
+#include "handlers.h"
+#include "types.h"
+#include "myconst.h"
+
 
 #define	MAXSEM	MAXPROC
-
 #define MAX_PCB_PRIORITY		10
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
@@ -27,6 +30,47 @@
 #define TRANCOMMAND   3
 #define BUSY      3
 
+/* Struttura di default delle new area (PC va cambiato a seconda del tipo!) */
+HIDDEN state_t default_state;
+
+/* This function is a debugging function. Through the emulator you can
+ * see the value of both the parameters.
+ * line : the line of the source where you're debugging
+ * var : the value of the variable you want to check
+ * REMEMBER TO ADD A BREAKPOINT FOR THIS FUNCTION */
+void debug(int row, int var){
+	return;
+}
+
+/* Funzione che, dato l'id di una CPU, provvede a inizializzarne i registri come da specifica */
+void initCPU(int id, state_t *init, CPU cpus[])
+{
+	debug(39, id);
+	CPU *cur = &(cpus[id]);
+	cur->id = id;
+	/* common init */
+	init->reg_sp = RAMTOP;
+	init->status = STATUS_TE|STATUS_IEc|STATUS_INT_UNMASKED;
+	init->status = init->status & ~STATUS_VMc & ~STATUS_KUc;
+	/* specific init */
+	init->pc_epc = (memaddr)sysbp;
+	INITCPU(id, init, &(cur->new.SysBp));
+	init->pc_epc = (memaddr)trap;
+	INITCPU(id, init, &(cur->new.Trap));
+	init->pc_epc = (memaddr)tlb;
+	INITCPU(id, init, &(cur->new.Tlb));
+	init->pc_epc = (memaddr)ints;
+	INITCPU(id, init, &(cur->new.Ints));
+} 
+
+
+/* Funzione che, dato il numero di CPU installate, provvede ad inizializzarle con gli handler corretti */
+void initCPUs(state_t *init, CPU cpus[]){
+	int i;
+	for (i=1; i<NUM_CPU; i++){
+		initCPU(i, init, cpus);
+	}
+}
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
 void initState_t(state_t* newState)     
 {
@@ -42,16 +86,9 @@ void initState_t(state_t* newState)
     newState->lo = 0;
 }
 
-/* This function is a debugging function. Through the emulator you can
- * see the value of both the parameters.
- * line : the line of the source where you're debugging
- * var : the value of the variable you want to check
- * REMEMBER TO ADD A BREAKPOINT FOR THIS FUNCTION */
-void debug(int row, int var){
-	return;
-}
-
-/* PRINTING */
+/******************************************************************************
+ * I/O Routines to write on a terminal
+ ******************************************************************************/
 
 char okbuf[2048];			/* sequence of progress messages */
 char errbuf[128];			/* contains reason for failing */
