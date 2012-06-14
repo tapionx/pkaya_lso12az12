@@ -13,9 +13,9 @@
 HIDDEN void initNewArea(state_t toinit[], const int nareas){
 	int i;
 	for (i=0; i<NUM_AREAS; i+=2){ /* new area hanno id pari, max 8 aree */
-		cleanState(&(toinit[i])); /* clean */
 		toinit[i].reg_sp = RAMTOP;
-		toinit[i].status = STATUS_IEc|STATUS_TE; /* everything is 0 by default */
+		toinit[i].status |= 
+				(STATUS_TE)&~(STATUS_VMc|STATUS_KUc|STATUS_INT_UNMASKED);
 		switch(i){
 			case NEW_SYSBP: toinit[i].pc_epc = (memaddr)sysbp_handler; break;
 			case NEW_TRAP: toinit[i].pc_epc = (memaddr)trap_handler; break;
