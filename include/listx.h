@@ -3,6 +3,9 @@ CPLv2 */
 #ifndef _LISTX_H
 #define _LISTX_H
 
+#ifndef NULL
+	#define NULL ((void *)0)
+#endif
 
 typedef unsigned int    size_tt;
 

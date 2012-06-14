@@ -2,12 +2,14 @@
 
 /* Elemento sentinella (dummy) della lista pcbFree */
 HIDDEN LIST_HEAD(pcbFree_h);
-/* Array di processi con dimensione massima MAXPROC */
-HIDDEN pcb_t pcbFree_table[MAXPROC];
+
 
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
 void initState(state_t* state)     
 {
+	/* Array di processi con dimensione massima MAXPROC
+	 * Viene acceduta tramite lista globale */
+	HIDDEN pcb_t pcbFree_table[MAXPROC];
 	int i; /* Counter */
     state->entry_hi = 0;
     state->cause = 0;
@@ -27,10 +29,10 @@ void initState(state_t* state)
 /* Inizializza la struttura dati (senza inizializzare i membri dei vari pcb) */
 void initPcbs()
 {
+	HIDDEN pcb_t pcbFree_table[MAXPROC];
 	int i; /* Counter */
     /* Inizializzazione della sentinella */
     INIT_LIST_HEAD(&(pcbFree_h));
-
     /* Inizializzazione della lista pcbFree */
     for (i = 0; i < MAXPROC; i++)
     {
