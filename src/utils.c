@@ -173,19 +173,26 @@ char *itoa(int i)
 /* Printf like function, replace % with int */
 void print(char* s, int n)
 {
+    /* carattere da rimpiazzare */
     char token = '%';
     int i = 0;
+    /* inizializzo la stringa da stampare ogni volta */
     char* c[2];
     c[1] = '\0';
+    /* scorro tutta la stringa da stampare*/
     while(s[i] != '\0')
     {
+        /* se non trovo il token */
         if(s[i] != token)
         {
+            /* stampo una stringa con solo quel carattere */
             c[0] = (int)s[i];
             addokbuf(c);
         }
+        /* se trovo il token */
         else
         {
+            /* stampo l'intero */
             addokbuf(itoa(n));
         }
         i++;
