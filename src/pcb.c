@@ -1,8 +1,5 @@
 #include <pcb.e>
 
-/* Array di processi con dimensione massima MAXPROC */
-HIDDEN pcb_t pcbFree_table[MAXPROC];
-
 /* Elemento sentinella (dummy) della lista pcbFree */
 HIDDEN LIST_HEAD(pcbFree_h);
 
@@ -13,6 +10,8 @@ HIDDEN LIST_HEAD(pcbFree_h);
 /* Inizializza la struttura dati (senza inizializzare i membri dei vari pcb) */
 void initPcbs()
 {
+	/* Array di processi con dimensione massima MAXPROC */
+	HIDDEN pcb_t pcbFree_table[MAXPROC];
 	int i; /* Counter */
     /* Inizializzazione della sentinella */
     INIT_LIST_HEAD(&(pcbFree_h));

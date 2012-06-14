@@ -4,8 +4,9 @@
 #define STATUS_TE 0x08000000
 #define RESET 0
 #define FREE 0
-#define BUSY 1
-
+#ifndef BUSY
+	#define BUSY 1
+#endif
 /* NUMERI DELLE SYSTEM CALL */
 
 #define CREATEPROCESS		1

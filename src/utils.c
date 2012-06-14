@@ -27,7 +27,9 @@
 #define READY     1
 #define DEVREGLEN   4
 #define TRANCOMMAND   3
-#define BUSY      3
+#ifndef BUSY
+	#define BUSY      3
+#endif
 
 /* This function is a debugging function. Through the emulator you can
  * see the value of both the parameters.

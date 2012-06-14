@@ -5,7 +5,6 @@
 #include "types11.h"
 #include "pcb.e"
 #include "asl.e"
-#include "libumps.h"
 
 /* Custom */
 #include "init.h"
@@ -28,6 +27,12 @@ int main(void)
 {	
 	/* Inizializzo le new area di tutte le CPU */
 	initNewAreas(new_old_areas, NUM_CPU);
+	
+	/* Inizializzo le strutture di Phase1 */
+	initPcbs();
+	initASL();
+
+	/* Leggi bitmap dei device installati */
 	
 	return 0;
 }
