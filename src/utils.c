@@ -171,7 +171,7 @@ char *itoa(int i)
 }
 
 /* Printf like function, replace % with int */
-void print(char* s, int n)
+void printn(char* s, int n)
 {
     /* carattere da rimpiazzare */
     char token = '%';

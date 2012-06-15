@@ -1,7 +1,7 @@
 #include <pcb.e>
 
 /* Elemento sentinella (dummy) della lista pcbFree */
-HIDDEN LIST_HEAD(pcbFree_h);
+LIST_HEAD(pcbFree_h);
 
 
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
@@ -135,6 +135,7 @@ void insertProcQ(struct list_head* head, pcb_t* p)
                 list_add_tail(&(p->p_next), pos);
                 return; /* Non continuo il ciclo */
             }
+              
             /* Il caso rimanente è se l'elemento da inserire ha priorità
              * minore di quello corrente ma non siamo giunti alla fine 
              * della lista. Allora è necessario continuare a scandire 

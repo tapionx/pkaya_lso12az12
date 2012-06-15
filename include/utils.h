@@ -13,4 +13,4 @@ void adderrbuf(char *strp);
 /* converts int to string */
 char *itoa(int i);
 /* printf like funcion, replace % with int */
-void print(char* s, int n);
+void printn(char* s, int n);

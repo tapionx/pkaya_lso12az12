@@ -18,30 +18,25 @@
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
 
+/* TEST */
+extern int p1test();
+extern int p2test();
+
 /* Global kernel variables */
 state_t new_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 
 /******************* MAIN **********************/
 
-extern int p1test();
-
 int main(void)
 {		
+	p2test();
+	return 0;
 	/* Inizializzo le new area di tutte le CPU */
 	initNewAreas(new_old_areas, NUM_CPU);
 	
 	/* Inizializzo le strutture dati di Phase1 */
 	initPcbs();
 	initASL();
-
-	/* TEST SCHEDULER */
-	pcb_t *test = allocPcb();
-	state_t *test_state = &(test->p_s);
-	test_state->status = getSTATUS();
-	test_state->status |= (STATUS_IEc|STATUS_TE)&~(STATUS_VMc|STATUS_KUc);
-	test_state->reg_sp = RAMTOP-FRAME_SIZE;
-	test_state->pc_epc = test_state->reg_t9 = (memaddr)test;
-	addReady(test);
 	
 	scheduler();
 	

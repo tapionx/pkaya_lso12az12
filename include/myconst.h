@@ -5,6 +5,7 @@
 #define RESET 0
 #define PASS 0
 #define FORBID 1
+
 /* NUMERI DELLE SYSTEM CALL */
 
 #define CREATEPROCESS		1

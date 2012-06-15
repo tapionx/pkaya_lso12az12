@@ -18,15 +18,18 @@ struct list_head readyQueue[NUM_CPU]; /* coda dei processi in stato ready */
 
 /* Questa funzione inserisce nella readyQueue il pcb_t passato */
 void addReady(pcb_t *proc){
+	int id;
+	for (id=1; id<NUM_CPU; id++)
+		INIT_LIST_HEAD(&(readyQueue[id]));
 	insertProcQ(&(readyQueue[1]), proc);
-	addokbuf("DONE!\n");
 }
 
 /* Questa funzione si occupa di estrare un processo dalla readyQueue
  * e di caricarne lo stato sulla prima CPU "eligible" che trova 
  * Una CPU è "eligible" quando: ??? */
-HIDDEN void loadReady(){
-
+void loadReady(){
+	pcb_t *torun = removeProcQ(&(readyQueue[1]));
+	INITCPU(1, &(torun->p_s), &(new_old_areas[1]));
 }
 
 /* AVVIO DELLO SCHEDULER - Passaggio del controllo */
