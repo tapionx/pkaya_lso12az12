@@ -18,7 +18,8 @@ HIDDEN struct list_head semd_h;
  * a key. Se non esiste un elemento nella ASL con chiave uguale a key,
  * viene restituito NULL.
  * 
- * TODO: si può trasformare l'iterazione sulla lista dei semafori in un accesso diretto poiché alla chiave key corrisponde il semaforo key 
+ * TODO: si può trasformare l'iterazione sulla lista dei semafori in un 
+ * accesso diretto poiché alla chiave key corrisponde il semaforo key?
 */
 semd_t* getSemd(int key)
 {
@@ -232,7 +233,7 @@ void initASL()
 	/* fino al numero massimo di processi */
 	for (i=0; i < MAXPROC; i++)
 	{
-		/* aggiungo il processo alla lista */
+		/* aggiungo il semaforo alla lista */
 		list_add(&(semd_table[i].s_next), &(semdFree_h)); 
 	}	
 }

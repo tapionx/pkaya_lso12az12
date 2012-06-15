@@ -3,10 +3,8 @@
 #define NUM_CPU 4
 #define STATUS_TE 0x08000000
 #define RESET 0
-#define FREE 0
-#ifndef BUSY
-	#define BUSY 1
-#endif
+#define PASS 0
+#define FORBID 1
 /* NUMERI DELLE SYSTEM CALL */
 
 #define CREATEPROCESS		1

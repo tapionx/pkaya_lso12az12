@@ -27,9 +27,7 @@
 #define READY     1
 #define DEVREGLEN   4
 #define TRANCOMMAND   3
-#ifndef BUSY
-	#define BUSY      3
-#endif
+#define BUSY      3
 
 /* This function is a debugging function. Through the emulator you can
  * see the value of both the parameters.
@@ -179,7 +177,7 @@ void print(char* s, int n)
     char token = '%';
     int i = 0;
     /* inizializzo la stringa da stampare ogni volta */
-    char* c[2];
+    char c[2];
     c[1] = '\0';
     /* scorro tutta la stringa da stampare*/
     while(s[i] != '\0')
