@@ -7,5 +7,5 @@
 	test_state->pc_epc = test_state->reg_t9 = (memaddr)test1;
 	addReady(test); */
 
-void addReady(pcb_t *proc);
+void addReady(int id, pcb_t *proc);
 void scheduler();

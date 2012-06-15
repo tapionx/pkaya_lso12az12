@@ -53,5 +53,5 @@ void tlb_handler()
 
 void ints_handler()
 {
-
+	/* Determina da quale device è arrivato l'interrupt */
 }
