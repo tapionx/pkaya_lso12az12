@@ -15,6 +15,7 @@ int softprocs[NUM_CPU]; /* contatore dei processi bloccati su I/O */
 pcb_t *currentproc[NUM_CPU]; /* puntatore al processo in esecuzione attuale */
 struct list_head readyQueue[NUM_CPU]; /* coda dei processi in stato ready */
 int initReady = FALSE; /* Stato dell'inizializzazione della readyQueue */
+const memaddr retaddr; /* Indirizzo di ritorno dello scheduler */
 
 /* Variabili del kernel */
 extern new_old_areas[NUM_CPU][NUM_AREAS];
@@ -51,7 +52,6 @@ void loadReadyFrom(int id){
 	list_for_each(pos, &(readyQueue[id])){
 		pcb_t *curPcb = (container_of(pos, pcb_t, p_next));
 		int key = curPcb->p_semkey;
-		printn("Trovato processo %\n",key);
 	}
 	/* Prendo il pcb_t da eseguire dalla readyQueue */
 	pcb_t *torun = removeProcQ(&(readyQueue[id]));
@@ -73,6 +73,9 @@ void scheduler(){
 	activeCpu[id] = TRUE;
 	/* Carico i processi dalla readyQueue */
 	/* Innanzitutto salvo lo stato per richiamare lo scheduler */
-	pstate[id].pc_epc = STST(&(pstate[id]));
+	STST(&(pstate[id]));
+	pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
 	loadReadyFrom(id);
 }
+
+

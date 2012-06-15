@@ -1,6 +1,6 @@
 /* Constants */
 /* FIXED: trovare  modo di leggere num CPU da emulatore */
-#define NCPUs 0x10000500
+#define NCPU_ADDR 0x10000500
 #define NUM_CPU 4
 
 #define STATUS_TE 0x08000000

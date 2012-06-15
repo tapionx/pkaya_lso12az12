@@ -1,8 +1,12 @@
 #include "myconst.h"
 #include "base.h"
 #include "uMPStypes.h"
+#include "handlers.h"
+#include "utils.h"
 
-extern state_t* new_old_areas[NUM_CPU][NUM_AREAS];
+/* Bisogna agire tramite puntatori altrimenti CPU0 rimane esclusa 
+ * poiché le sue aree NON sono all'interno del vettore new_old_areas */
+extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
 
 /* Handler per le System Call */
 /* Invocate da SYSCALL(number, arg1, arg2, arg3); */
@@ -11,7 +15,7 @@ void sysbp_handler()
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
 	/* puntatore alla OLD AREA per le SYSCALL/BP */
-	state_t *OLDAREA = &(new_old_areas[prid][OLD_SYSBP]);
+	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
 	/* recupero i parametri della SYSCALL dalla OLDAREA */
 	U32 *num_syscall =  &(OLDAREA->reg_a0);
 	U32 *arg1 		 =  &(OLDAREA->reg_a1);
@@ -26,9 +30,9 @@ void sysbp_handler()
 	{
 		/* gestisci user mode */
 		/* copiare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
-		new_old_areas[prid][OLD_TRAP] = new_old_areas[prid][OLD_SYSBP];
+		copyState(pnew_old_areas[prid][OLD_TRAP], pnew_old_areas[prid][OLD_SYSBP]); 
 		/* settare Cause a 10 : Reserved Instruction Exception*/
-		new_old_areas[prid][OLD_TRAP]->cause = EXC_RESERVEDINSTR;
+		pnew_old_areas[prid][OLD_TRAP]->cause = EXC_RESERVEDINSTR;
 		/* sollevare PgmTrap, se la sbriga lui */
 		trap_handler();
 	}
@@ -81,7 +85,7 @@ void sysbp_handler()
 			specify_sys_state_vector((state_t*) *arg1, (state_t*) *arg2);
 			break;
 		default:
-			/* SOLLEVARE ERRORE */
+			PANIC(); /* syscall non riconosciuta */
 			break;
 	}
 }

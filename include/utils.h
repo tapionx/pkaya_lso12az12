@@ -3,12 +3,16 @@
 
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU a 0 */
 void cleanState(state_t *state);
+/* Funzione per copiare uno state_t in un altro */
+void copyState(state_t *s1, state_t *s2);
 
 /* Funzione per l'inizializzazione dello stato di un pcb_t dai parametri */
 pcb_t *initPcbState(pcb_t *pcb, U32 status, memaddr pc_epc, U32 reg_sp);
 
 /* debugging functions */
 void debug(int row, int var); /* value of the var variable at the row line in source */
+void debugn(char* s, int n); /* identico alla printn, comodo da trovare */
+void debugs(char *str);
 
 /* term printing */
 void addokbuf(char *strp);

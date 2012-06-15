@@ -8,6 +8,7 @@
 /* Custom */
 #include "handlers.h"
 #include "myconst.h"
+#include "utils.h"
 
 
 #define	MAXSEM	MAXPROC
@@ -38,6 +39,14 @@ void debug(int row, int var){
 	return;
 }
 
+/* Wrapper per la printn (più comodo da trovare quando si deve pulire
+ * il codice dalla roba usata per il debug/testing */
+void debugn(char *str, int value){
+	printn(str,value);
+}
+void debugs(char *str){ /* no value */
+	addokbuf(str);
+}
 
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
 void cleanState(state_t* state)     
@@ -52,6 +61,19 @@ void cleanState(state_t* state)
         state->gpr[i] = 0;
     state->hi = 0;
     state->lo = 0;
+}
+
+/* Funzione che serve per copiare il secondo state_t nel primo */
+void copyState(state_t *s1, state_t *s2){
+	int i;
+	s1->entry_hi = s2->entry_hi;
+	s1->cause = s2->cause;
+	s1->pc_epc = s2->pc_epc;
+	for (i=0; i<29; i++){
+		s1->gpr[i] = s2->gpr[i];
+	}
+	s1->hi = s2->hi;
+	s1->lo = s2->lo;
 }
 
 /* Funzione ausiliaria per inizializzare un pcb_t con gli argomenti 
