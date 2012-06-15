@@ -85,7 +85,7 @@ void sysbp_handler()
 			specify_sys_state_vector((state_t*) *arg1, (state_t*) *arg2);
 			break;
 		default:
-			PANIC(); /* syscall non riconosciuta */
+			/* Restituire Errore o passare il controllo al gestore del processo */
 			break;
 	}
 }
