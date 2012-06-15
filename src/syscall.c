@@ -61,11 +61,9 @@ void verhogen(int semKey)
  */
 void passeren(int semKey)
 {
-	/* ottengo il numero del processore corrente */
-	U32 prid = getPRID();
 	/* processo corrente: processoCorrente */
 	/* inserisco il processo nella coda del semaforo */
-	if(insertBlocked(semKey, NULL /*currentproc[prid] FIXME*/) == FALSE)
+	if(insertBlocked(semKey, processoCorrente) == FALSE)
 	{
 		/* incremento Soft Block Count */
 

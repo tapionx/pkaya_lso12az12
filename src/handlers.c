@@ -9,8 +9,13 @@ void sysbp_handler()
 {
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
+	/* puntatore alla OLD AREA per le SYSCALL/BP */
+	state_t *OLDAREA = new_old_areas[prid][OLD_SYSBP];
 	/* recupero i parametri della SYSCALL dalla OLDAREA */
-	U32 num_syscall;
+	U32 num_syscall = OLDAREA->reg_a0;
+	U32 arg1 		= OLDAREA->reg_a1;
+	U32 arg2		= OLDAREA->reg_a2;
+	U32 arg3		= OLDAREA->reg_a3;
 	/* CPU->old->SysBp; */
 
 	switch(num_syscall)
