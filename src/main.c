@@ -35,6 +35,10 @@ extern void proc3();
 
 int main(void)
 {		
+	int ncpu = *(int*) NCPUs;
+	
+	printn("Numero di CPU: %\n", ncpu);
+	
 	/* Inizializzo le new area di tutte le CPU */
 	initNewAreas(pnew_old_areas, NUM_CPU);
 	

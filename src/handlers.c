@@ -4,10 +4,8 @@
 
 extern state_t* new_old_areas[NUM_CPU][NUM_AREAS];
 
-/*TODO: per ora dummy handlers */
-
 /* Handler per le System Call */
-/* Invocate da extern unsigned int SYSCALL(number, arg1, arg2, arg3); */
+/* Invocate da SYSCALL(number, arg1, arg2, arg3); */
 void sysbp_handler()
 {
 	/* recupero il numero della CPU attuale */
@@ -24,9 +22,13 @@ void sysbp_handler()
 	U32 *old_status = &(OLDAREA->status);
 
 	/* se il processo era in user mode */
-	if( *old_status == (*old_status | STATUS_KUc) )
+	if( (*old_status & STATUS_KUc) != 0 )
 	{
 		/* gestisci user mode */
+		/* sollevare PgmTrap 10 : Reserved Instruction Exception */
+		/* spostare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
+		/* settare Cause a 10 */
+		/* chiamare handler PmgTrap */
 	}
 
 	/* eseguo la SYSCALL adeguata */
