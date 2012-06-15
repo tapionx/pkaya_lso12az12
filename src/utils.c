@@ -54,6 +54,16 @@ void cleanState(state_t* state)
     state->lo = 0;
 }
 
+/* Funzione ausiliaria per inizializzare un pcb_t con gli argomenti 
+ * forniti (registri speciali, pc_epc ecc.) */
+pcb_t *initPcbState(pcb_t *pcb, U32 status, memaddr pc_epc, U32 reg_sp){
+	state_t *pcbs = &(pcb->p_s);
+	pcbs->status = status;
+	pcbs->pc_epc = pcbs->reg_t9 = pc_epc;
+	pcbs->reg_sp = reg_sp;
+	return pcb;
+}
+
 /******************************************************************************
  * I/O Routines to write on a terminal
  ******************************************************************************/

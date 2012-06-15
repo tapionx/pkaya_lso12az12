@@ -30,4 +30,3 @@
 #define OLD_TRAP 3
 #define OLD_TLB 5
 #define OLD_INTS 7
-
