@@ -13,7 +13,7 @@ void sysbp_handler()
 	/* puntatore alla OLD AREA per le SYSCALL/BP */
 	state_t *OLDAREA = &(new_old_areas[prid][OLD_SYSBP]);
 	/* recupero i parametri della SYSCALL dalla OLDAREA */
-	U32 *num_syscall = &(OLDAREA->reg_a0);
+	U32 *num_syscall =  &(OLDAREA->reg_a0);
 	U32 *arg1 		 =  &(OLDAREA->reg_a1);
 	U32 *arg2		 =  &(OLDAREA->reg_a2);
 	U32 *arg3		 =  &(OLDAREA->reg_a3);
@@ -25,10 +25,12 @@ void sysbp_handler()
 	if( (*old_status & STATUS_KUc) != 0 )
 	{
 		/* gestisci user mode */
-		/* sollevare PgmTrap 10 : Reserved Instruction Exception */
-		/* spostare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
-		/* settare Cause a 10 */
-		/* chiamare handler PmgTrap */
+		/* copiare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
+		new_old_areas[prid][OLD_TRAP] = new_old_areas[prid][OLD_SYSBP];
+		/* settare Cause a 10 : Reserved Instruction Exception*/
+		new_old_areas[prid][OLD_TRAP]->cause = EXC_RESERVEDINSTR;
+		/* sollevare PgmTrap, se la sbriga lui */
+		trap_handler();
 	}
 
 	/* eseguo la SYSCALL adeguata */
