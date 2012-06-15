@@ -8,7 +8,7 @@
 #include "myconst.h"
 #include "handlers.h"
 
-/* Questa funzione si occupa di inizializzare un singolo slot di 
+/* Questa funzione si occupa di inizializzare un singolo slot di
  * new area, passato come parametro, secondo le specifiche di phase2 */
 HIDDEN void initNewArea(state_t toinit[]){
 	int i;
@@ -16,11 +16,20 @@ HIDDEN void initNewArea(state_t toinit[]){
 		toinit[i].reg_sp = RAMTOP;
 		toinit[i].status |= (STATUS_TE)&~(STATUS_VMc|STATUS_KUc|STATUS_INT_UNMASKED);
 		switch(i){
-			case NEW_SYSBP: toinit[i].pc_epc = toinit[i].reg_t9 = (memaddr)sysbp_handler; break;
-			case NEW_TRAP: toinit[i].pc_epc = toinit[i].reg_t9 =  (memaddr)trap_handler; break;
-			case NEW_TLB: toinit[i].pc_epc = toinit[i].reg_t9 =  (memaddr)tlb_handler; break;
-			case NEW_INTS: toinit[i].pc_epc = toinit[i].reg_t9 =  (memaddr)ints_handler; break;
-			default: PANIC();
+			case NEW_SYSBP:
+				toinit[i].pc_epc = toinit[i].reg_t9 = (memaddr)sysbp_handler;
+				break;
+			case NEW_TRAP:
+				toinit[i].pc_epc = toinit[i].reg_t9 = (memaddr)trap_handler;
+				break;
+			case NEW_TLB:
+				toinit[i].pc_epc = toinit[i].reg_t9 = (memaddr)tlb_handler;
+				break;
+			case NEW_INTS:
+				toinit[i].pc_epc = toinit[i].reg_t9 = (memaddr)ints_handler;
+				break;
+			default:
+				PANIC();
 		}
 	}
 }

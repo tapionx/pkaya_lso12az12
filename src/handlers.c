@@ -6,12 +6,14 @@
 /* Handler per le System Call */
 /* Invocate da extern unsigned int SYSCALL(number, arg1, arg2, arg3); */
 void sysbp_handler()
-{ 
-	/* recuperare il numero della SYSCALL invocata dal registro reg_a0 */
+{
+	/* recupero il numero della CPU attuale */
+	U32 prid = getPRID();
+	/* recupero i parametri della SYSCALL dalla OLDAREA */
 	U32 num_syscall;
 	/* CPU->old->SysBp; */
-	
-	switch(num_syscall) 
+
+	switch(num_syscall)
 	{
 		case CREATEPROCESS:
 			break;
