@@ -1,5 +1,7 @@
 #include "uMPStypes.h"
 #include "types11.h"
+#include "pcb.e"
+#include "asl.e"
 
 /* Handlers delle 11 System Call */
 
@@ -63,6 +65,7 @@ void passeren(int semKey)
 {
 	/* processo corrente: processoCorrente */
 	/* inserisco il processo nella coda del semaforo */
+	pcb_t* processoCorrente;
 	if(insertBlocked(semKey, processoCorrente) == FALSE)
 	{
 		/* incremento Soft Block Count */

@@ -1,5 +1,8 @@
 #include "myconst.h"
 #include "base.h"
+#include "uMPStypes.h"
+
+extern state_t* new_old_areas[NUM_CPU][NUM_AREAS];
 
 /*TODO: per ora dummy handlers */
 
