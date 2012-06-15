@@ -1,5 +1,7 @@
 #include "uMPStypes.h"
 #include "types11.h"
+#include "pcb.e"
+#include "asl.e"
 
 /* Handlers delle 11 System Call */
 
@@ -48,10 +50,10 @@ void verhogen(int semKey)
 	*processoLiberato = removeBlocked(semKey);
 	if(*processoLiberato != NULL)
 	{
-		/* decrementare Soft Block Count */
-		/* inserire processo nella Ready Queue del processore più libero*/
-	/*} */
-	/* riprendere l'esecuzione del processo che ha chiamato la SYSCALL*/
+		 decrementare Soft Block Count 
+		 inserire processo nella Ready Queue del processore più libero
+	 
+	riprendere l'esecuzione del processo che ha chiamato la SYSCALL*/
 }
 
 
@@ -63,7 +65,8 @@ void passeren(int semKey)
 {
 	/* processo corrente: processoCorrente */
 	/* inserisco il processo nella coda del semaforo */
-	if(insertBlocked(semKey, NULL/*processoCorrente*/) == FALSE)
+	pcb_t* processoCorrente;
+	if(insertBlocked(semKey, processoCorrente) == FALSE)
 	{
 		/* incremento Soft Block Count */
 

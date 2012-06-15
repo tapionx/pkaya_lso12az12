@@ -110,13 +110,11 @@ void insertProcQ(struct list_head* head, pcb_t* p)
 {
     /* Salvo la priorità di p */
     int p_priority = p->priority;
-    printn("Inserendo pcb con pr %\n", p->priority);
     struct list_head* pos;
     /* Se la lista è vuota aggiungo l'elemento in coda (il list_for_each
      * non verrebbe neanche iniziato) */
     if (list_empty(head)){
         list_add(&(p->p_next), head);
-        printn("primo elemento!\n",0);
 	 }
     else
         list_for_each(pos, head){ /* Inizia da head->next */
@@ -145,7 +143,6 @@ void insertProcQ(struct list_head* head, pcb_t* p)
 				/* Trovo la priorità del prossimo processo */
 				pcb_t *next = container_of(list_next(pos), pcb_t, p_next);
 				int next_priority = next->priority;
-				printn("TROVATO ELEM PR UGUALE\n",0);
 				if (p_priority > next_priority || list_next(pos) == head){
 					list_add(&(p->p_next), pos);
 					return;

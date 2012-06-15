@@ -4,6 +4,7 @@
 #include "pcb.e"
 #include "asl.e"
 #include "libumps.h"
+#include "const.h"
 
 /* Globali (per ogni CPU) */
 int activeCpu[NUM_CPU]; /* Solo CPU0 è attiva all'inizio */
@@ -18,6 +19,9 @@ int initReady = FALSE; /* Stato dell'inizializzazione della readyQueue */
 /* Variabili del kernel */
 extern new_old_areas[NUM_CPU][NUM_AREAS];
 extern state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
+
+/* Forward callback */
+void scheduler();
 
 
 /* Questa funzione inserisce nella readyQueue della CPU[id] il pcb_t 
@@ -37,17 +41,18 @@ void addReady(int id, pcb_t *proc){
 	/* Mi assicuro di separare gli stack (di un FRAME) */
 	proc->p_s.reg_sp = RAMTOP-(globalprocs*FRAME_SIZE);
 	/* Inserisco il pcb_t passato nella readyQueue della CPU id */
-	static int i;
-	i++;
-	printn("Sto inserendo il pcb %\n", i);
 	insertProcQ(&(readyQueue[id]), proc);
 }
 
 /* Questa funzione si occupa di estrare un processo dalla readyQueue
  * della CPU[id] e di caricarne lo stato sulla CPU[id] */
 void loadReadyFrom(int id){
-	/* Innanzitutto salvo lo stato per richiamare lo scheduler */
-
+	struct list_head *pos;
+	list_for_each(pos, &(readyQueue[id])){
+		pcb_t *curPcb = (container_of(pos, pcb_t, p_next));
+		int key = curPcb->p_semkey;
+		printn("Trovato processo %\n",key);
+	}
 	/* Prendo il pcb_t da eseguire dalla readyQueue */
 	pcb_t *torun = removeProcQ(&(readyQueue[id]));
 	/* Se la CPU non è stata avviata la resetto */
@@ -64,12 +69,10 @@ void loadReadyFrom(int id){
 /* AVVIO DELLO SCHEDULER - Passaggio del controllo */
 void scheduler(){
 	/* Setto tutte le CPU (tranne la 0) come inattive */
-	int id;
-	for (id=1; id<NUM_CPU; id++)
-		activeCpu[id] = 0;
-	activeCpu[0] = 1;
+	int id = getPRID();
+	activeCpu[id] = TRUE;
 	/* Carico i processi dalla readyQueue */
-	loadReadyFrom(0);
-	loadReadyFrom(0);
-	loadReadyFrom(0);	
+	/* Innanzitutto salvo lo stato per richiamare lo scheduler */
+	pstate[id].pc_epc = STST(&(pstate[id]));
+	loadReadyFrom(id);
 }
