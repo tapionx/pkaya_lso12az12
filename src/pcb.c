@@ -73,6 +73,12 @@ pcb_t* allocPcb()
    cleanState(&(allocPpcb->p_s));
    allocPpcb->priority = 0;
    allocPpcb->p_semkey = 0;
+   /* Inizializzo il custom handler a NULL */
+   int i;
+   for(i=0;i<8;i++)
+   {
+		allocPpcb->custom_handlers[i] = NULL;
+   }
    /* Ritorno il puntatore al pcb_t */
    return allocPpcb;
 }

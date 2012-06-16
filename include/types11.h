@@ -14,7 +14,6 @@ typedef struct pcb_t {
 	struct list_head	p_child,
 						p_sib;
 	
-
 	/* processor state, etc */
 	state_t       		p_s;     
 
@@ -23,6 +22,9 @@ typedef struct pcb_t {
 	
 	/* key of the semaphore on which the process is eventually blocked */
 	int					p_semkey;
+
+	/* puntatore ad un vettore di handler per le eccezioni custom */
+	state_t *custom_handlers[8];
 
 } pcb_t;
 
