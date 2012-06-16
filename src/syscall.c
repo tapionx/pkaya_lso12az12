@@ -9,8 +9,6 @@ extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
 
 /* Handlers delle 11 System Call */
 
-
-
 /* System Call #1  : Create Process
  * genera un processo figlio del processo chiamante
  * statep   = indirizzo fisico del nuovo processo
@@ -19,7 +17,29 @@ extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
  */
 int create_process(state_t *statep, int priority)
 {
-
+	/* ottengo il processo corrente */
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* alloco un nuovo processo */
+	pcb_t *nuovoProcesso = allocPcb();
+	/* se non è possibile allocare un nuovo processo */
+	if(nuovoProcesso == NULL)
+	{
+		/* setto il registro v0 a -1 (specifiche-failure) */
+		processoCorrente->p_s.reg_v0 = -1;
+		/* riprendo l'esecuzione del processo chiamante */
+		LDST(&(processoCorrente->p_s));
+	}
+	/* altrimenti, se posso allocare il processo */
+	/* copio lo stato nel processo figlio */
+	copyState(statep, &(nuovoProcesso->p_s));
+	/* setto la priorità del nuovo processo */
+	nuovoProcesso->priority = priority;
+	/* inserisco il nuovo processo come figlio del chiamante */
+	insertChild(processoCorrente, nuovoProcesso);
+	/* setto il registro v0 a 0 (specifiche-success) */
+	processoCorrente->p_s.reg_v0 = 0;
+	/* inserisco il nuovo processo in qualche ready queue */
+	addReady(nuovoProcesso);
 }
 
 /* System Call #2  : Create Brother
@@ -30,6 +50,30 @@ int create_process(state_t *statep, int priority)
  */
 int create_brother(state_t *statep, int priority)
 {
+	/* ottengo il processo corrente */
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* alloco un nuovo processo */
+	pcb_t *nuovoProcesso = allocPcb();
+	/* se non è possibile allocare un nuovo processo */
+	/* o se il processo chiamante non ha un padre */
+	if( (nuovoProcesso == NULL) || (processoCorrente->p_parent == NULL) )
+	{
+		/* setto il registro v0 a -1 (specifiche-failure) */
+		processoCorrente->p_s.reg_v0 = -1;
+		/* riprendo l'esecuzione del processo chiamante */
+		LDST(&(processoCorrente->p_s));
+	}
+	/* altrimenti, se posso allocare il processo */
+	/* copio lo stato nel processo figlio */
+	copyState(statep, &(nuovoProcesso->p_s));
+	/* setto la priorità del nuovo processo */
+	nuovoProcesso->priority = priority;
+	/* inserisco il nuovo processo come FRATELLO del chiamante */
+	insertChild(processoCorrente->p_parent, nuovoProcesso);
+	/* setto il registro v0 a 0 (specifiche-success) */
+	processoCorrente->p_s.reg_v0 = 0;
+	/* inserisco il nuovo processo in qualche ready queue */
+	addReady(nuovoProcesso);	
 }
 
 
@@ -51,14 +95,19 @@ void verhogen(int semKey)
 {
 	/* puntatore al processo rilasciato dal semaforo */
 	pcb_t *processoLiberato;
-	/* libero il processo dal semaforo
-	*processoLiberato = removeBlocked(semKey);
-	if(*processoLiberato != NULL)
+	/* libero il processo dal semaforo */
+	processoLiberato = removeBlocked(semKey);
+	if(processoLiberato != NULL)
 	{
-		 decrementare Soft Block Count 
-		 inserire processo nella Ready Queue del processore più libero
-	 
-	riprendere l'esecuzione del processo che ha chiamato la SYSCALL*/
+		 /* decrementare Soft Block Count */
+		 decreaseSoftProcsCounter( getPRID() ); 
+		 /* inserire processo nella Ready Queue del processore più libero */
+		 addReady(processoLiberato);
+	}
+	/* ottengo il processo corrente */
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* riprendere l'esecuzione del processo che ha chiamato la SYSCALL */
+	LDST(&(processoCorrente->p_s));
 }
 
 
@@ -68,18 +117,19 @@ void verhogen(int semKey)
  */
 void passeren(int semKey)
 {
-	/* processo corrente: processoCorrente */
-	/* inserisco il processo nella coda del semaforo */
-	pcb_t* processoCorrente;
-	if(insertBlocked(semKey, processoCorrente) == FALSE)
+	/* ottengo il processo corrente */ 
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* inserisco il processo nella coda del semaforo */ 
+	if(insertBlocked(semKey, processoCorrente) == FALSE) 
 	{
 		/* incremento Soft Block Count */
-
+		increaseSoftProcsCounter( getPRID() );
 	}
 	else
 	{
 		/* continuo l'esecuzione */
-	}
+		LDST(&(processoCorrente->p_s));
+	} 
 }
 
 
