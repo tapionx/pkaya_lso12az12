@@ -8,13 +8,13 @@
  * poiché le sue aree NON sono all'interno del vettore new_old_areas */
 extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
 
-/* Handler per le System Call */
+/* Handler per le System Call e i Breakpoint */
 /* Invocate da SYSCALL(number, arg1, arg2, arg3); */
 void sysbp_handler()
 {	 
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
-	/* puntatore alla OLD AREA per le SYSCALL/BP */
+	/* salvo il puntatore alla OLD AREA per le SYSCALL/BP dentro ad OLDAREA*/
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
 	/* recupero i parametri della SYSCALL dalla OLDAREA */
 	U32 *num_syscall =  &(OLDAREA->reg_a0);
