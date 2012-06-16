@@ -24,7 +24,8 @@ typedef struct pcb_t {
 	int					p_semkey;
 
 	/* puntatore ad un vettore di handler per le eccezioni custom */
-	state_t *custom_handlers[8];
+	/* è un vettore da 6 perchè gli interrupt non possono essere custom */
+	state_t *custom_handlers[6];
 
 } pcb_t;
 
