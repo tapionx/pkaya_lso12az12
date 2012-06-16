@@ -13,3 +13,7 @@ void initCpus();
  * alla CPU (CPU0 avrà ROM Reserved Frame, le altre un array dedicato) */
 void initAreas();
 
+/* Questa funzione serve per inizializzare la Interrupt Routing Table 
+ * Vogliamo una politica di routing degli interrupt dinamica */
+void initIRT();
+

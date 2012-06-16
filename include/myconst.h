@@ -3,13 +3,28 @@
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
 #define NUM_CPU 4
+#define TIME_SCALE BUS_TIMESCALE
+
+/* Interrupt Delivery Controller Processor Interface Register Map
+ * Sono separate per ogni CPU ma condividono lo stesso address-space */
+#define INBOX_ADDR 0x10000400
+#define OUTBOX_ADDR 0x10000404
+#define TPR_ADDR 0x10000408
+#define BIOS_RES1_ADDR 0x1000040c
+#define BIOS_RES2_ADDR 0x10000410
+
+/* Interrupt Routing Tables (formula pag.61 princOfOperations.pdf) */
+#define DEV_IRT_BASE 0x10000300 /* Linea 2 */
+#define IRT_ENTRY(line,dev) \
+	(line == 2? DEV_IRT_BASE:DEV_IRT_BASE+(WORD_SIZE*((line-2)*8+dev)))
+#define DEFAULT_IRT_MASK 0x100000FF
+
 
 /* Dati riguardanti i pcb_t e lo scheduler */
 #define MAX_PCB_PRIORITY		10
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
-#define TIME_SLICE 5*TIME_SCALE*1000 /* espresso in ms, 1ms = TIME_SCALE*1000 clock_ticks */
-#define TIME_SCALE 1 /* Cambia in base alla frequenza delle CPU (default 1Mhz)*/
+#define TIME_SLICE 5*(*(memaddr *)TIME_SCALE)*1000 /* espresso in ms, 1ms = TIME_SCALE*1000 clock_ticks */
 
 /* Costanti di utilità */
 #define STATUS_TE 0x08000000

@@ -92,7 +92,8 @@ void initReadyQueues(){
 	}
 }
 
-/* Funzione che serve per inizializzare le CPU > 0 */
+/* Funzione che serve per inizializzare le CPU > 0 e avvia su ognuna
+ * lo scheduler */
 void initCpus(){
 	STST(&(pstate[0]));
 	int id;
@@ -100,8 +101,18 @@ void initCpus(){
 		pstate[id].status = getSTATUS();
 		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
 		/* Mi assicuro che non ci sia stack smashing tra gli scheduler */
-		pstate[id].reg_sp = pstate[0].reg_sp - (id*2*FRAME_SIZE);
+		pstate[id].reg_sp = pstate[0].reg_sp - (id*FRAME_SIZE);
 		INITCPU(id, &(pstate[id]), pnew_old_areas[id][0]);
 	}
 }
 
+/* Questa funzione serve per inizializzare la Interrupt Routing Table 
+ * Vogliamo una politica di routing degli interrupt dinamica */
+void initIRT(){
+	int line, dev;
+	for (line=2; line<8; line++)
+		for(dev=0; dev<8; dev++){
+			memaddr *entry = (memaddr *)IRT_ENTRY(line,dev);
+			*entry = DEFAULT_IRT_MASK;
+		}
+}
