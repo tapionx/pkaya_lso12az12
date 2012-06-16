@@ -2,16 +2,23 @@
 /* Da specifica */
 #include "const.h"
 #include "uMPStypes.h"
+#include "pcb.e"
 
 /* Custom */
 #include "utils.h"
 #include "myconst.h"
 #include "handlers.h"
+#include "scheduler.h"
 
+/* Strutture da inizializzare */
+/* KERNEL */
+extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
+extern state_t pstate[NUM_CPU];
+state_t new_old_areas[NUM_CPU][NUM_AREAS];
+/* SCHEDULER */
 extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY];
 
-extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
-state_t new_old_areas[NUM_CPU][NUM_AREAS];
+/*****************************************************************************/
 
 /* Questa funzione si occupa di popolare le New area dell'array preso
  * come parametro. L'array deve essere di puntatori a state_t */
@@ -40,6 +47,8 @@ HIDDEN void populateNewAreas(state_t* areas[]){
 	}
 }
 
+/* Questa funzione si occupa di inizializzare le New/Old area in base
+ * alla CPU (CPU0 avrà ROM Reserved Frame, le altre un array dedicato) */
 void initAreas(){
 	int id;
 	/* Faccio in modo che le aree di CPU0 puntino al Rom Reserved Frame */
@@ -66,8 +75,28 @@ void initAreas(){
 	}
 }
 
+/* Questa funzione inizializza semplicemente tutte le readyQueue di 
+ * tutte le CPU in modo da non incorrere in errori nell'utilizzo delle
+ * funzioni di listx.h */
 void initReadyQueues(){
-	
+	int id, priority;
+	for (id=0; id<NUM_CPU; id++){
+		for (priority=0; priority<MAX_PCB_PRIORITY; priority++){
+			mkEmptyProcQ(&(readyQueue[id][priority]));
+		}
+	}
 }
 
+/* Funzione che serve per inizializzare le CPU > 0 */
+void initCpus(){
+	STST(&(pstate[0]));
+	int id;
+	for (id=1; id<NUM_CPU; id++){
+		pstate[id].status = getSTATUS();
+		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
+		/* Mi assicuro che non ci sia stack smashing tra gli scheduler */
+		pstate[id].reg_sp = pstate[0].reg_sp - (id*2*FRAME_SIZE);
+		INITCPU(id, &(pstate[id]), pnew_old_areas[id][0]);
+	}
+}
 

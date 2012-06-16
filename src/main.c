@@ -18,25 +18,30 @@
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
 
+/* TESTS */
+extern int p1test();
+extern int p2test();
+
 /* Global kernel variables */
 state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
 /******************* MAIN **********************/
+/* DEBUG SCHEDULER */ int key = PASS;
+					extern int globalProcs;
+
 int main(void)
 {		
 	printn("Numero di CPU: %\n", NUM_CPU);
-	
 	/* Inizializzo le new (e old) area di tutte le CPU */
 	initAreas(pnew_old_areas, NUM_CPU);
 	
 	/* Inizializzo le strutture dati di Phase1 */
 	initPcbs();
-	initASL();
-
-	/* Carico i processi nelle readyQueue e richiamo lo scheduler */
-	/* TODO */
+	initASL();	
+	/* DEBUG SCHEDULER */ globalProcs = 4;
+	/* Inizializzo le altre CPU e faccio partire lo scheduler */
+	initCpus();
 	scheduler();
-	
 	return 0;
 }

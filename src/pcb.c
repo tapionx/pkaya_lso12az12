@@ -1,27 +1,9 @@
 #include <pcb.e>
 #include "utils.h"
+#include "myconst.h"
 
 /* Elemento sentinella (dummy) della lista pcbFree */
 LIST_HEAD(pcbFree_h);
-
-
-/* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU */
-void initState(state_t* state)     
-{
-	/* Array di processi con dimensione massima MAXPROC
-	 * Viene acceduta tramite lista globale */
-	HIDDEN pcb_t pcbFree_table[MAXPROC];
-	int i; /* Counter */
-    state->entry_hi = 0;
-    state->cause = 0;
-    state->status = 0;
-    state->pc_epc = 0;
-    /* scorro tutti i registri */
-    for (i = 0; i<29; i++)
-        state->gpr[i] = 0;
-    state->hi = 0;
-    state->lo = 0;
-}
 
 /************ GESTIONE DEI PCB **************/
 
@@ -65,14 +47,14 @@ pcb_t* allocPcb()
    pcb_t* allocPpcb = container_of(pcbFree_h.next, pcb_t, p_next);
    /* Stacco l'elemento dalla lista */
    list_del(pcbFree_h.next);
-   /* Inizializzo il pcb_t puntato da allocPpcb */
+   /* Inizializzo i campi del pcb_t puntato da allocPpcb */
    INIT_LIST_HEAD(&(allocPpcb->p_next));
-   allocPpcb->p_parent = NULL;
    INIT_LIST_HEAD(&(allocPpcb->p_child));
    INIT_LIST_HEAD(&(allocPpcb->p_sib));
+   allocPpcb->p_parent = NULL;
    cleanState(&(allocPpcb->p_s));
-   allocPpcb->priority = 0;
-   allocPpcb->p_semkey = 0;
+   allocPpcb->priority = DEFAULT_PCB_PRIORITY;
+   allocPpcb->p_semkey = -1; /* non è bloccato su alcun semaforo */
    /* Inizializzo il custom handler a NULL */
    int i;
    for(i=0;i<8;i++)

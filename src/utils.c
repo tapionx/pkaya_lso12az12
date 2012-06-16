@@ -231,4 +231,15 @@ void printn(char* s, int n)
     }
 }
 
+/* Trova l'id della CPU con minor workload in un array di procs counter */
+int minWorkloadCpu(int procs[], int size){
+	int i;
+	int min = procs[0];
+	int id = 0;
+	for (i=1; i<size; i++){
+		if (procs[i] < min) min = procs[i];
+		id = i;
+	}
+	return id;
+}
 
