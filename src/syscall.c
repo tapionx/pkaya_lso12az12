@@ -39,6 +39,7 @@ int create_brother(state_t *statep, int priority)
  */
 void terminate_process()
 {
+	/* dealloco ricorsivamente il processo e i figli */
 }
 
 

@@ -30,6 +30,12 @@ pcb_t *getCurrentProc(U32 cpuid)
 	return currentProc[cpuid];
 }
 
+/* Metodo per decrementare il numero di processi della CPU n */
+void decreaseProcsCounter(U32 cpuid)
+{
+	procs[cpuid] -= 1;
+}
+
 
 /****************** IMPLEMENTAZIONE ********************************/
 

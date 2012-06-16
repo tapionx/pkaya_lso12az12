@@ -9,5 +9,7 @@
 
 pcb_t *getCurrentProc(U32 cpuid);
 
+void decreaseProcsCounter(U32 cpuid);
+
 void addReady(pcb_t *proc);
 void scheduler();
