@@ -123,7 +123,7 @@ void specify_prg_state_vector(state_t *oldp, state_t *newp)
 	/* ottengo il processo chiamante */
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = get_currentproc(prid);
+	pcb_t *processoCorrente = getCurrentProc(prid);
 	/* copio i custom handlers */
 	copyState(oldp, processoCorrente->custom_handlers[OLD_TRAP]); 	
 	copyState(newp, processoCorrente->custom_handlers[NEW_TRAP]);
@@ -141,7 +141,7 @@ void specify_tlb_state_vector(state_t *oldp, state_t *newp)
 	/* ottengo il processo chiamante */
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = get_currentproc(prid);
+	pcb_t *processoCorrente = getCurrentProc(prid);
 	/* copio i custom handlers */
 	copyState(oldp, processoCorrente->custom_handlers[OLD_TLB]); 	
 	copyState(newp, processoCorrente->custom_handlers[NEW_TLB]);
@@ -159,7 +159,7 @@ void specify_sys_state_vector(state_t *oldp, state_t *newp)
 	/* ottengo il processo chiamante */
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = get_currentproc(prid);
+	pcb_t *processoCorrente = getCurrentProc(prid);
 	/* copio i custom handlers */
 	copyState(oldp, processoCorrente->custom_handlers[OLD_SYSBP]); 	
 	copyState(newp, processoCorrente->custom_handlers[NEW_SYSBP]);

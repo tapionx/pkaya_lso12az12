@@ -106,7 +106,7 @@ void sysbp_handler()
 		else
 		{
 			/* carico il processo corrente */
-			pcb_t *processoCorrente = get_currentproc(prid);
+			pcb_t *processoCorrente = getCurrentProc(prid);
 			/* controllo se il processo ha un handler custom */
 			if(processoCorrente->custom_handlers[NEW_SYSBP] != NULL)
 			{ 
@@ -136,7 +136,7 @@ void trap_handler()
 	/* ottengo il processo chiamante */
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_TRAP];
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = get_currentproc(prid);
+	pcb_t *processoCorrente = getCurrentProc(prid);
 	/* controllo se il processo ha un handler custom */
 	if(processoCorrente->custom_handlers[NEW_TRAP] != NULL)
 	{ 
@@ -162,7 +162,7 @@ void tlb_handler()
 	/* ottengo il processo chiamante */
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_TLB];
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = get_currentproc(prid);
+	pcb_t *processoCorrente = getCurrentProc(prid);
 	/* controllo se il processo ha un handler custom */
 	if(processoCorrente->custom_handlers[NEW_TLB] != NULL)
 	{ 

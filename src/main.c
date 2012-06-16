@@ -27,8 +27,6 @@ state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
 /******************* MAIN **********************/
-/* DEBUG SCHEDULER */ int key = PASS;
-					extern int globalProcs;
 
 int main(void)
 {		
@@ -43,7 +41,6 @@ int main(void)
 	/* Inizializzo le strutture dati di Phase1 */
 	initPcbs();
 	initASL();	
-	/* DEBUG SCHEDULER */ globalProcs = 4;
 	/* Inizializzo le altre CPU e faccio partire lo scheduler */
 	initCpus();
 	scheduler();

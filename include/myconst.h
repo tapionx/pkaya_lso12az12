@@ -4,11 +4,12 @@
 #define NCPU_ADDR 0x10000500
 #define NUM_CPU 4
 
-/* Dati riguardanti i pcb_t */
+/* Dati riguardanti i pcb_t e lo scheduler */
 #define MAX_PCB_PRIORITY		10
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
-#define TIME_SLICE 5
+#define TIME_SLICE 5*TIME_SCALE*1000 /* espresso in ms, 1ms = TIME_SCALE*1000 clock_ticks */
+#define TIME_SCALE 1 /* Cambia in base alla frequenza delle CPU (default 1Mhz)*/
 
 /* Costanti di utilità */
 #define STATUS_TE 0x08000000

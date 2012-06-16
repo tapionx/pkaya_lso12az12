@@ -7,7 +7,7 @@
 	test_state->pc_epc = test_state->reg_t9 = (memaddr)test1;
 	addReady(test); */
 
-pcb_t *get_currentproc(U32 cpuid);
+pcb_t *getCurrentProc(U32 cpuid);
 
 void addReady(pcb_t *proc);
 void scheduler();

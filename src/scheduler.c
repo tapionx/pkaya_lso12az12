@@ -22,13 +22,13 @@ int initdQueues = FALSE;
 /* Variabili del kernel */
 extern state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
+/* Getter e Setter */
+
 /* Metodo per restituire il processo corrente della cpu N */
-pcb_t *get_currentproc(U32 cpuid)
+pcb_t *getCurrentProc(U32 cpuid)
 {
 	return currentProc[cpuid];
 }
-
-/* Getter e Setter */
 
 
 /****************** IMPLEMENTAZIONE ********************************/
@@ -83,14 +83,18 @@ extern int key;
 
 /* AVVIO DELLO SCHEDULER - Passaggio del controllo */
 void scheduler(){
-	/* DEBUG SCHEDULER */ while(!CAS(&key, PASS, FORBID));
-						printn("Scheduler avviato sulla CPU %!\n", getPRID());
-						globalProcs--;
-						CAS(&key, FORBID, PASS);
-						if (globalProcs == 0) HALT();
-						WAIT();
+	int id = getPRID();
+	/* Innanzitutto se lo scheduler è stato richiamato dalla fine di un
+	 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
+	 * in base alla priorità e tenendo conto dell'aging */
+	if (currentProc[id] != NULL){
+		(currentProc[id]->priority)++;
+		addReady(currentProc[id]);
+	}
+	/* Inizializzo il timer a TIME_SLICE */
+	setTIMER(TIME_SLICE);
+	/* Lancio l'esecuzione del prossimo processo */
 	loadReady();
-	
 }
 
 
