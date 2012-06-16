@@ -183,4 +183,24 @@ void ints_handler()
 	debugs("INTERRUPT!\n");
 	/* DEBUG SCHEDULER */ setTIMER(500000);
 	/* Determina da quale device è arrivato l'interrupt */
+
+	/* CAUSE di Interrupts = I/O terminata da un device
+	 *                       Interval Timer o Local Timer scaduto
+	 * 
+	 * Nel registro Cause.IP c'è la il device che ha fatto Int
+	 * la priorità viene data alla linea minore,
+	 * all'interno della stessa linea, al device minore,
+	 * nei terminali viene data priorità alla scrittura sulla lettura
+	 * 
+	 * OPERAZIONI da effettuare:
+	 * * Acknowledgment dell Interrupt:
+	 * 	  (device) scrivere nel registro del device il comando di ACK
+	 *    (timer)  settare un nuovo valore
+	 * 
+	 * * V sul semaforo associato al device o al timer
+	 * 
+	 * * Qualcosa che non ho capito riguardo bloccante /non bloccante
+	 */
+	 
+	 
 }

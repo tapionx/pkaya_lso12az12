@@ -2,6 +2,10 @@
 #include "types11.h"
 #include "pcb.e"
 #include "asl.e"
+#include "myconst.h"
+#include "scheduler.h"
+
+extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
 
 /* Handlers delle 11 System Call */
 
@@ -107,34 +111,56 @@ int wait_io(int intNo, int dnum, int waitForTermRead)
 {
 }
 
-
 /* System Call #9  : Specify PRG State Vector
  * definire handler personalizzato per Program Trap per il processo corrente
- * oldp = indirizzo della OLDArea in cui salvare l' handler corrente
- * newp = indirizzo della NEWArea in cui salvare il nuovo handler
+ * oldp = indirizzo della custom OLDAREA
+ * newp = indirizzo della custom NEWAREA
  */
 void specify_prg_state_vector(state_t *oldp, state_t *newp)
 {
+	/* ottengo il processore corrente */
+	U32 prid = getPRID();
+	/* ottengo il processo chiamante */
+	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
+	/* carico il processo corrente */
+	pcb_t *processoCorrente = get_currentproc(prid);
+	/* copio i custom handlers */
+	copyState(oldp, processoCorrente->custom_handlers[OLD_TRAP]); 	
+	copyState(newp, processoCorrente->custom_handlers[NEW_TRAP]);
 }
-
 
 /* System Call #10 : Specify TLB State Vector
  * definire handler personalizzato per TLB Exception per il processo corrente
- * oldp = indirizzo della OLDArea in cui salvare l' handler corrente
- * newp = indirizzo della NEWArea in cui salvare il nuovo handler
+ * oldp = indirizzo della custom OLDAREA
+ * newp = indirizzo della custom NEWAREA
  */
 void specify_tlb_state_vector(state_t *oldp, state_t *newp)
 {
+	/* ottengo il processore corrente */
+	U32 prid = getPRID();
+	/* ottengo il processo chiamante */
+	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
+	/* carico il processo corrente */
+	pcb_t *processoCorrente = get_currentproc(prid);
+	/* copio i custom handlers */
+	copyState(oldp, processoCorrente->custom_handlers[OLD_TLB]); 	
+	copyState(newp, processoCorrente->custom_handlers[NEW_TLB]);
 }
-
 
 /* System Call #11 : Specify SYS State Vector
  * definire handler personalizzato per SYSCALL/BreakPoint per il processo corrente
- * oldp = indirizzo della OLDArea in cui salvare l' handler corrente
- * newp = indirizzo della NEWArea in cui salvare il nuovo handler
+ * oldp = indirizzo della custom OLDAREA
+ * newp = indirizzo della custom NEWAREA
  */
 void specify_sys_state_vector(state_t *oldp, state_t *newp)
 {
+	/* ottengo il processore corrente */
+	U32 prid = getPRID();
+	/* ottengo il processo chiamante */
+	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
+	/* carico il processo corrente */
+	pcb_t *processoCorrente = get_currentproc(prid);
+	/* copio i custom handlers */
+	copyState(oldp, processoCorrente->custom_handlers[OLD_SYSBP]); 	
+	copyState(newp, processoCorrente->custom_handlers[NEW_SYSBP]);
 }
-
-
