@@ -113,7 +113,7 @@ void sysbp_handler()
 				/* copio il processo chiamante nella OLD Area custom */
 				copyState(OLDAREA, processoCorrente->custom_handlers[OLD_SYSBP]); 
 				/* chiamo l'handler custom */
-				
+				LDST(processoCorrente->custom_handlers[NEW_SYSBP]);
 			}
 			/* altrimenti elimino il processo e tutti i figli */
 			else
@@ -143,7 +143,7 @@ void trap_handler()
 		/* copio il processo chiamante nella OLD Area custom */
 		copyState(OLDAREA, processoCorrente->custom_handlers[OLD_TRAP]); 
 		/* chiamo l'handler custom */
-		
+		LDST(processoCorrente->custom_handlers[NEW_TRAP]);
 	}
 	/* altrimenti elimino il processo e tutti i figli */
 	else
@@ -169,7 +169,7 @@ void tlb_handler()
 		/* copio il processo chiamante nella OLD Area custom */
 		copyState(OLDAREA, processoCorrente->custom_handlers[OLD_TLB]); 
 		/* chiamo l'handler custom */
-		
+		LDST(processoCorrente->custom_handlers[NEW_TLB]);
 	}
 	/* altrimenti elimino il processo e tutti i figli */
 	else
