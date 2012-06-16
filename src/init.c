@@ -22,11 +22,12 @@ extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY];
 
 /* Questa funzione si occupa di popolare le New area dell'array preso
  * come parametro. L'array deve essere di puntatori a state_t */
-HIDDEN void populateNewAreas(state_t* areas[]){
+HIDDEN void populateNewAreas(int cpuid){
 	int id;
+	state_t **areas = pnew_old_areas[cpuid]; 
 	U32 defaultStatus = (STATUS_TE)&~(STATUS_VMc|STATUS_KUc|STATUS_INT_UNMASKED);
 	for (id=0; id<NUM_AREAS; id+=2){ /* Le New area sono in pos pari */
-		areas[id]->reg_sp = RAMTOP-(id*FRAME_SIZE); /* No smashed stack */
+		areas[id]->reg_sp = RAMTOP-(cpuid*FRAME_SIZE); /* No smashed stack */
 		areas[id]->status = defaultStatus;
 		switch(id){
 			case NEW_SYSBP:
@@ -60,6 +61,7 @@ void initAreas(){
 	pnew_old_areas[0][OLD_TLB] = (state_t*)TLB_OLDAREA;
 	pnew_old_areas[0][NEW_INTS] = (state_t*)INT_NEWAREA;
 	pnew_old_areas[0][OLD_INTS] = (state_t*)INT_OLDAREA;
+	populateNewAreas(0);
 	/* Faccio puntare le aree delle altre CPU all'array dichiarato */
 	for(id=1;id<NUM_CPU;id++){
 		pnew_old_areas[id][NEW_SYSBP] = &(new_old_areas[id][NEW_SYSBP]);
@@ -71,7 +73,7 @@ void initAreas(){
 		pnew_old_areas[id][NEW_INTS] = &(new_old_areas[id][NEW_INTS]);
 		pnew_old_areas[id][OLD_INTS] = &(new_old_areas[id][OLD_INTS]);
 		/* Populo tutte le new area della CPU id */
-		populateNewAreas(pnew_old_areas[id]);
+		populateNewAreas(id);
 	}
 }
 

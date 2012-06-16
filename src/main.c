@@ -32,10 +32,14 @@ state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
 int main(void)
 {		
+	/* PERCHÉ SE ABILITO IL TIMER STO CAZZO DI PROCESSORE VA IN
+	 * KERNEL PANIC?? EH?? CAZZO! SONO LE 6:35 E ANCORA NON HO CAPITO
+	 * PERCHÉ! PORCA TROIA! */
+	int status = getSTATUS();
+	setSTATUS(status|STATUS_IEp|STATUS_IEc|STATUS_TE);
 	printn("Numero di CPU: %\n", NUM_CPU);
 	/* Inizializzo le new (e old) area di tutte le CPU */
 	initAreas(pnew_old_areas, NUM_CPU);
-	
 	/* Inizializzo le strutture dati di Phase1 */
 	initPcbs();
 	initASL();	

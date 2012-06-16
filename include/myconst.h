@@ -8,6 +8,7 @@
 #define MAX_PCB_PRIORITY		10
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
+#define TIME_SLICE 5
 
 /* Costanti di utilità */
 #define STATUS_TE 0x08000000

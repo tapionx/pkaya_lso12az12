@@ -124,5 +124,7 @@ void tlb_handler()
 
 void ints_handler()
 {
+	debugs("INTERRUPT!\n");
+	/* DEBUG SCHEDULER */ setTIMER(500000);
 	/* Determina da quale device è arrivato l'interrupt */
 }
