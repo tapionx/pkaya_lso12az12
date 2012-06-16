@@ -197,9 +197,9 @@ void ints_handler()
 	 * 	  (device) scrivere nel registro del device il comando di ACK
 	 *    (timer)  settare un nuovo valore
 	 * 
-	 * * V sul semaforo associato al device o al timer
+	 * * V sul semaforo associato al device o al timer, restituire lo stato del device al processo
 	 * 
-	 * * Qualcosa che non ho capito riguardo bloccante /non bloccante
+	 * * Se la V non sblocca nessun processo, salviamo lo stato del device (interrupt anticipato, ovvero SYS8 ritardata rispetto al compl. dell' 		 *   interrupt)
 	 */
 	 
 	 
