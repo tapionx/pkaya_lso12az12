@@ -16,6 +16,10 @@ void sysbp_handler()
 	U32 prid = getPRID();
 	/* salvo il puntatore alla OLD AREA per le SYSCALL/BP dentro ad OLDAREA*/
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
+	/* incremento il PC del processo chiamante, per evitare loop */
+	/* in questo caso non serve aggiornare anche t9 */
+	/* (pag 28, 3.7.2 Student Guide) */
+	OLDAREA->pc_epc += WORD_SIZE; /* 4 */
 	/* recupero i parametri della SYSCALL dalla OLDAREA */
 	U32 *num_syscall =  &(OLDAREA->reg_a0);
 	U32 *arg1 		 =  &(OLDAREA->reg_a1);
@@ -114,12 +118,16 @@ void sysbp_handler()
 
 void trap_handler()
 {
-
+	/* se il processo ha dichiarato un handler per Program Trap
+	 * lo eseguo, altrimenti killo il processo e tutta la progenie
+	 */
 }
 
 void tlb_handler()
 {
-
+	/* se il processo ha dichiarato un handler per TLB Exeption
+	 * lo eseguo, altrimenti killo il processo e tutta la progenie
+	 */
 }
 
 void ints_handler()
