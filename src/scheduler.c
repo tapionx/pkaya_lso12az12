@@ -22,6 +22,12 @@ int initdQueues = FALSE;
 /* Variabili del kernel */
 extern state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
+/* Metodo per restituire il processo corrente della cpu N */
+pcb_t *get_currentproc(U32 cpuid)
+{
+	return currentProc[cpuid];
+}
+
 /* Getter e Setter */
 
 

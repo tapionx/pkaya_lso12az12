@@ -3,6 +3,8 @@
 #include "uMPStypes.h"
 #include "handlers.h"
 #include "utils.h"
+#include "types11.h"
+#include "scheduler.h"
 
 /* Bisogna agire tramite puntatori altrimenti CPU0 rimane esclusa 
  * poiché le sue aree NON sono all'interno del vettore new_old_areas */
@@ -14,7 +16,7 @@ void sysbp_handler()
 {	 
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
-	/* salvo il puntatore alla OLD AREA per le SYSCALL/BP dentro ad OLDAREA*/
+	/* recupero il processo chiamante */
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_SYSBP];
 	/* incremento il PC del processo chiamante, per evitare loop */
 	/* in questo caso non serve aggiornare anche t9 */
@@ -104,20 +106,50 @@ void sysbp_handler()
 		else
 		{
 			/* carico il processo corrente */
-			/* controllo se il processo ha un handler custom */ 
+			pcb_t *processoCorrente = get_currentproc(prid);
+			/* controllo se il processo ha un handler custom */
+			if(processoCorrente->custom_handlers[NEW_SYSBP] != NULL)
+			{ 
 				/* copio il processo chiamante nella OLD Area custom */
-				/* chiamo l'handler custom */ 
-
+				copyState(OLDAREA, processoCorrente->custom_handlers[OLD_SYSBP]); 
+				/* chiamo l'handler custom */
+				
+			}
 			/* altrimenti elimino il processo e tutti i figli */
+			else
+			{
+				terminate_process();
+			}	
 		}
 	}
 }
 
 void trap_handler()
 {
+	
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
 	 */
+	
+	/* ottengo il processore corrente */
+	U32 prid = getPRID();
+	/* ottengo il processo chiamante */
+	state_t *OLDAREA = pnew_old_areas[prid][OLD_TRAP];
+	/* carico il processo corrente */
+	pcb_t *processoCorrente = get_currentproc(prid);
+	/* controllo se il processo ha un handler custom */
+	if(processoCorrente->custom_handlers[NEW_TRAP] != NULL)
+	{ 
+		/* copio il processo chiamante nella OLD Area custom */
+		copyState(OLDAREA, processoCorrente->custom_handlers[OLD_TRAP]); 
+		/* chiamo l'handler custom */
+		
+	}
+	/* altrimenti elimino il processo e tutti i figli */
+	else
+	{
+		terminate_process();
+	}	
 }
 
 void tlb_handler()
@@ -125,6 +157,25 @@ void tlb_handler()
 	/* se il processo ha dichiarato un handler per TLB Exeption
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
 	 */
+	/* ottengo il processore corrente */
+	U32 prid = getPRID();
+	/* ottengo il processo chiamante */
+	state_t *OLDAREA = pnew_old_areas[prid][OLD_TLB];
+	/* carico il processo corrente */
+	pcb_t *processoCorrente = get_currentproc(prid);
+	/* controllo se il processo ha un handler custom */
+	if(processoCorrente->custom_handlers[NEW_TLB] != NULL)
+	{ 
+		/* copio il processo chiamante nella OLD Area custom */
+		copyState(OLDAREA, processoCorrente->custom_handlers[OLD_TLB]); 
+		/* chiamo l'handler custom */
+		
+	}
+	/* altrimenti elimino il processo e tutti i figli */
+	else
+	{
+		terminate_process();
+	}	
 }
 
 void ints_handler()
