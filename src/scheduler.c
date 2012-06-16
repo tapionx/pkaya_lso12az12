@@ -36,6 +36,18 @@ void decreaseProcsCounter(U32 cpuid)
 	procs[cpuid] -= 1;
 }
 
+/* Metodo per decrementare il soft block count della CPU n */
+void decreaseSoftProcsCounter(U32 cpuid)
+{
+	softProcs[cpuid] -= 1;
+}
+
+/* Metodo per incrementare il soft block count della CPU n */
+void increaseSoftProcsCounter(U32 cpuid)
+{
+	softProcs[cpuid] += 1;
+}
+
 
 /****************** IMPLEMENTAZIONE ********************************/
 

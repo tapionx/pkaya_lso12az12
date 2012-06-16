@@ -51,14 +51,19 @@ void verhogen(int semKey)
 {
 	/* puntatore al processo rilasciato dal semaforo */
 	pcb_t *processoLiberato;
-	/* libero il processo dal semaforo
-	*processoLiberato = removeBlocked(semKey);
-	if(*processoLiberato != NULL)
+	/* libero il processo dal semaforo */
+	processoLiberato = removeBlocked(semKey);
+	if(processoLiberato != NULL)
 	{
-		 decrementare Soft Block Count 
-		 inserire processo nella Ready Queue del processore più libero
-	 
-	riprendere l'esecuzione del processo che ha chiamato la SYSCALL*/
+		 /* decrementare Soft Block Count */
+		 decreaseSoftProcsCounter( getPRID() ); 
+		 /* inserire processo nella Ready Queue del processore più libero */
+		 addReady(processoLiberato);
+	}
+	/* ottengo il processo corrente */
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* riprendere l'esecuzione del processo che ha chiamato la SYSCALL */
+	LDST(&(processoCorrente->p_s));
 }
 
 
@@ -68,18 +73,19 @@ void verhogen(int semKey)
  */
 void passeren(int semKey)
 {
-	/* processo corrente: processoCorrente */
-	/* inserisco il processo nella coda del semaforo */
-	pcb_t* processoCorrente;
-	if(insertBlocked(semKey, processoCorrente) == FALSE)
+	/* ottengo il processo corrente */ 
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* inserisco il processo nella coda del semaforo */ 
+	if(insertBlocked(semKey, processoCorrente) == FALSE) 
 	{
 		/* incremento Soft Block Count */
-
+		increaseSoftProcsCounter( getPRID() );
 	}
 	else
 	{
 		/* continuo l'esecuzione */
-	}
+		LDST(&(processoCorrente->p_s));
+	} 
 }
 
 
