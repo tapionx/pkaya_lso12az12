@@ -50,7 +50,30 @@ int create_process(state_t *statep, int priority)
  */
 int create_brother(state_t *statep, int priority)
 {
-	
+	/* ottengo il processo corrente */
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* alloco un nuovo processo */
+	pcb_t *nuovoProcesso = allocPcb();
+	/* se non è possibile allocare un nuovo processo */
+	/* o se il processo chiamante non ha un padre */
+	if( (nuovoProcesso == NULL) || (processoCorrente->p_parent == NULL) )
+	{
+		/* setto il registro v0 a -1 (specifiche-failure) */
+		processoCorrente->p_s.reg_v0 = -1;
+		/* riprendo l'esecuzione del processo chiamante */
+		LDST(&(processoCorrente->p_s));
+	}
+	/* altrimenti, se posso allocare il processo */
+	/* copio lo stato nel processo figlio */
+	copyState(statep, &(nuovoProcesso->p_s));
+	/* setto la priorità del nuovo processo */
+	nuovoProcesso->priority = priority;
+	/* inserisco il nuovo processo come FRATELLO del chiamante */
+	insertChild(processoCorrente->p_parent, nuovoProcesso);
+	/* setto il registro v0 a 0 (specifiche-success) */
+	processoCorrente->p_s.reg_v0 = 0;
+	/* inserisco il nuovo processo in qualche ready queue */
+	addReady(nuovoProcesso);	
 }
 
 
