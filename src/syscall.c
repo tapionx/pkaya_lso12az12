@@ -34,6 +34,8 @@ int create_process(state_t *statep, int priority)
 	copyState(statep, &(nuovoProcesso->p_s));
 	/* setto la priorità del nuovo processo */
 	nuovoProcesso->priority = priority;
+	/* inserisco il nuovo processo come figlio del chiamante */
+	insertChild(processoCorrente, nuovoProcesso);
 	/* setto il registro v0 a 0 (specifiche-success) */
 	processoCorrente->p_s.reg_v0 = 0;
 	/* inserisco il nuovo processo in qualche ready queue */
@@ -48,6 +50,7 @@ int create_process(state_t *statep, int priority)
  */
 int create_brother(state_t *statep, int priority)
 {
+	
 }
 
 
