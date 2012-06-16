@@ -22,10 +22,10 @@ void sysbp_handler()
 	U32 *arg2		 =  &(OLDAREA->reg_a2);
 	U32 *arg3		 =  &(OLDAREA->reg_a3);
 
-	/* recupero lo stato */
+	/* recupero lo stato (kernel-mode o user-mode) */
 	U32 *old_status = &(OLDAREA->status);
 	
-	/* recupero la causa */
+	/* recupero la causa (tipo di eccezione sollevato) */
 	U32 *old_cause = &(OLDAREA->cause);
 
 	/* se il processo era in user mode */
