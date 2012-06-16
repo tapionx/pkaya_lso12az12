@@ -130,7 +130,6 @@ void trap_handler()
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
 	 */
-	
 	/* ottengo il processore corrente */
 	U32 prid = getPRID();
 	/* ottengo il processo chiamante */
@@ -180,9 +179,8 @@ void tlb_handler()
 
 void ints_handler()
 {
-	debugs("INTERRUPT!\n");
-	/* DEBUG SCHEDULER */ setTIMER(500000);
-	/* Determina da quale device è arrivato l'interrupt */
+
+	
 
 	/* CAUSE di Interrupts = I/O terminata da un device
 	 *                       Interval Timer o Local Timer scaduto

@@ -35,14 +35,23 @@ int main(void)
 	 * PERCHÉ! PORCA TROIA! */
 	int status = getSTATUS();
 	setSTATUS(status|STATUS_IEp|STATUS_IEc|STATUS_TE);
-	printn("Numero di CPU: %\n", NUM_CPU);
+	printn("Numero di CPU installate: %\n", NUM_CPU);
 	/* Inizializzo le new (e old) area di tutte le CPU */
+	debugs("Inizializzo le New area per ogni CPU > 0\n");
 	initAreas(pnew_old_areas, NUM_CPU);
 	/* Inizializzo le strutture dati di Phase1 */
+	debugs("Inizializzo le strutture dati di phase1\n");
 	initPcbs();
 	initASL();	
+	/* Inizializzo la Interrupt Routing Table */
+	debugs("Inizializzo la IRT (dinamica)\n");
+	initIRT();
 	/* Inizializzo le altre CPU e faccio partire lo scheduler */
+	debugs("Inizializzo le altre CPU installate\n");
 	initCpus();
+	WAIT();
+	/* Avvio lo scheduler su CPU0 */
+	debugs("Avvio lo scheduler\n");
 	scheduler();
 	return 0;
 }

@@ -73,6 +73,10 @@ void loadReady(){
 			pcb_t *torun = removeProcQ(&(readyQueue[id][nqueue]));
 			(readyProcs[id][nqueue])--;
 			currentProc[id] = torun;
+			/* Aggiorno il TPR della CPU */
+			memaddr *TPR = (memaddr *)TPR_ADDR;
+			*TPR = torun->priority;
+			/* Lancio il nuovo processo */
 			LDST(&(torun->p_s));	
 			/* NOTA: ogni volta che un processo viene interrotto per la
 			 * fine del suo timeslice è necessario, nell'handler
@@ -89,6 +93,7 @@ extern int key;
 
 /* AVVIO DELLO SCHEDULER - Passaggio del controllo */
 void scheduler(){
+	WAIT();
 	int id = getPRID();
 	/* Innanzitutto se lo scheduler è stato richiamato dalla fine di un
 	 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
@@ -97,6 +102,7 @@ void scheduler(){
 		(currentProc[id]->priority)++;
 		addReady(currentProc[id]);
 	}
+	
 	/* Inizializzo il timer a TIME_SLICE */
 	setTIMER(TIME_SLICE);
 	/* Lancio l'esecuzione del prossimo processo */
