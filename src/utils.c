@@ -63,17 +63,17 @@ void cleanState(state_t* state)
     state->lo = 0;
 }
 
-/* Funzione che serve per copiare il secondo state_t nel primo */
+/* Funzione che serve per copiare il primo state_t nel secondo */
 void copyState(state_t *s1, state_t *s2){
 	int i;
-	s1->entry_hi = s2->entry_hi;
-	s1->cause = s2->cause;
-	s1->pc_epc = s2->pc_epc;
+	s2->entry_hi = s1->entry_hi;
+	s2->cause = s1->cause;
+	s2->pc_epc = s1->pc_epc;
 	for (i=0; i<29; i++){
-		s1->gpr[i] = s2->gpr[i];
+		s2->gpr[i] = s1->gpr[i];
 	}
-	s1->hi = s2->hi;
-	s1->lo = s2->lo;
+	s2->hi = s1->hi;
+	s2->lo = s1->lo;
 }
 
 /* Funzione ausiliaria per inizializzare un pcb_t con gli argomenti 

@@ -37,7 +37,7 @@ void sysbp_handler()
 	{
 		/* gestisci user mode */
 		/* copiare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
-		copyState(pnew_old_areas[prid][OLD_TRAP], pnew_old_areas[prid][OLD_SYSBP]); 
+		copyState(pnew_old_areas[prid][OLD_SYSBP], pnew_old_areas[prid][OLD_TRAP]); 
 		/* settare Cause a 10 : Reserved Instruction Exception*/
 		pnew_old_areas[prid][OLD_TRAP]->cause = EXC_RESERVEDINSTR;
 		/* sollevare PgmTrap, se la sbriga lui */
@@ -103,15 +103,12 @@ void sysbp_handler()
 		/* se il kernel non può gestire questa eccezione */
 		else
 		{
-			/* controllo se il processo ha un handler custom 
-			if(*currentproc[prid]->custom_handlers[NEW_SYSBP] != NULL) 
-			{
-				
-			}
-			 altrimenti elimino il processo e tutti i figli 
-			else
-				terminate_process();
-		    */
+			/* carico il processo corrente */
+			/* controllo se il processo ha un handler custom */ 
+				/* copio il processo chiamante nella OLD Area custom */
+				/* chiamo l'handler custom */ 
+
+			/* altrimenti elimino il processo e tutti i figli */
 		}
 	}
 }
