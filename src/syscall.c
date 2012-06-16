@@ -83,7 +83,19 @@ int create_brother(state_t *statep, int priority)
  */
 void terminate_process()
 {
-	/* dealloco ricorsivamente il processo e i figli */
+	/* ottengo il processore corrente*/
+	U32 prid = getPRID();
+	/* ottengo il processo corrente */
+	pcb_t *processoCorrente = getCurrentProc(prid);
+	/* elimino il processo e tutti i figli da tutti i semafori */
+	outChildBlocked(processoCorrente);
+
+	/*
+	 * A questo punto dobbiamo eliminare il processo e tutti i figli
+	 * ma i figli dove sono sparsi? In ogni possibile ready queue
+	 * di ogni processore......
+	 * come fare?
+	 */
 }
 
 
