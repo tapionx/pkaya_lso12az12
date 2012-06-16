@@ -17,6 +17,7 @@ extern state_t pstate[NUM_CPU];
 state_t new_old_areas[NUM_CPU][NUM_AREAS];
 /* SCHEDULER */
 extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY];
+extern pcb_t *currentProc[NUM_CPU];
 
 /*****************************************************************************/
 
@@ -86,6 +87,8 @@ void initReadyQueues(){
 		for (priority=0; priority<MAX_PCB_PRIORITY; priority++){
 			mkEmptyProcQ(&(readyQueue[id][priority]));
 		}
+		/* Inizializzo anche il vettore dei currentProcess */
+		currentProc[id] = NULL;
 	}
 }
 

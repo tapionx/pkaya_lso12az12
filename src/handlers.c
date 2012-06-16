@@ -106,7 +106,7 @@ void sysbp_handler()
 		else
 		{
 			/* carico il processo corrente */
-			pcb_t *processoCorrente = get_currentproc(prid);
+			pcb_t *processoCorrente = getCurrentProc(prid);
 			/* controllo se il processo ha un handler custom */
 			if(processoCorrente->custom_handlers[NEW_SYSBP] != NULL)
 			{ 
@@ -136,7 +136,7 @@ void trap_handler()
 	/* ottengo il processo chiamante */
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_TRAP];
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = get_currentproc(prid);
+	pcb_t *processoCorrente = getCurrentProc(prid);
 	/* controllo se il processo ha un handler custom */
 	if(processoCorrente->custom_handlers[NEW_TRAP] != NULL)
 	{ 
@@ -162,7 +162,7 @@ void tlb_handler()
 	/* ottengo il processo chiamante */
 	state_t *OLDAREA = pnew_old_areas[prid][OLD_TLB];
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = get_currentproc(prid);
+	pcb_t *processoCorrente = getCurrentProc(prid);
 	/* controllo se il processo ha un handler custom */
 	if(processoCorrente->custom_handlers[NEW_TLB] != NULL)
 	{ 
@@ -197,9 +197,9 @@ void ints_handler()
 	 * 	  (device) scrivere nel registro del device il comando di ACK
 	 *    (timer)  settare un nuovo valore
 	 * 
-	 * * V sul semaforo associato al device o al timer
+	 * * V sul semaforo associato al device o al timer, restituire lo stato del device al processo
 	 * 
-	 * * Qualcosa che non ho capito riguardo bloccante /non bloccante
+	 * * Se la V non sblocca nessun processo, salviamo lo stato del device (interrupt anticipato, ovvero SYS8 ritardata rispetto al compl. dell' 		 *   interrupt)
 	 */
 	 
 	 
