@@ -61,6 +61,8 @@ pcb_t* allocPcb()
    {
 		allocPpcb->custom_handlers[i] = NULL;
    }
+   /* Inizializzo il tempo CPU a 0 */
+   allocPpcb->cpu_time = 0;
    /* Ritorno il puntatore al pcb_t */
    return allocPpcb;
 }

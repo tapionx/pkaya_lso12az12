@@ -149,7 +149,7 @@ void passeren(int semKey)
  * restituisce il tempo CPU usato dal processo in millisecondi
  * -> IL KERNEL DEVE TENERE LA CONTABILITA DEL TEMPO CPU DEI PROCESSI
  */
-int get_cpu_time() /* FIXME deve restituire cpu_t, dove è dichiarato? */
+cpu_time get_cpu_time()
 {
 }
 

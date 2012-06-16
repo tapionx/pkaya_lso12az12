@@ -4,6 +4,8 @@
 #include <uMPStypes.h>
 #include <listx.h>
 
+typedef U32 cpu_time;
+
 // Process Control Block (PCB) data structure
 typedef struct pcb_t {
 	/*process queue fields */
@@ -25,7 +27,10 @@ typedef struct pcb_t {
 
 	/* puntatore ad un vettore di handler per le eccezioni custom */
 	/* è un vettore da 6 perchè gli interrupt non possono essere custom */
-	state_t *custom_handlers[6];
+	state_t 			*custom_handlers[6];
+	
+	/* tempo di esecuzione del processo */
+	cpu_time			cpu_time;
 
 } pcb_t;
 
