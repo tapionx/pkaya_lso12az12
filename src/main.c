@@ -27,8 +27,8 @@ int main(void)
 {		
 	printn("Numero di CPU: %\n", NUM_CPU);
 	
-	/* Inizializzo le new area di tutte le CPU */
-	initNewAreas(pnew_old_areas, NUM_CPU);
+	/* Inizializzo le new (e old) area di tutte le CPU */
+	initAreas(pnew_old_areas, NUM_CPU);
 	
 	/* Inizializzo le strutture dati di Phase1 */
 	initPcbs();
