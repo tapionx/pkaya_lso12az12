@@ -26,7 +26,7 @@ format :
 # core and stab from the kernel elf file
 kernel : all
 	@echo "\n\n************ CREATING THE KERNEL ************\n\n"
-	-mkdir bin kernel 
+	-mkdir -p bin kernel 
 	umps2-elf2umps -k $(KERNELELF)
 	-mv ./bin/*.umps ./kernel/
 	@echo "\nFinished creating the core and symbol table files! CHECK FOR ERRORS BEFORE EXECUTING!\n"
@@ -34,7 +34,7 @@ kernel : all
 	
 # Joins the obj files to create the kernel elf
 kernelelf : source
-	-mkdir bin
+	-mkdir -p bin
 	mipsel-linux-ld -T $(LDSCRIPT) $(MODULES)/*.o $(MODULES)/umps2/*.o -o $(KERNELELF)
 	@echo "\nFinished creating the kernel elf file! CHECK FOR ERRORS CONVERTING IT INTO CORE AND STAB FILES!\n"
 	
