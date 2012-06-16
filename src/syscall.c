@@ -9,8 +9,6 @@ extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
 
 /* Handlers delle 11 System Call */
 
-
-
 /* System Call #1  : Create Process
  * genera un processo figlio del processo chiamante
  * statep   = indirizzo fisico del nuovo processo
@@ -19,7 +17,27 @@ extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
  */
 int create_process(state_t *statep, int priority)
 {
-
+	/* ottengo il processo corrente */
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* alloco un nuovo processo */
+	pcb_t *nuovoProcesso = allocPcb();
+	/* se non è possibile allocare un nuovo processo */
+	if(nuovoProcesso == NULL)
+	{
+		/* setto il registro v0 a -1 (specifiche-failure) */
+		processoCorrente->p_s.reg_v0 = -1;
+		/* riprendo l'esecuzione del processo chiamante */
+		LDST(&(processoCorrente->p_s));
+	}
+	/* altrimenti, se posso allocare il processo */
+	/* copio lo stato nel processo figlio */
+	copyState(statep, &(nuovoProcesso->p_s));
+	/* setto la priorità del nuovo processo */
+	nuovoProcesso->priority = priority;
+	/* setto il registro v0 a 0 (specifiche-success) */
+	processoCorrente->p_s.reg_v0 = 0;
+	/* inserisco il nuovo processo in qualche ready queue */
+	addReady(nuovoProcesso);
 }
 
 /* System Call #2  : Create Brother
