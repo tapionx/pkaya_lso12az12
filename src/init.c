@@ -113,6 +113,8 @@ void initIRT(){
 	for (line=2; line<8; line++)
 		for(dev=0; dev<8; dev++){
 			memaddr *entry = (memaddr *)IRT_ENTRY(line,dev);
-			*entry = DEFAULT_IRT_MASK;
+			/* Devo abilitare la IRT dinamica e solo le CPU installate! */
+			*entry = DYN_IRT_MASK+pow(2, NUM_CPU)-1;
 		}
+	
 }

@@ -179,10 +179,54 @@ void tlb_handler()
 
 void ints_handler()
 {
+	/* Determino da quale linea proviene l'interrupt 
+	 * NOTA: Ogni gestione dovrebbe avvenire in mutua esclusione
+	 * per evitare che due CPU, che ricevano un interrupt, inizino
+	 * a risolvere lo stesso interrupt (quello con maggiore priorità)
+	 * NOTA2: Sappiamo che se ci sono più interrupt pending verranno
+	 * tutti risolti prima di ritornare al processo in esecuzione in 
+	 * origine. Comunque conviene dare un return dopo ogni caso in modo
+	 * da schedulare convenientemente la risoluzione alla CPU più idonea
+	 * */
+	int cause = getCAUSE();
+	if (CAUSE_IP_GET(cause, INT_PLT)){
+		/* Fine del TIME_SLICE */
+		state_t temp;
+		STST(&temp);
+		temp.pc_epc = temp.reg_t9 = (memaddr)scheduler;
+		/* Ripasso il controllo allo scheduler */
+		LDST(&temp);
+		return;
+	}	
+	if (CAUSE_IP_GET(cause, INT_TIMER)){
+		/* pseudo-clock */
+		return;
+	}
+	if (CAUSE_IP_GET(cause, INT_DISK)){
+		
+		return;
+	}
+	if (CAUSE_IP_GET(cause, INT_TAPE)){
+		
+		return;
+	}
+	if (CAUSE_IP_GET(cause, INT_UNUSED)){
+		/* Network */
+		return;
+	}
+	if (CAUSE_IP_GET(cause, INT_PRINTER)){
+		
+		return;
+	}
+	if (CAUSE_IP_GET(cause, INT_TERMINAL)){
+		/* ATTENZIONE ai subdevice! */
+		return;
+	}
+	 	
+}
 
-	
 
-	/* CAUSE di Interrupts = I/O terminata da un device
+/* CAUSE di Interrupts = I/O terminata da un device
 	 *                       Interval Timer o Local Timer scaduto
 	 * 
 	 * Nel registro Cause.IP c'è la il device che ha fatto Int
@@ -199,6 +243,3 @@ void ints_handler()
 	 * 
 	 * * Se la V non sblocca nessun processo, salviamo lo stato del device (interrupt anticipato, ovvero SYS8 ritardata rispetto al compl. dell' 		 *   interrupt)
 	 */
-	 
-	 
-}

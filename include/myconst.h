@@ -17,7 +17,10 @@
 #define DEV_IRT_BASE 0x10000300 /* Linea 2 */
 #define IRT_ENTRY(line,dev) \
 	(line == 2? DEV_IRT_BASE:DEV_IRT_BASE+(WORD_SIZE*((line-2)*8+dev)))
-#define DEFAULT_IRT_MASK 0x100000FF
+#define DYN_IRT_MASK 0x10000000 
+
+/* Interrupt Lines (custom) */
+#define INT_PLT 1
 
 
 /* Dati riguardanti i pcb_t e lo scheduler */

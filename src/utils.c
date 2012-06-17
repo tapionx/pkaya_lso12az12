@@ -243,3 +243,13 @@ int minWorkloadCpu(int procs[], int size){
 	return id;
 }
 
+/* Elevamento a potenza tra interi */
+int pow(int b, int e){
+	int i, res = b;
+	if (e < 0 || b <= 0) return 0; /* error, no floating point support */
+	for (i=1; i<e; i++){
+		res *= b;
+	}
+	
+	return res;
+}

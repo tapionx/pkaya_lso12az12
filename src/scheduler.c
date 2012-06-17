@@ -65,9 +65,12 @@ void addReady(pcb_t *proc){
 	procs[id]++;
 	globalProcs++;
 	/* Aggiorno la tabella delle readyQueue */
-	readyProcs[id][proc->priority];	 	 
+	readyProcs[id][proc->priority]++;	 	 
 	/* Inserisco il pcb_t passato nella readyQueue della CPU id */
 	insertProcQ(&(readyQueue[id][proc->priority]), proc);
+	debugn("Inserito processo in [%, ",id);
+	debugn("%]\n", proc->priority);
+	debugn("Processo % inserito!\n", globalProcs);
 }
 
 /* Questa funzione si occupa di estrare un processo dalla readyQueue
@@ -76,9 +79,13 @@ void loadReady(){
 	/* Trovo la coda con priorità maggiore che ha processi da eseguire */
 	int nqueue, priority;
 	int id = getPRID();
-	for (nqueue=MAX_PCB_PRIORITY; nqueue >= MIN_PCB_PRIORITY; nqueue--){
+	for (nqueue=MIN_PCB_PRIORITY; nqueue <= MAX_PCB_PRIORITY; nqueue++){
 		/* Inizio a scandire da quelle con priorità più alta */
+		debugn("Analizzo coda [%, ", id);
+		debugn("%]\n",nqueue);
 		if (readyProcs[id][nqueue] > 0){
+			debugn("Trovato 1 processo in [%, ", id);
+			debugn("%]\n",nqueue);
 			/* Salvo lo stato della CPU e carico il pcb */
 			STST(&(pstate[id]));
 			pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
@@ -97,6 +104,8 @@ void loadReady(){
 			 * richiamare addReady su quel processo */
 		}
 	}
+	/* Non ci sono processi nelle readyQueue, metto in attesa la CPU */
+	WAIT();
 }
 
 /*************************** SCHEDULER ********************************/
@@ -105,7 +114,6 @@ extern int key;
 
 /* AVVIO DELLO SCHEDULER - Passaggio del controllo */
 void scheduler(){
-	WAIT();
 	int id = getPRID();
 	/* Innanzitutto se lo scheduler è stato richiamato dalla fine di un
 	 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
