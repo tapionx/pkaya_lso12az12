@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "types11.h"
 #include "scheduler.h"
+#include "syscall.h"
 
 /* Bisogna agire tramite puntatori altrimenti CPU0 rimane esclusa 
  * poiché le sue aree NON sono all'interno del vettore new_old_areas */

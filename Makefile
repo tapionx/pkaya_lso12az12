@@ -14,34 +14,35 @@ SCRIPT = ./script
 LDSCRIPT = $(SCRIPT)/elf32ltsmip.h.umpscore.x
 KERNELELF = ./bin/kernel
 
+#PRETTY OUTPUT
+GREEN=\033[32m
+NORMAL=\033[37m
 
 # Alias for kernelelf
-all : format kernelelf
-	@echo "\n\n>>>>>>>>>>>>>> END OF COMPILATION <<<<<<<<<<<<\n\n"
+all : compile link kernela
+	@echo "\nDONE"
 
-# Format the output
-format : 
-	@echo "\n\n************ STARTING TO COMPILE ************\n\n"
+# Compile source and create obj
+compile :
+	@echo -n "COMPILING...  "
+	@cd obj/ ; mipsel-linux-gcc -I ../$(INCLUDES) ../src/*.c -c
+	@echo "$(GREEN)[OK]$(NORMAL)"
+
+# Joins the obj files to create the kernel elf
+link :
+	@echo -n "LINKING...    "
+	@mkdir -p bin
+	@mipsel-linux-ld -T $(LDSCRIPT) $(MODULES)/*.o $(MODULES)/umps2/*.o -o $(KERNELELF)
+	@echo "$(GREEN)[OK]$(NORMAL)"
 
 # core and stab from the kernel elf file
-kernel : all
-	@echo "\n\n************ CREATING THE KERNEL ************\n\n"
-	-mkdir -p bin kernel 
-	umps2-elf2umps -k $(KERNELELF)
-	-mv ./bin/*.umps ./kernel/
-	@echo "\nFinished creating the core and symbol table files! CHECK FOR ERRORS BEFORE EXECUTING!\n"
-	@echo "\n\n>>>>>>>>>>>>>> KERNEL CREATED <<<<<<<<<<<<\n\n"
+kernela : 
+	@echo -n "KERNEL...     "
+	@mkdir -p bin kernel 
+	@umps2-elf2umps -k $(KERNELELF)
+	@mv ./bin/*.umps ./kernel/
+	@echo "$(GREEN)[OK]$(NORMAL)"
 	
-# Joins the obj files to create the kernel elf
-kernelelf : source
-	-mkdir -p bin
-	mipsel-linux-ld -T $(LDSCRIPT) $(MODULES)/*.o $(MODULES)/umps2/*.o -o $(KERNELELF)
-	@echo "\nFinished creating the kernel elf file! CHECK FOR ERRORS CONVERTING IT INTO CORE AND STAB FILES!\n"
-	
-# Creates obj files
-source :
-	cd obj/ ; mipsel-linux-gcc -I ../$(INCLUDES) ../src/*.c -c
-
 # Clean and tidy (doesn't remove umps2 related object files)
 clean :
 	rm -rf bin kernel
