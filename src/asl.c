@@ -27,7 +27,7 @@ semd_t* getSemd(int key)
 	struct list_head* cur = &(semd_h);
 	list_for_each(cur, &(semd_h))
     {
-		/*ottengo il puntatore all'array di semd_t */
+		/*ottengo il puntatore all'array  di semd_t */
         semd_t* curSem = container_of (cur, semd_t, s_next); 
         if (curSem == NULL) return NULL;
         /* ottengo il valore della chiave */

@@ -68,9 +68,6 @@ void addReady(pcb_t *proc){
 	readyProcs[id][proc->priority]++;	 	 
 	/* Inserisco il pcb_t passato nella readyQueue della CPU id */
 	insertProcQ(&(readyQueue[id][proc->priority]), proc);
-	debugn("Inserito processo in [%, ",id);
-	debugn("%]\n", proc->priority);
-	debugn("Processo % inserito!\n", globalProcs);
 }
 
 /* Questa funzione si occupa di estrare un processo dalla readyQueue
@@ -81,11 +78,7 @@ void loadReady(){
 	int id = getPRID();
 	for (nqueue=MIN_PCB_PRIORITY; nqueue <= MAX_PCB_PRIORITY; nqueue++){
 		/* Inizio a scandire da quelle con priorità più alta */
-		debugn("Analizzo coda [%, ", id);
-		debugn("%]\n",nqueue);
 		if (readyProcs[id][nqueue] > 0){
-			debugn("Trovato 1 processo in [%, ", id);
-			debugn("%]\n",nqueue);
 			/* Salvo lo stato della CPU e carico il pcb */
 			STST(&(pstate[id]));
 			pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
