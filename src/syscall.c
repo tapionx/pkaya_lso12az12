@@ -5,7 +5,11 @@
 #include "myconst.h"
 #include "scheduler.h"
 
+/* Vettori handlers di tutte le CPU */
 extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
+
+/* Ready Queue di tutte le CPU */
+extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei processi in stato ready */
 
 /* Handlers delle 11 System Call */
 
@@ -86,15 +90,15 @@ void terminate_process()
 	/* ottengo il processore corrente*/
 	U32 prid = getPRID();
 	/* ottengo il processo corrente */
-	pcb_t *processoCorrente = getCurrentProc(prid);
+	pcb_t *processoCorrente = getCurrentProc(prid); 
 	/* elimino il processo e tutti i figli da tutti i semafori */
+	/* cioe' tutti i processi in stato di WAIT */
 	outChildBlocked(processoCorrente);
 
 	/*
-	 * A questo punto dobbiamo eliminare il processo e tutti i figli
-	 * ma i figli dove sono sparsi? In ogni possibile ready queue
-	 * di ogni processore......
-	 * come fare?
+	 *	processo in stato READY: scorro tutte le Ready Queue 
+	 *  processo RUNNING: Interrupt interprocessore
+	 * 
 	 */
 }
 
