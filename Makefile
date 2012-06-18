@@ -16,7 +16,7 @@ KERNELELF = ./bin/kernel
 
 #PRETTY OUTPUT
 GREEN=\033[32m
-NORMAL=\033[37m
+NORMAL=\033[00m
 
 # Alias for kernelelf
 all : compile link kernela
@@ -45,5 +45,6 @@ kernela :
 	
 # Clean and tidy (doesn't remove umps2 related object files)
 clean :
-	rm -rf bin kernel
-	rm -rf ./obj/*.o
+	@rm -rf bin kernel
+	@rm -rf ./obj/*.o
+	@echo "CLEAN...      $(GREEN)[OK]$(NORMAL)"
