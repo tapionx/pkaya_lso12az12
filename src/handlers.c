@@ -33,22 +33,15 @@ void sysbp_handler()
 	
 	/* recupero la causa (tipo di eccezione sollevato) */
 	U32 *old_cause = &(OLDAREA->cause);
+	
+	/* carico il processo corrente */
+	pcb_t *processoCorrente = getCurrentProc(prid);
 
-	/* se il processo era in user mode */
-	if( (*old_status & STATUS_KUc) != 0 )
+	/* se il processo era in kernel mode */
+	if( (*old_status & STATUS_KUc) == 0 )
 	{
-		/* gestisci user mode */
-		/* copiare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
-		copyState(pnew_old_areas[prid][OLD_SYSBP], pnew_old_areas[prid][OLD_TRAP]); 
-		/* settare Cause a 10 : Reserved Instruction Exception*/
-		pnew_old_areas[prid][OLD_TRAP]->cause = EXC_RESERVEDINSTR;
-		/* sollevare PgmTrap, se la sbriga lui */
-		trap_handler();
-	}
-	else
-	{
-		/* se è stata invocata una SYSCALL tradizionale */
-		if( (*old_cause == EXC_SYSCALL) && (*num_syscall <= SPECSYSVEC) && (*num_syscall >= CREATEPROCESS ) )
+		/* controllo se il processo non ha un handler custom */
+		if(processoCorrente->custom_handlers[NEW_SYSBP] == NULL)
 		{
 			/* eseguo la SYSCALL adeguata */
 			switch(*num_syscall)
@@ -97,30 +90,31 @@ void sysbp_handler()
 					/* void specify_sys_state_vector(state_t *oldp, state_t *newp) */
 					specify_sys_state_vector((state_t*) *arg1, (state_t*) *arg2);
 					break;
+				/* Se e' stata chiamata una SYSCALL non esistente */
 				default:
-					/* syscall non riconosciuta */
+					/* killo il processo */
+					terminate_process();
 					break;
-			}
-		}
-		/* se il kernel non può gestire questa eccezione */
+			} /*switch*/
+		} /* if */
+		/* se il processo ha un custom handler lo chiamo */
 		else
 		{
-			/* carico il processo corrente */
-			pcb_t *processoCorrente = getCurrentProc(prid);
-			/* controllo se il processo ha un handler custom */
-			if(processoCorrente->custom_handlers[NEW_SYSBP] != NULL)
-			{ 
-				/* copio il processo chiamante nella OLD Area custom */
-				copyState(OLDAREA, processoCorrente->custom_handlers[OLD_SYSBP]); 
-				/* chiamo l'handler custom */
-				LDST(processoCorrente->custom_handlers[NEW_SYSBP]);
-			}
-			/* altrimenti elimino il processo e tutti i figli */
-			else
-			{
-				terminate_process();
-			}	
+			/* copio il processo chiamante nella OLD Area custom */
+			copyState(OLDAREA, processoCorrente->custom_handlers[OLD_SYSBP]); 
+			/* chiamo l'handler custom */
+			LDST(processoCorrente->custom_handlers[NEW_SYSBP]);
 		}
+	}
+	/* se e' stata chiamata la SYSTEM CALL in User Mode lancio TRAP */
+	else
+	{
+		/* copiare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
+		copyState(pnew_old_areas[prid][OLD_SYSBP], pnew_old_areas[prid][OLD_TRAP]); 
+		/* settare Cause a 10 : Reserved Instruction Exception*/
+		pnew_old_areas[prid][OLD_TRAP]->cause = EXC_RESERVEDINSTR;
+		/* sollevare PgmTrap, se la sbriga lui */
+		trap_handler();
 	}
 }
 
