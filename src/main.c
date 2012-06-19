@@ -26,15 +26,17 @@ extern int p2test();
 state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
+/* Vettore di variabili di condizione per i semafori */
+int lock[MAXPROC];
+
 /******************* MAIN **********************/
 
 int main(void)
-{				
-	STST(&pstate[0]);
-	debug(33, pstate[0].reg_sp);
-	debug(34, RAMTOP);
+{
 	/************* INIZIALIZZAZIONE DEL SISTEMA */
 	
+	/* Inizializzazione del vettore dei lock a PASS */
+	initLock();
 	/* PERCHÉ SE ABILITO IL TIMER I PROCESSORI VANNO IN KERNEL PANIC?? */
 	int status = getSTATUS();
 	setSTATUS(status|STATUS_IEp|STATUS_TE);
