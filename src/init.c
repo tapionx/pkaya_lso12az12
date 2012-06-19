@@ -12,6 +12,7 @@
 
 /* Strutture da inizializzare */
 /* KERNEL */
+extern int lock[MAXPROC];
 extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 extern state_t pstate[NUM_CPU];
 state_t new_old_areas[NUM_CPU][NUM_AREAS];
@@ -23,7 +24,8 @@ extern pcb_t *currentProc[NUM_CPU];
 
 /* Questa funzione si occupa di popolare le New area dell'array preso
  * come parametro. L'array deve essere di puntatori a state_t */
-HIDDEN void populateNewAreas(int cpuid){
+HIDDEN void populateNewAreas(int cpuid)
+{
 	int id;
 	state_t **areas = pnew_old_areas[cpuid]; 
 	U32 defaultStatus = (STATUS_TE)&~(STATUS_VMc|STATUS_KUc|STATUS_INT_UNMASKED);
@@ -51,7 +53,8 @@ HIDDEN void populateNewAreas(int cpuid){
 
 /* Questa funzione si occupa di inizializzare le New/Old area in base
  * alla CPU (CPU0 avrà ROM Reserved Frame, le altre un array dedicato) */
-void initAreas(){
+void initAreas()
+{
 	int id;
 	/* Faccio in modo che le aree di CPU0 puntino al Rom Reserved Frame */
 	pnew_old_areas[0][NEW_SYSBP] = (state_t*)SYSBK_NEWAREA;
@@ -81,7 +84,8 @@ void initAreas(){
 /* Questa funzione inizializza semplicemente tutte le readyQueue di 
  * tutte le CPU in modo da non incorrere in errori nell'utilizzo delle
  * funzioni di listx.h */
-void initReadyQueues(){
+void initReadyQueues()
+{
 	int id, priority;
 	for (id=0; id<NUM_CPU; id++){
 		for (priority=0; priority<MAX_PCB_PRIORITY; priority++){
@@ -94,7 +98,8 @@ void initReadyQueues(){
 
 /* Funzione che serve per inizializzare le CPU > 0 e avvia su ognuna
  * lo scheduler */
-void initCpus(){
+void initCpus()
+{
 	STST(&(pstate[0]));
 	int id;
 	for (id=1; id<NUM_CPU; id++){
@@ -108,7 +113,8 @@ void initCpus(){
 
 /* Questa funzione serve per inizializzare la Interrupt Routing Table 
  * Vogliamo una politica di routing degli interrupt dinamica */
-void initIRT(){
+void initIRT()
+{
 	int line, dev;
 	for (line=2; line<8; line++)
 		for(dev=0; dev<8; dev++){
@@ -117,4 +123,14 @@ void initIRT(){
 			*entry = DYN_IRT_MASK+pow(2, NUM_CPU)-1;
 		}
 	
+}
+
+/* Questa funzione inizializza il vettore dei lock a PASS */
+void initLock()
+{
+	int i;
+	for(i=0;i<MAXPROC;i++)
+	{
+		lock[i] = PASS;
+	}
 }

@@ -12,7 +12,7 @@ extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei proce
  * priority = priorità del nuovo processo
  * return  -> 0 ok / -1 errore (coda piena PLB)
  */
-int create_process(state_t *statep, int priority);
+void create_process(state_t *statep, int priority);
 
 /* System Call #2  : Create Brother
  * genera un processo fratello del processo chiamante
@@ -20,7 +20,7 @@ int create_process(state_t *statep, int priority);
  * priority = priorità del nuovo processo
  * return  -> 0 ok / -1 errore
  */
-int create_brother(state_t *statep, int priority);
+void create_brother(state_t *statep, int priority);
 
 /* System Call #3  : Terminate Process
  * termina il processo corrente e tutti i discendenti
@@ -44,7 +44,7 @@ void passeren(int semKey);
  * restituisce il tempo CPU usato dal processo in millisecondi
  * -> IL KERNEL DEVE TENERE LA CONTABILITA DEL TEMPO CPU DEI PROCESSI
  */
-cpu_time get_cpu_time();
+void get_cpu_time();
 
 /* System Call #7  : Wait Clock
  * esegue una P sul semaforo dello PSEUDO CLOCK TIMER (PCT)

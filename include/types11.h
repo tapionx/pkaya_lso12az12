@@ -30,7 +30,7 @@ typedef struct pcb_t {
 	state_t 			*custom_handlers[6];
 	
 	/* tempo di esecuzione del processo */
-	cpu_time			cpu_time;
+	cpu_time			time;
 
 } pcb_t;
 

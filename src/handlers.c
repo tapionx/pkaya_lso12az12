@@ -68,7 +68,7 @@ void sysbp_handler()
 					passeren((int) *arg1);
 					break;
 				case GETCPUTIME:
-					/* int get_cpu_time() FIXME deve restituire cpu_t, dove è dichiarato?  */
+					/* int get_cpu_time()  */
 					get_cpu_time();
 					break;
 				case WAITCLOCK:

@@ -26,12 +26,17 @@ extern int p2test();
 state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
+/* Vettore di variabili di condizione per i semafori */
+int lock[MAXPROC];
+
 /******************* MAIN **********************/
 
 int main(void)
 {		
 	debugs("System Started...\n");
 	
+	/* Inizializzazione del vettore dei lock a PASS */
+	initLock();
 	/************* INIZIALIZZAZIONE DEL SISTEMA */
 	
 	/* PERCHÉ SE ABILITO IL TIMER STO CAZZO DI PROCESSORE VA IN
