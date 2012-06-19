@@ -112,7 +112,7 @@ void scheduler(){
 	 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
 	 * in base alla priorità e tenendo conto dell'aging */
 	if (currentProc[id] != NULL){
-		(currentProc[id]->priority)++;
+		(currentProc[id]->priority)--;
 		addReady(currentProc[id]);
 	}
 	

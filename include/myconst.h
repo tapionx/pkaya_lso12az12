@@ -1,3 +1,5 @@
+#include "const.h"
+
 /* Constants */
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
@@ -53,11 +55,12 @@
 
 /* identificativi New e Old Area generici */
 #define NUM_AREAS 8
-#define NEW_SYSBP 0
-#define NEW_TRAP 2
-#define NEW_TLB 4
-#define NEW_INTS 6
-#define OLD_SYSBP 1
-#define OLD_TRAP 3
-#define OLD_TLB 5
-#define OLD_INTS 7
+
+#define OLD_INTS 0
+#define NEW_INTS 1
+#define OLD_TLB 2
+#define NEW_TLB 3 
+#define OLD_TRAP 4
+#define NEW_TRAP 5 
+#define OLD_SYSBP 6
+#define NEW_SYSBP 7

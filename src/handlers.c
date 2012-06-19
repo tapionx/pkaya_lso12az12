@@ -15,6 +15,7 @@ extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
 /* Invocate da SYSCALL(number, arg1, arg2, arg3); */
 void sysbp_handler()
 {	 
+	addokbuf("syscall o bp!\n");
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
 	/* recupero il processo chiamante */
@@ -121,7 +122,9 @@ void sysbp_handler()
 
 void trap_handler()
 {
-	
+	addokbuf("trap!\n");
+	int cause = getCAUSE();
+	debug(126, CAUSE_EXCCODE_GET(cause));
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
 	 */
@@ -148,6 +151,7 @@ void trap_handler()
 
 void tlb_handler()
 {
+	addokbuf("tlb!\n");
 	/* se il processo ha dichiarato un handler per TLB Exeption
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
 	 */
@@ -174,6 +178,7 @@ void tlb_handler()
 
 void ints_handler()
 {
+	addokbuf("interrupt!\n");
 	/* Determino da quale linea proviene l'interrupt 
 	 * NOTA: Ogni gestione dovrebbe avvenire in mutua esclusione
 	 * per evitare che due CPU, che ricevano un interrupt, inizino

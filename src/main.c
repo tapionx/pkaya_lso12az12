@@ -23,20 +23,21 @@ extern int p1test();
 extern int p2test();
 
 /* Global kernel variables */
-state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
+state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
 /******************* MAIN **********************/
 
 int main(void)
 {				
+	STST(&pstate[0]);
+	debug(33, pstate[0].reg_sp);
+	debug(34, RAMTOP);
 	/************* INIZIALIZZAZIONE DEL SISTEMA */
 	
-	/* PERCHÉ SE ABILITO IL TIMER STO CAZZO DI PROCESSORE VA IN
-	 * KERNEL PANIC?? EH?? CAZZO! SONO LE 6:35 E ANCORA NON HO CAPITO
-	 * PERCHÉ! PORCA TROIA! */
+	/* PERCHÉ SE ABILITO IL TIMER I PROCESSORI VANNO IN KERNEL PANIC?? */
 	int status = getSTATUS();
-	//setSTATUS(status|STATUS_IEp|STATUS_TE);
+	setSTATUS(status|STATUS_IEp|STATUS_TE);
 	/* Inizializzo le new (e old) area di tutte le CPU */
 	initAreas(pnew_old_areas, NUM_CPU);
 	/* Inizializzo le strutture dati di Phase1 */

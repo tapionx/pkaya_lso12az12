@@ -10,6 +10,9 @@
 #include "handlers.h"
 #include "scheduler.h"
 
+/* Quanti frame sono riservati dopo RAMTOP per le aree delle altre CPU? */
+#define RES_FRAMES NUM_CPU-1
+
 /* Strutture da inizializzare */
 /* KERNEL */
 extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
@@ -27,8 +30,8 @@ HIDDEN void populateNewAreas(int cpuid){
 	int id;
 	state_t **areas = pnew_old_areas[cpuid]; 
 	U32 defaultStatus = (STATUS_TE)&~(STATUS_VMc|STATUS_KUc|STATUS_INT_UNMASKED);
-	for (id=0; id<NUM_AREAS; id+=2){ /* Le New area sono in pos pari */
-		areas[id]->reg_sp = RAMTOP-(cpuid*FRAME_SIZE); /* No smashed stack */
+	for (id=1; id<NUM_AREAS; id+=2){ /* Le New area sono in pos dispari */
+		areas[id]->reg_sp = RAMTOP; /* avoid smashed stacks */
 		areas[id]->status = defaultStatus;
 		switch(id){
 			case NEW_SYSBP:
