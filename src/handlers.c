@@ -7,15 +7,15 @@
 #include "scheduler.h"
 #include "syscall.h"
 
-/* Bisogna agire tramite puntatori altrimenti CPU0 rimane esclusa 
- * poiché le sue aree NON sono all'interno del vettore new_old_areas */
+/* Variabili esterne (kernel e scheduler) */
 extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
+extern state_t pstate[NUM_CPU];
+extern pcb_t *currentProc[NUM_CPU]; /* puntatore al processo in esecuzione attuale */
 
 /* Handler per le System Call e i Breakpoint */
 /* Invocate da SYSCALL(number, arg1, arg2, arg3); */
 void sysbp_handler()
 {	 
-	addokbuf("syscall o bp!\n");
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
 	/* recupero il processo chiamante */
@@ -122,9 +122,8 @@ void sysbp_handler()
 
 void trap_handler()
 {
-	addokbuf("trap!\n");
+
 	int cause = getCAUSE();
-	debug(126, CAUSE_EXCCODE_GET(cause));
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
 	 */
@@ -151,7 +150,6 @@ void trap_handler()
 
 void tlb_handler()
 {
-	addokbuf("tlb!\n");
 	/* se il processo ha dichiarato un handler per TLB Exeption
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
 	 */
@@ -178,7 +176,6 @@ void tlb_handler()
 
 void ints_handler()
 {
-	addokbuf("interrupt!\n");
 	/* Determino da quale linea proviene l'interrupt 
 	 * NOTA: Ogni gestione dovrebbe avvenire in mutua esclusione
 	 * per evitare che due CPU, che ricevano un interrupt, inizino
@@ -187,16 +184,23 @@ void ints_handler()
 	 * tutti risolti prima di ritornare al processo in esecuzione in 
 	 * origine. Comunque conviene dare un return dopo ogni caso in modo
 	 * da schedulare convenientemente la risoluzione alla CPU più idonea
+	 * 
+	 * NOTA2: Ricordarsi di ripristinare il processo e/o lo scheduler
+	 * poiché la terminazione dell'handler non ripristina automaticamente
+	 * 
 	 * */
 	int cause = getCAUSE();
 	if (CAUSE_IP_GET(cause, INT_PLT)){
 		/* Fine del TIME_SLICE */
-		state_t temp;
-		STST(&temp);
-		temp.pc_epc = temp.reg_t9 = (memaddr)scheduler;
-		/* Ripasso il controllo allo scheduler */
-		LDST(&temp);
-		return;
+		int id = getPRID();
+		if (currentProc != NULL){
+			state_t *updated = pnew_old_areas[id][OLD_INTS];
+			copyState(updated, &(currentProc[id]->p_s));
+		}
+		/* Ricarico lo scheduler */
+		if (pstate[id].pc_epc == (memaddr)scheduler)
+			debug(202, 101);
+		LDST(&pstate[id]);
 	}	
 	if (CAUSE_IP_GET(cause, INT_TIMER)){
 		/* pseudo-clock */

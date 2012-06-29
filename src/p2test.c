@@ -149,7 +149,6 @@ void print(char *msg) {
 /*                 p1 -- the root process                            */
 /*                                                                   */
 void p2test() {	
-	addokbuf("p2test INITIALIZED\n");
 
 	SYSCALL(VERHOGEN, TESTSEM, 0, 0);					/* V(testsem)   */
 	SYSCALL(VERHOGEN, TERM_MUT, 0, 0);	

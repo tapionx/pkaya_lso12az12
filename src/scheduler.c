@@ -7,6 +7,7 @@
 #include "const.h"
 #include "scheduler.h"
 #include "utils.h"
+#include "handlers.h"
 
 /* Variabili dello scheduler (condivise da ogni CPU) */
 int globalProcs; /* contatore globale dei processi */
@@ -20,6 +21,7 @@ int readyProcs[NUM_CPU][MAX_PCB_PRIORITY]; /* tabella dei processi ready */
 int initdQueues = FALSE;
 
 /* Variabili del kernel */
+extern state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 extern state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 
 /* Getter e Setter */
@@ -47,7 +49,6 @@ void increaseSoftProcsCounter(U32 cpuid)
 {
 	softProcs[cpuid] += 1;
 }
-
 
 /****************** IMPLEMENTAZIONE ********************************/
 
@@ -88,6 +89,8 @@ void loadReady(){
 			/* Aggiorno il TPR della CPU */
 			memaddr *TPR = (memaddr *)TPR_ADDR;
 			*TPR = torun->priority;
+			/* Inizializzo il timer a TIME_SLICE */
+			setTIMER(TIME_SLICE);
 			/* Lancio il nuovo processo */
 			LDST(&(torun->p_s));	
 			/* NOTA: ogni volta che un processo viene interrotto per la
@@ -98,7 +101,6 @@ void loadReady(){
 		}
 	}
 	/* Non ci sono processi nelle readyQueue, metto in attesa la CPU */
-	WAIT();
 }
 
 /*************************** SCHEDULER ********************************/
@@ -108,18 +110,21 @@ extern int key;
 /* AVVIO DELLO SCHEDULER - Passaggio del controllo */
 void scheduler(){
 	int id = getPRID();
-	/* Innanzitutto se lo scheduler è stato richiamato dalla fine di un
-	 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
-	 * in base alla priorità e tenendo conto dell'aging */
-	if (currentProc[id] != NULL){
-		(currentProc[id]->priority)--;
-		addReady(currentProc[id]);
+	STST(&pstate[id]);
+	pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
+	pstate[id].status = (getSTATUS()|STATUS_TE);
+	while(globalProcs != 0){
+		/* Innanzitutto se lo scheduler è stato richiamato dalla fine di un
+		 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
+		 * in base alla priorità e tenendo conto dell'aging */
+		if (currentProc[id] != NULL){
+			(currentProc[id]->priority)--;
+			addReady(currentProc[id]);
+		}
+		/* Lancio l'esecuzione del prossimo processo */
+		loadReady();
 	}
-	
-	/* Inizializzo il timer a TIME_SLICE */
-	setTIMER(TIME_SLICE);
-	/* Lancio l'esecuzione del prossimo processo */
-	loadReady();
+	WAIT();
 }
 
 

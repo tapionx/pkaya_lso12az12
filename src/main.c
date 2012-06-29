@@ -25,7 +25,6 @@ extern int p2test();
 /* Global kernel variables */
 state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
-
 /* Vettore di variabili di condizione per i semafori */
 int lock[MAXPROC];
 
@@ -34,33 +33,27 @@ int lock[MAXPROC];
 int main(void)
 {
 	/************* INIZIALIZZAZIONE DEL SISTEMA */
-	
 	/* Inizializzazione del vettore dei lock a PASS */
 	initLock();
-	/* PERCHÉ SE ABILITO IL TIMER I PROCESSORI VANNO IN KERNEL PANIC?? */
-	int status = getSTATUS();
-	setSTATUS(status|STATUS_IEp|STATUS_TE);
 	/* Inizializzo le new (e old) area di tutte le CPU */
 	initAreas(pnew_old_areas, NUM_CPU);
 	/* Inizializzo le strutture dati di Phase1 */
 	initPcbs();
 	initASL();
 	
-	/************* CARICAMENTO DEI PROCESSI */
+	/************* CARICAMENTO DEI PROCESSI NELLE READY QUEUE */
 	
-		/* Test phase2 
+		/* Test phase2 */
 		pcb_t *phase2 = allocPcb();
 		STST(&(phase2->p_s));
 		phase2->p_s.status = getSTATUS();
 		phase2->p_s.pc_epc = phase2->p_s.reg_t9 = (memaddr)p2test;
-		addReady(phase2); */
+		//addReady(phase2);
 	
 	/************* ESECUZIONE DEI PROCESSI */
 	/* Inizializzo la Interrupt Routing Table */
-	initIRT();
+	/* initIRT(); */
 	/* Inizializzo le altre CPU e faccio partire lo scheduler */
 	initCpus();
-	/* Avvio lo scheduler su CPU0 */
-	scheduler();
 	return 0;
 }

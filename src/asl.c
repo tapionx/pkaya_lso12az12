@@ -3,8 +3,8 @@
 
 /************ GESTIONE DEI SEMAFORI **************/
 
-/* Array di SEMD con dimensione massima MAXPROC */
-HIDDEN semd_t semd_table[MAXPROC];
+/* Array di SEMD con dimensione massima MAXPROC*3 (restando "larghi") */
+HIDDEN semd_t semd_table[MAXPROC*3];
 
 /* Elemento sentinella della lista si semafori liberi */
 HIDDEN struct list_head semdFree_h;

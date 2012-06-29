@@ -30,23 +30,24 @@ extern pcb_t *currentProc[NUM_CPU];
 HIDDEN void populateNewAreas(int cpuid)
 {
 	int id;
-	state_t **areas = pnew_old_areas[cpuid]; 
 	U32 defaultStatus = (STATUS_TE)&~(STATUS_VMc|STATUS_KUc|STATUS_INT_UNMASKED);
 	for (id=1; id<NUM_AREAS; id+=2){ /* Le New area sono in pos dispari */
-		areas[id]->reg_sp = RAMTOP; /* avoid smashed stacks */
-		areas[id]->status = defaultStatus;
+		/* Gli stack delle varie new area sono adiacenti e ognuno occupa
+		 * esattamente 1 frame (4KB) per evitare stack smashing */
+		pnew_old_areas[cpuid][id]->reg_sp = (HSTACKS_START-(FRAME_SIZE*cpuid))-((id/2)*HSTACK_SIZE); /* avoid smashed stacks */
+		pnew_old_areas[cpuid][id]->status = defaultStatus;
 		switch(id){
 			case NEW_SYSBP:
-				areas[id]->pc_epc = areas[id]->reg_t9 = (memaddr)sysbp_handler;
+				pnew_old_areas[cpuid][id]->pc_epc = pnew_old_areas[cpuid][id]->reg_t9 = (memaddr)sysbp_handler;
 				break;
 			case NEW_TRAP:
-				areas[id]->pc_epc = areas[id]->reg_t9 = (memaddr)trap_handler;
+				pnew_old_areas[cpuid][id]->pc_epc = pnew_old_areas[cpuid][id]->reg_t9 = (memaddr)trap_handler;
 				break;
 			case NEW_TLB:
-				areas[id]->pc_epc = areas[id]->reg_t9 = (memaddr)tlb_handler;
+				pnew_old_areas[cpuid][id]->pc_epc = pnew_old_areas[cpuid][id]->reg_t9 = (memaddr)tlb_handler;
 				break;
 			case NEW_INTS:
-				areas[id]->pc_epc = areas[id]->reg_t9 = (memaddr)ints_handler;
+				pnew_old_areas[cpuid][id]->pc_epc = pnew_old_areas[cpuid][id]->reg_t9 = (memaddr)ints_handler;
 				break;
 			default:
 				PANIC();
@@ -59,26 +60,16 @@ HIDDEN void populateNewAreas(int cpuid)
 void initAreas()
 {
 	int id;
-	/* Faccio in modo che le aree di CPU0 puntino al Rom Reserved Frame */
-	pnew_old_areas[0][NEW_SYSBP] = (state_t*)SYSBK_NEWAREA;
-	pnew_old_areas[0][OLD_SYSBP] = (state_t*)SYSBK_OLDAREA;
-	pnew_old_areas[0][NEW_TRAP] = (state_t*)PGMTRAP_NEWAREA;
-	pnew_old_areas[0][OLD_TRAP] = (state_t*)PGMTRAP_OLDAREA;
-	pnew_old_areas[0][NEW_TLB] = (state_t*)TLB_NEWAREA;
-	pnew_old_areas[0][OLD_TLB] = (state_t*)TLB_OLDAREA;
-	pnew_old_areas[0][NEW_INTS] = (state_t*)INT_NEWAREA;
-	pnew_old_areas[0][OLD_INTS] = (state_t*)INT_OLDAREA;
-	populateNewAreas(0);
 	/* Faccio puntare le aree delle altre CPU all'array dichiarato */
-	for(id=1;id<NUM_CPU;id++){
-		pnew_old_areas[id][NEW_SYSBP] = &(new_old_areas[id][NEW_SYSBP]);
-		pnew_old_areas[id][OLD_SYSBP] = &(new_old_areas[id][OLD_SYSBP]);
-		pnew_old_areas[id][NEW_TRAP] = &(new_old_areas[id][NEW_TRAP]);
-		pnew_old_areas[id][OLD_TRAP] = &(new_old_areas[id][OLD_TRAP]);
-		pnew_old_areas[id][NEW_TLB] = &(new_old_areas[id][NEW_TLB]);
-		pnew_old_areas[id][OLD_TLB] = &(new_old_areas[id][OLD_TLB]);
-		pnew_old_areas[id][NEW_INTS] = &(new_old_areas[id][NEW_INTS]);
-		pnew_old_areas[id][OLD_INTS] = &(new_old_areas[id][OLD_INTS]);
+	for(id=0;id<NUM_CPU;id++){
+		pnew_old_areas[id][NEW_SYSBP] = (state_t*)(SYSBK_NEWAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][OLD_SYSBP] = (state_t*)(SYSBK_OLDAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][NEW_TRAP] = (state_t*)(PGMTRAP_NEWAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][OLD_TRAP] = (state_t*)(PGMTRAP_OLDAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][NEW_TLB] = (state_t*)(TLB_NEWAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][OLD_TLB] = (state_t*)(TLB_OLDAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][NEW_INTS] = (state_t*)(INT_NEWAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][OLD_INTS] = (state_t*)(INT_OLDAREA+(id*AREAS_DISTANCE));
 		/* Populo tutte le new area della CPU id */
 		populateNewAreas(id);
 	}
@@ -103,15 +94,23 @@ void initReadyQueues()
  * lo scheduler */
 void initCpus()
 {
+	/* Inizializzo le altre CPU a partire dalla CPU0 */
 	STST(&(pstate[0]));
 	int id;
-	for (id=1; id<NUM_CPU; id++){
-		pstate[id].status = getSTATUS();
+	for (id=0; id<NUM_CPU; id++){
+		U32 curStatus = getSTATUS();
+		pstate[id].status = (curStatus|STATUS_IEp|STATUS_INT_UNMASKED)\
+							&~(STATUS_VMc);
+		/* Tutte le CPU iniziano eseguendo lo scheduler */
 		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
 		/* Mi assicuro che non ci sia stack smashing tra gli scheduler */
-		pstate[id].reg_sp = pstate[0].reg_sp - (id*FRAME_SIZE);
-		INITCPU(id, &(pstate[id]), pnew_old_areas[id][0]);
+		pstate[id].reg_sp = PSTACKS_START-\
+							(id*PSTACK_RES_FRAMES_CPU*FRAME_SIZE);
+		if (id != 0) INITCPU(id, &(pstate[id]), pnew_old_areas[id][0]);
 	}
+	/* Infine reinizializzo CPU0 in modo che lo stack per i processi inizi
+	 * ad un indirizzo che non provochi smashing */
+	LDST(&(pstate[0]));
 }
 
 /* Questa funzione serve per inizializzare la Interrupt Routing Table 

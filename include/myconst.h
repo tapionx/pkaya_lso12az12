@@ -1,4 +1,5 @@
 #include "const.h"
+#include "uMPStypes.h"
 
 /* Constants */
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
@@ -38,6 +39,21 @@
 #define RESET 0
 #define PASS 0 /* per CAS */
 #define FORBID 1 /* per CAS */
+
+/* Organizzazione della memoria */
+#define ROM_RES_FRAME_START 0x20000000
+#define AREAS_SIZE (sizeof(state_t)*NUM_AREAS*NUM_CPU)
+#define AREAS_DISTANCE (sizeof(state_t))/* distanza in byte tra due aree dello stesso tipo */
+
+#define HSTACK_SIZE 1024 /* per dividere il frame in 4 unità da 1KB */
+#define HSTACKS_SIZE 4*HSTACK_SIZE*NUM_CPU /* Dimensione totale degli stack degli handler */
+#define HSTACKS_START	RAMTOP	/* Inizio degli stack per gli handler */
+#define HSTACKS_END		RAMTOP-(HSTACKS_SIZE) /* Fine degli stack per gli handler */
+						 
+#define PSTACKS_START 	(RAMTOP-HSTACKS_SIZE)
+#define PSTACKS_END 	(ROM_RES_FRAME_START+AREAS_SIZE)
+#define PSTACK_RES_FRAMES 	((PSTACKS_START-PSTACKS_END)/FRAME_SIZE)
+#define PSTACK_RES_FRAMES_CPU 	(PSTACK_RES_FRAMES/NUM_CPU)
 
 /* NUMERI DELLE SYSTEM CALL */
 
