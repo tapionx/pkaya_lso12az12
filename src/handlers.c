@@ -16,6 +16,7 @@ extern pcb_t *currentProc[NUM_CPU]; /* puntatore al processo in esecuzione attua
 /* Invocate da SYSCALL(number, arg1, arg2, arg3); */
 void sysbp_handler()
 {	 
+	addokbuf("syscall!\n");
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
 	/* recupero il processo chiamante */
@@ -65,6 +66,8 @@ void sysbp_handler()
 					verhogen((int) *arg1);
 					break;
 				case PASSEREN:
+					addokbuf("passeren!\n");
+					return;
 					/* void passeren(int semKey) */
 					passeren((int) *arg1);
 					break;
@@ -122,7 +125,7 @@ void sysbp_handler()
 
 void trap_handler()
 {
-
+	addokbuf("trap!\n");
 	int cause = getCAUSE();
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
@@ -176,6 +179,7 @@ void tlb_handler()
 
 void ints_handler()
 {
+	addokbuf("interrupt!\n");
 	/* Determino da quale linea proviene l'interrupt 
 	 * NOTA: Ogni gestione dovrebbe avvenire in mutua esclusione
 	 * per evitare che due CPU, che ricevano un interrupt, inizino
@@ -199,7 +203,6 @@ void ints_handler()
 		}
 		/* Ricarico lo scheduler */
 		if (pstate[id].pc_epc == (memaddr)scheduler)
-			debug(202, 101);
 		LDST(&pstate[id]);
 	}	
 	if (CAUSE_IP_GET(cause, INT_TIMER)){

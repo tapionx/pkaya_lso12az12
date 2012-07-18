@@ -10,14 +10,17 @@
 #include "handlers.h"
 
 /* Variabili dello scheduler (condivise da ogni CPU) */
-int globalProcs; /* contatore globale dei processi */
-int procs[NUM_CPU]; /* contatore dei processi (sia ready che running) */
-int softProcs[NUM_CPU]; /* contatore dei processi bloccati su I/O */
-pcb_t *currentProc[NUM_CPU]; /* puntatore al processo in esecuzione attuale */
+int runningProcsCounter; /* contatore dei processi running globale */
+int readyProcsCounter; /* contatore dei processi ready globale */
+/* NOTA: Per ottenere un totale dei processi nel sistema basta sommare i
+ * due contatori */
+int procs[NUM_CPU]; /* contatore dei processi per CPU (sia ready che running) */
+int softProcs[NUM_CPU]; /* contatore dei processi bloccati su I/O per CPU */
+pcb_t *currentProc[NUM_CPU]; /* puntatore al processo in esecuzione attuale per CPU */
 
 /* Ready Queues */
 struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei processi in stato ready */
-int readyProcs[NUM_CPU][MAX_PCB_PRIORITY]; /* tabella dei processi ready */
+int readyProcs[NUM_CPU][MAX_PCB_PRIORITY]; /* tabella dei contatori processi ready */
 int initdQueues = FALSE;
 
 /* Variabili del kernel */
@@ -55,16 +58,11 @@ void increaseSoftProcsCounter(U32 cpuid)
 /* Questa funzione inserisce in una readyQueue della CPU[id] il pcb_t 
 passato a seconda della priorità */
 void addReady(pcb_t *proc){
-	/* CONTROLLO PRIMARIO: inizializza le code se non lo sono già */
-	if (!initdQueues) {
-		initReadyQueues();
-		initdQueues = TRUE;
-	}
 	/* Trova la CPU con minor workload */
-	int id = minWorkloadCpu(procs, NUM_CPU);	
+	int id = minWorkloadCpu(procs, NUM_CPU);
 	/* Incremento sia il contatore dei processi locali che globali */
 	procs[id]++;
-	globalProcs++;
+	readyProcsCounter++;
 	/* Aggiorno la tabella delle readyQueue */
 	readyProcs[id][proc->priority]++;	 	 
 	/* Inserisco il pcb_t passato nella readyQueue della CPU id */
@@ -83,8 +81,15 @@ void loadReady(){
 			/* Salvo lo stato della CPU e carico il pcb */
 			STST(&(pstate[id]));
 			pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
+			/* Rimuovi il processo dalla ready queue per evitare che 
+			 * venga caricato due o più volte */
 			pcb_t *torun = removeProcQ(&(readyQueue[id][nqueue]));
+			/* Decremento sia il contatore specifico che quello globale */
 			(readyProcs[id][nqueue])--;
+			readyProcsCounter--;
+			/* Incremento il contatore dei processi running */
+			runningProcsCounter++;
+			/* Salvo un puntatore al processo correntemente in exe */
 			currentProc[id] = torun;
 			/* Aggiorno il TPR della CPU */
 			memaddr *TPR = (memaddr *)TPR_ADDR;
@@ -111,9 +116,12 @@ extern int key;
 void scheduler(){
 	int id = getPRID();
 	STST(&pstate[id]);
+	/* Salvo lo stato corrente in modo da riprendere l'esecuzione dello
+	 * scheduler dopo ogni context switch */
 	pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
 	pstate[id].status = (getSTATUS()|STATUS_TE);
-	while(globalProcs != 0){
+	/* Finché ci sono processi pronti ad essere eseguiti */
+	while(readyProcsCounter != 0){
 		/* Innanzitutto se lo scheduler è stato richiamato dalla fine di un
 		 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
 		 * in base alla priorità e tenendo conto dell'aging */

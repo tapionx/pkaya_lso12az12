@@ -69,14 +69,19 @@
 #define SPECTLBVEC			10
 #define SPECSYSVEC			11
 
-/* identificativi New e Old Area generici */
+/* identificativi New e Old Area generici (l'ordine è come da manuale) */
 #define NUM_AREAS 8
 
-#define OLD_INTS 0
-#define NEW_INTS 1
-#define OLD_TLB 2
-#define NEW_TLB 3 
-#define OLD_TRAP 4
-#define NEW_TRAP 5 
-#define OLD_SYSBP 6
 #define NEW_SYSBP 7
+#define OLD_SYSBP 6
+#define NEW_TRAP 5 
+#define OLD_TRAP 4
+#define NEW_TLB 3 
+#define OLD_TLB 2
+#define NEW_INTS 1
+#define OLD_INTS 0
+
+
+
+
+

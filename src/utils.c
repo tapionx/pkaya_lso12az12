@@ -237,8 +237,10 @@ int minWorkloadCpu(int procs[], int size){
 	int min = procs[0];
 	int id = 0;
 	for (i=1; i<size; i++){
-		if (procs[i] < min) min = procs[i];
-		id = i;
+		if (procs[i] < min){
+			min = procs[i];
+			id = i;
+		}
 	}
 	return id;
 }

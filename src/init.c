@@ -30,24 +30,30 @@ extern pcb_t *currentProc[NUM_CPU];
 HIDDEN void populateNewAreas(int cpuid)
 {
 	int id;
-	U32 defaultStatus = (STATUS_TE)&~(STATUS_VMc|STATUS_KUc|STATUS_INT_UNMASKED);
+	//U32 defaultStatus = (STATUS_TE)&~(STATUS_VMc|STATUS_KUc|STATUS_INT_UNMASKED);
+	state_t *temp; /* Temp state_t da usare per inizializzare le aree */
 	for (id=1; id<NUM_AREAS; id+=2){ /* Le New area sono in pos dispari */
 		/* Gli stack delle varie new area sono adiacenti e ognuno occupa
 		 * esattamente 1 frame (4KB) per evitare stack smashing */
-		pnew_old_areas[cpuid][id]->reg_sp = (HSTACKS_START-(FRAME_SIZE*cpuid))-((id/2)*HSTACK_SIZE); /* avoid smashed stacks */
-		pnew_old_areas[cpuid][id]->status = defaultStatus;
+		temp = pnew_old_areas[cpuid][id];
+		STST(temp);
+		U32 stackAddr = (HSTACKS_START-(FRAME_SIZE*cpuid))-((id/2)*HSTACK_SIZE);
+		debug(41, stackAddr);
+		temp->reg_sp = stackAddr; /* avoid smashed stacks */
+		temp->status = getSTATUS();
+		
 		switch(id){
-			case NEW_SYSBP:
-				pnew_old_areas[cpuid][id]->pc_epc = pnew_old_areas[cpuid][id]->reg_t9 = (memaddr)sysbp_handler;
+			case NEW_SYSBP:				
+				temp->pc_epc = temp->reg_t9 = (memaddr)sysbp_handler;
 				break;
 			case NEW_TRAP:
-				pnew_old_areas[cpuid][id]->pc_epc = pnew_old_areas[cpuid][id]->reg_t9 = (memaddr)trap_handler;
+				temp->pc_epc = temp->reg_t9 = (memaddr)trap_handler;
 				break;
 			case NEW_TLB:
-				pnew_old_areas[cpuid][id]->pc_epc = pnew_old_areas[cpuid][id]->reg_t9 = (memaddr)tlb_handler;
+				temp->pc_epc = temp->reg_t9 = (memaddr)tlb_handler;
 				break;
 			case NEW_INTS:
-				pnew_old_areas[cpuid][id]->pc_epc = pnew_old_areas[cpuid][id]->reg_t9 = (memaddr)ints_handler;
+				temp->pc_epc = temp->reg_t9 = (memaddr)ints_handler;
 				break;
 			default:
 				PANIC();
@@ -62,16 +68,21 @@ void initAreas()
 	int id;
 	/* Faccio puntare le aree delle altre CPU all'array dichiarato */
 	for(id=0;id<NUM_CPU;id++){
-		pnew_old_areas[id][NEW_SYSBP] = (state_t*)(SYSBK_NEWAREA+(id*AREAS_DISTANCE));
 		pnew_old_areas[id][OLD_SYSBP] = (state_t*)(SYSBK_OLDAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][NEW_TRAP] = (state_t*)(PGMTRAP_NEWAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][NEW_SYSBP] = (state_t*)(SYSBK_NEWAREA+(id*AREAS_DISTANCE));
 		pnew_old_areas[id][OLD_TRAP] = (state_t*)(PGMTRAP_OLDAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][NEW_TLB] = (state_t*)(TLB_NEWAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][NEW_TRAP] = (state_t*)(PGMTRAP_NEWAREA+(id*AREAS_DISTANCE));
 		pnew_old_areas[id][OLD_TLB] = (state_t*)(TLB_OLDAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][NEW_INTS] = (state_t*)(INT_NEWAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][NEW_TLB] = (state_t*)(TLB_NEWAREA+(id*AREAS_DISTANCE));
 		pnew_old_areas[id][OLD_INTS] = (state_t*)(INT_OLDAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][NEW_INTS] = (state_t*)(INT_NEWAREA+(id*AREAS_DISTANCE));
 		/* Populo tutte le new area della CPU id */
 		populateNewAreas(id);
+		if (pnew_old_areas[id][NEW_SYSBP]->reg_t9 == (memaddr)sysbp_handler){
+			//debug(id, 1);
+		} else {
+			//debug(id ,0);
+		}
 	}
 }
 
