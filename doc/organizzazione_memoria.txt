@@ -1,0 +1,9 @@
+EXCEPTION HANDLERS
+
+Ogni CPU può gestire un'eccezione per volta quindi deve essere presente uno spazio riservato allo stack dell'handler per ogni CPU. La memoria è quindi cosi suddivisa:
+
+RAMTOP -
+1 FRAME	CPU0 Handlers stack
+...
+N FRAME	CPU(N-1) Handlers stack
+------------------------------------------------------

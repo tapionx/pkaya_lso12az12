@@ -17,3 +17,5 @@ void initAreas();
  * Vogliamo una politica di routing degli interrupt dinamica */
 void initIRT();
 
+/* Questa funzione azzera gli ultimi stack pointer usati per ogni CPU */
+void initSP();

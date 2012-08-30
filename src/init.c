@@ -22,6 +22,7 @@ state_t new_old_areas[NUM_CPU][NUM_AREAS];
 /* SCHEDULER */
 extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY];
 extern pcb_t *currentProc[NUM_CPU];
+extern memaddr sp[NUM_CPU];
 
 /*****************************************************************************/
 
@@ -37,13 +38,15 @@ HIDDEN void populateNewAreas(int cpuid)
 		 * esattamente 1 frame (4KB) per evitare stack smashing */
 		temp = pnew_old_areas[cpuid][id];
 		STST(temp);
-		U32 stackAddr = (HSTACKS_START-(FRAME_SIZE*cpuid))-((id/2)*HSTACK_SIZE);
-		debug(41, stackAddr);
-		temp->reg_sp = stackAddr; /* avoid smashed stacks */
-		temp->status = getSTATUS();
-		
+		/* Lo stack va specificato solo per CPU != 0 */
+		if (cpuid != 0){
+			U32 stackAddr = ROM_RES_FRAME_END+(cpuid*FRAME_SIZE/4);
+			temp->reg_sp = stackAddr;
+		}
+		temp->status = getSTATUS();	
+				
 		switch(id){
-			case NEW_SYSBP:				
+			case NEW_SYSBP:	
 				temp->pc_epc = temp->reg_t9 = (memaddr)sysbp_handler;
 				break;
 			case NEW_TRAP:
@@ -68,21 +71,16 @@ void initAreas()
 	int id;
 	/* Faccio puntare le aree delle altre CPU all'array dichiarato */
 	for(id=0;id<NUM_CPU;id++){
-		pnew_old_areas[id][OLD_SYSBP] = (state_t*)(SYSBK_OLDAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][NEW_SYSBP] = (state_t*)(SYSBK_NEWAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][OLD_TRAP] = (state_t*)(PGMTRAP_OLDAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][NEW_TRAP] = (state_t*)(PGMTRAP_NEWAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][OLD_TLB] = (state_t*)(TLB_OLDAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][NEW_TLB] = (state_t*)(TLB_NEWAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][OLD_INTS] = (state_t*)(INT_OLDAREA+(id*AREAS_DISTANCE));
-		pnew_old_areas[id][NEW_INTS] = (state_t*)(INT_NEWAREA+(id*AREAS_DISTANCE));
+		pnew_old_areas[id][OLD_SYSBP] = &(new_old_areas[id][OLD_SYSBP]);
+		pnew_old_areas[id][NEW_SYSBP] = &(new_old_areas[id][NEW_SYSBP]);
+		pnew_old_areas[id][OLD_TRAP] = &(new_old_areas[id][OLD_TRAP]);
+		pnew_old_areas[id][NEW_TRAP] = &(new_old_areas[id][NEW_TRAP]);
+		pnew_old_areas[id][OLD_TLB] = &(new_old_areas[id][OLD_TLB]);
+		pnew_old_areas[id][NEW_TLB] = &(new_old_areas[id][NEW_TLB]);
+		pnew_old_areas[id][OLD_INTS] = &(new_old_areas[id][OLD_INTS]);
+		pnew_old_areas[id][NEW_INTS] = &(new_old_areas[id][NEW_INTS]);
 		/* Populo tutte le new area della CPU id */
 		populateNewAreas(id);
-		if (pnew_old_areas[id][NEW_SYSBP]->reg_t9 == (memaddr)sysbp_handler){
-			//debug(id, 1);
-		} else {
-			//debug(id ,0);
-		}
 	}
 }
 
@@ -102,7 +100,7 @@ void initReadyQueues()
 }
 
 /* Funzione che serve per inizializzare le CPU > 0 e avvia su ognuna
- * lo scheduler */
+ * lo scheduler (eseguito SOLO da CPU0) */
 void initCpus()
 {
 	/* Inizializzo le altre CPU a partire dalla CPU0 */
@@ -114,9 +112,9 @@ void initCpus()
 							&~(STATUS_VMc);
 		/* Tutte le CPU iniziano eseguendo lo scheduler */
 		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
-		/* Mi assicuro che non ci sia stack smashing tra gli scheduler */
-		pstate[id].reg_sp = PSTACKS_START-\
-							(id*PSTACK_RES_FRAMES_CPU*FRAME_SIZE);
+		/* Mi assicuro che non ci sia stack smashing tra le CPU */
+		pstate[id].reg_sp = RAMTOP-((id*(PFRAMES/NUM_CPU))*FRAME_SIZE);
+		debug(id, pstate[id].reg_sp);
 		if (id != 0) INITCPU(id, &(pstate[id]), pnew_old_areas[id][0]);
 	}
 	/* Infine reinizializzo CPU0 in modo che lo stack per i processi inizi
@@ -145,5 +143,13 @@ void initLock()
 	for(i=0;i<MAXPROC;i++)
 	{
 		lock[i] = PASS;
+	}
+}
+
+/* Questa funzione azzera gli stack pointer relativi ad ogni CPU */
+void initSP(){
+	int i = 0;
+	for(; i<NUM_CPU; i++){
+		sp[i] = 0;
 	}
 }

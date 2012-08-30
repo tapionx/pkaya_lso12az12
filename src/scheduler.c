@@ -17,6 +17,7 @@ int readyProcsCounter; /* contatore dei processi ready globale */
 int procs[NUM_CPU]; /* contatore dei processi per CPU (sia ready che running) */
 int softProcs[NUM_CPU]; /* contatore dei processi bloccati su I/O per CPU */
 pcb_t *currentProc[NUM_CPU]; /* puntatore al processo in esecuzione attuale per CPU */
+memaddr sp[NUM_CPU]; /* ultimi stack pointer usati per i processi da ogni CPU */
 
 /* Ready Queues */
 struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei processi in stato ready */
@@ -75,34 +76,30 @@ void loadReady(){
 	/* Trovo la coda con priorità maggiore che ha processi da eseguire */
 	int nqueue, priority;
 	int id = getPRID();
-	for (nqueue=MIN_PCB_PRIORITY; nqueue <= MAX_PCB_PRIORITY; nqueue++){
+	state_t temp;
+	for (nqueue = MIN_PCB_PRIORITY; nqueue <= MAX_PCB_PRIORITY; nqueue++){
 		/* Inizio a scandire da quelle con priorità più alta */
 		if (readyProcs[id][nqueue] > 0){
-			/* Salvo lo stato della CPU e carico il pcb */
-			STST(&(pstate[id]));
-			pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
 			/* Rimuovi il processo dalla ready queue per evitare che 
 			 * venga caricato due o più volte */
 			pcb_t *torun = removeProcQ(&(readyQueue[id][nqueue]));
 			/* Decremento sia il contatore specifico che quello globale */
-			(readyProcs[id][nqueue])--;
+			readyProcs[id][nqueue]--;
 			readyProcsCounter--;
 			/* Incremento il contatore dei processi running */
 			runningProcsCounter++;
 			/* Salvo un puntatore al processo correntemente in exe */
 			currentProc[id] = torun;
-			/* Aggiorno il TPR della CPU */
+			/* Aggiorno il TPR (priorità attuale) della CPU */
 			memaddr *TPR = (memaddr *)TPR_ADDR;
 			*TPR = torun->priority;
 			/* Inizializzo il timer a TIME_SLICE */
 			setTIMER(TIME_SLICE);
+			/* Setto correttamente lo stack pointer */
+			STST(&temp); /* TODO: settare gli sp in base all'ultimo sp usato più un pò di memoria di riserva */
+			torun->p_s.reg_sp = temp.reg_sp;
 			/* Lancio il nuovo processo */
-			LDST(&(torun->p_s));	
-			/* NOTA: ogni volta che un processo viene interrotto per la
-			 * fine del suo timeslice è necessario, nell'handler
-			 * fare in modo che la sua priorità venga incrementata per 
-			 * le politiche di aging (anti starvation) per poi 
-			 * richiamare addReady su quel processo */
+			LDST(&(torun->p_s));
 		}
 	}
 	/* Non ci sono processi nelle readyQueue, metto in attesa la CPU */

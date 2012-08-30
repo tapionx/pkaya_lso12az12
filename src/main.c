@@ -24,7 +24,8 @@ extern int p1test();
 extern int p2test();
 
 /* Global kernel variables */
-state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
+state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* puntatori alle new_old areas */
+state_t new_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 int lock[MAXPROC]; /* Vettore di variabili di condizione per i semafori */
 
@@ -43,6 +44,7 @@ int main(void)
 	/* Inizializzo le strutture dello scheduler */
 	initReadyQueues();
 	
+	
 	/************* CARICAMENTO DEI PROCESSI NELLE READY QUEUE */
 	
 		/* Test phase2 */
@@ -56,8 +58,8 @@ int main(void)
 		pcb_t *test1 = allocPcb();
 		STST(&(test1->p_s));
 		test1->p_s.status = getSTATUS();
-		test1->p_s.pc_epc = test1->p_s.reg_t9 = (memaddr)print1;
-		addReady(test1);
+		(test1->p_s).pc_epc = (test1->p_s).reg_t9 = (memaddr)print1;
+		addReady(test1);	
 		
 		/* Test di alcuni processi di prova */
 		pcb_t *test2 = allocPcb();
@@ -65,6 +67,7 @@ int main(void)
 		test2->p_s.status = getSTATUS();
 		test2->p_s.pc_epc = test2->p_s.reg_t9 = (memaddr)print2;
 		addReady(test2);
+		
 	
 	/************* ESECUZIONE DEI PROCESSI */
 	/* Inizializzo la Interrupt Routing Table dinamica */

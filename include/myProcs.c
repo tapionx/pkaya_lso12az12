@@ -4,7 +4,6 @@
 /* Questa funzione stampa una stringa usando un semaforo per garantire
  * mutua esclusione */
 void print1(){
-	SYSCALL(PASSEREN, 0, 0, 0);
 	while(TRUE){
 		//debug(1603, 1);
 	}

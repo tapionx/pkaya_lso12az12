@@ -5,7 +5,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 4 
+#define NUM_CPU 4
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -42,18 +42,13 @@
 
 /* Organizzazione della memoria */
 #define ROM_RES_FRAME_START 0x20000000
+#define ROM_RES_FRAME_END 0x20000FFF
 #define AREAS_SIZE (sizeof(state_t)*NUM_AREAS*NUM_CPU)
-#define AREAS_DISTANCE (sizeof(state_t))/* distanza in byte tra due aree dello stesso tipo */
+#define AREAS_DISTANCE (sizeof(state_t)) /* distanza in byte tra due aree dello stesso tipo */
 
-#define HSTACK_SIZE 1024 /* per dividere il frame in 4 unità da 1KB */
-#define HSTACKS_SIZE 4*HSTACK_SIZE*NUM_CPU /* Dimensione totale degli stack degli handler */
-#define HSTACKS_START	RAMTOP	/* Inizio degli stack per gli handler */
-#define HSTACKS_END		RAMTOP-(HSTACKS_SIZE) /* Fine degli stack per gli handler */
-						 
-#define PSTACKS_START 	(RAMTOP-HSTACKS_SIZE)
-#define PSTACKS_END 	(ROM_RES_FRAME_START+AREAS_SIZE)
-#define PSTACK_RES_FRAMES 	((PSTACKS_START-PSTACKS_END)/FRAME_SIZE)
-#define PSTACK_RES_FRAMES_CPU 	(PSTACK_RES_FRAMES/NUM_CPU)
+/* Memoria usabile dai processi (i primi NUMCPU frame sono riservati agli handler) */
+#define PFRAMES (((*(memaddr *)BUS_INSTALLEDRAM)/FRAME_SIZE)-1) /* 1 Rom Res. Frame */
+#define PFRAMES_START ROM_RES_FRAME_END /* dal basso */
 
 /* NUMERI DELLE SYSTEM CALL */
 

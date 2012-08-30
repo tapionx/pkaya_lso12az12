@@ -105,7 +105,7 @@ void insertProcQ(struct list_head* head, pcb_t* p)
      * non verrebbe neanche iniziato) */
     if (list_empty(head)){
         list_add(&(p->p_next), head);
-	 }
+	}
     else
         list_for_each(pos, head){ /* Inizia da head->next */
             pcb_t* curPcb = container_of(pos, pcb_t, p_next);
