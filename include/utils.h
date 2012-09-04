@@ -26,3 +26,9 @@ void printn(char* s, int n);
 
 /* Trova l'id della CPU con minor workload in un array di procs counter */
 int minWorkloadCpu(int procs[], int size);
+
+/* Acquisizione di un lock passato come parametro */
+void lock(int semKey);
+
+/* Liberazione di un lock passato come parametro */
+void free(int semKey);

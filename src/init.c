@@ -15,7 +15,7 @@
 
 /* Strutture da inizializzare */
 /* KERNEL */
-extern int lock[MAXPROC];
+extern int locks[MAXPROC];
 extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 extern state_t pstate[NUM_CPU];
 state_t new_old_areas[NUM_CPU][NUM_AREAS];
@@ -142,7 +142,7 @@ void initLock()
 	int i;
 	for(i=0;i<MAXPROC;i++)
 	{
-		lock[i] = PASS;
+		locks[i] = PASS;
 	}
 }
 

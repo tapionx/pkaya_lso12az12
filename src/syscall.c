@@ -11,6 +11,9 @@ extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
 /* Ready Queue di tutte le CPU */
 extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei processi in stato ready */
 
+/* Il vettore di variabili di condizione */
+extern int locks[MAXPROC];
+
 /* Handlers delle 11 System Call */
 
 /* System Call #1  : Create Process
@@ -111,8 +114,12 @@ void verhogen(int semKey)
 {
 	/* puntatore al processo rilasciato dal semaforo */
 	pcb_t *processoLiberato;
+	/* acquisisco il LOCK sul semaforo */
+	lock(semKey);
 	/* libero il processo dal semaforo */
 	processoLiberato = removeBlocked(semKey);
+	/* libero il LOCK sul semaforo */
+	free(semKey);
 	/* se il semaforo ha almeno un altro processo in coda */
 	if(processoLiberato != NULL)
 	{
@@ -136,8 +143,13 @@ void passeren(int semKey)
 {
 	/* ottengo il processo corrente */ 
 	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* acquisisco il LOCK sul semaforo */
+	lock(semKey);
 	/* inserisco il processo nella coda del semaforo */ 
-	if(insertBlocked(semKey, processoCorrente) == FALSE) 
+	int result = insertBlocked(semKey, processoCorrente);
+	/* rilascio il LOCK sul semaforo */
+	free(semKey);
+	if(result == FALSE) 
 	{
 		/* incremento Soft Block Count */
 		increaseSoftProcsCounter( getPRID() );
