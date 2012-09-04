@@ -47,8 +47,8 @@
 #define AREAS_DISTANCE (sizeof(state_t)) /* distanza in byte tra due aree dello stesso tipo */
 
 /* Memoria usabile dai processi (i primi NUMCPU frame sono riservati agli handler) */
-#define PFRAMES (((*(memaddr *)BUS_INSTALLEDRAM)/FRAME_SIZE)-1) /* 1 Rom Res. Frame */
-#define PFRAMES_START ROM_RES_FRAME_END /* dal basso */
+#define PFRAMES (((*(memaddr *)BUS_INSTALLEDRAM)/FRAME_SIZE)-2) /* 1 Rom Res. Frame + 1 Frame per gli stack degli handler */
+#define PFRAMES_START RAMTOP-(NUM_CPU*(FRAME_SIZE/4)) /* dall'alto */
 
 /* NUMERI DELLE SYSTEM CALL */
 

@@ -96,8 +96,7 @@ void loadReady(){
 			/* Inizializzo il timer a TIME_SLICE */
 			setTIMER(TIME_SLICE);
 			/* Setto correttamente lo stack pointer */
-			STST(&temp); /* TODO: settare gli sp in base all'ultimo sp usato più un pò di memoria di riserva */
-			torun->p_s.reg_sp = temp.reg_sp;
+			torun->p_s.reg_sp = PFRAMES_START-(id*FRAME_SIZE);
 			/* Lancio il nuovo processo */
 			LDST(&(torun->p_s));
 		}

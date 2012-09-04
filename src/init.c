@@ -15,7 +15,7 @@
 
 /* Strutture da inizializzare */
 /* KERNEL */
-extern int lock[MAXPROC];
+extern int locks[MAXPROC];
 extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 extern state_t pstate[NUM_CPU];
 state_t new_old_areas[NUM_CPU][NUM_AREAS];
@@ -35,7 +35,7 @@ HIDDEN void populateNewAreas(int cpuid)
 	state_t *temp; /* Temp state_t da usare per inizializzare le aree */
 	for (id=1; id<NUM_AREAS; id+=2){ /* Le New area sono in pos dispari */
 		/* Gli stack delle varie new area sono adiacenti e ognuno occupa
-		 * esattamente 1 frame (4KB) per evitare stack smashing */
+		 * esattamente 1/4 di frame (1KB) per evitare stack smashing */
 		temp = pnew_old_areas[cpuid][id];
 		STST(temp);
 		/* Lo stack va specificato solo per CPU != 0 */
@@ -43,7 +43,7 @@ HIDDEN void populateNewAreas(int cpuid)
 			U32 stackAddr = ROM_RES_FRAME_END+(cpuid*FRAME_SIZE/4);
 			temp->reg_sp = stackAddr;
 		}
-		temp->status = getSTATUS();	
+		temp->status = getSTATUS();
 				
 		switch(id){
 			case NEW_SYSBP:	
@@ -113,8 +113,7 @@ void initCpus()
 		/* Tutte le CPU iniziano eseguendo lo scheduler */
 		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
 		/* Mi assicuro che non ci sia stack smashing tra le CPU */
-		pstate[id].reg_sp = RAMTOP-((id*(PFRAMES/NUM_CPU))*FRAME_SIZE);
-		debug(id, pstate[id].reg_sp);
+		pstate[id].reg_sp = PFRAMES_START-(id*FRAME_SIZE);
 		if (id != 0) INITCPU(id, &(pstate[id]), pnew_old_areas[id][0]);
 	}
 	/* Infine reinizializzo CPU0 in modo che lo stack per i processi inizi
@@ -142,7 +141,7 @@ void initLock()
 	int i;
 	for(i=0;i<MAXPROC;i++)
 	{
-		lock[i] = PASS;
+		locks[i] = PASS;
 	}
 }
 
