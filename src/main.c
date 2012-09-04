@@ -26,7 +26,7 @@ extern int p2test();
 /* Global kernel variables */
 state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* puntatori alle new_old areas */
 state_t new_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
-state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
+state_t pstate[NUM_CPU]; /* stati di load/store per lo scheduler */
 int locks[MAXPROC]; /* Vettore di variabili di condizione per i semafori */
 
 /******************* MAIN **********************/
@@ -59,6 +59,7 @@ int main(void)
 		STST(&(test1->p_s));
 		test1->p_s.status = getSTATUS();
 		(test1->p_s).pc_epc = (test1->p_s).reg_t9 = (memaddr)print1;
+		debug(62, test1->custom_handlers[0]);
 		addReady(test1);	
 		
 		/* Test di alcuni processi di prova */

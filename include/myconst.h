@@ -32,7 +32,7 @@
 #define MAX_PCB_PRIORITY		10
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
-#define TIME_SLICE 5*(*(memaddr *)TIME_SCALE)*1000 /* espresso in ms, 1ms = TIME_SCALE*1000 clock_ticks */
+#define TIME_SLICE 5*1000*(*(memaddr *)BUS_TIMESCALE) /* espresso in ms, 1ms = BUS_TIMESCALE*1000 clock_ticks */
 
 /* Costanti di utilità */
 #define STATUS_TE 0x08000000

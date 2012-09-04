@@ -27,7 +27,7 @@ typedef struct pcb_t {
 
 	/* puntatore ad un vettore di handler per le eccezioni custom */
 	/* è un vettore da 6 perchè gli interrupt non possono essere custom */
-	state_t 			*custom_handlers[6];
+	state_t 			*custom_handlers[8];
 	
 	/* tempo di esecuzione del processo */
 	cpu_time			time;

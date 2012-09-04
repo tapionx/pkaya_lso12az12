@@ -16,7 +16,6 @@ extern pcb_t *currentProc[NUM_CPU]; /* puntatore al processo in esecuzione attua
 /* Invocate da SYSCALL(number, arg1, arg2, arg3); */
 void sysbp_handler()
 {	 
-	
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
 	/* recupero il processo chiamante */
@@ -43,9 +42,10 @@ void sysbp_handler()
 	/* se il processo era in kernel mode */
 	if( (*old_status & STATUS_KUc) == 0 )
 	{
+		debug(69,processoCorrente->custom_handlers[NEW_SYSBP]);
 		/* controllo se il processo non ha un handler custom */
 		if(processoCorrente->custom_handlers[NEW_SYSBP] == NULL)
-		{
+		{			
 			/* eseguo la SYSCALL adeguata */
 			switch(*num_syscall)
 			{
@@ -66,8 +66,6 @@ void sysbp_handler()
 					verhogen((int) *arg1);
 					break;
 				case PASSEREN:
-					
-					return;
 					/* void passeren(int semKey) */
 					passeren((int) *arg1);
 					break;

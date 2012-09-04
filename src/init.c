@@ -22,7 +22,6 @@ state_t new_old_areas[NUM_CPU][NUM_AREAS];
 /* SCHEDULER */
 extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY];
 extern pcb_t *currentProc[NUM_CPU];
-extern memaddr sp[NUM_CPU];
 
 /*****************************************************************************/
 
@@ -37,12 +36,12 @@ HIDDEN void populateNewAreas(int cpuid)
 		/* Gli stack delle varie new area sono adiacenti e ognuno occupa
 		 * esattamente 1/4 di frame (1KB) per evitare stack smashing */
 		temp = pnew_old_areas[cpuid][id];
+		
 		STST(temp);
-		/* Lo stack va specificato solo per CPU != 0 */
-		if (cpuid != 0){
-			U32 stackAddr = ROM_RES_FRAME_END+(cpuid*FRAME_SIZE/4);
-			temp->reg_sp = stackAddr;
-		}
+		/* Lo stack va specificato per gli handler per tutte le CPU */
+		U32 stackAddr = RAMTOP-(cpuid*FRAME_SIZE/4);
+		temp->reg_sp = stackAddr;
+		
 		temp->status = getSTATUS();
 				
 		switch(id){
@@ -71,14 +70,26 @@ void initAreas()
 	int id;
 	/* Faccio puntare le aree delle altre CPU all'array dichiarato */
 	for(id=0;id<NUM_CPU;id++){
-		pnew_old_areas[id][OLD_SYSBP] = &(new_old_areas[id][OLD_SYSBP]);
-		pnew_old_areas[id][NEW_SYSBP] = &(new_old_areas[id][NEW_SYSBP]);
-		pnew_old_areas[id][OLD_TRAP] = &(new_old_areas[id][OLD_TRAP]);
-		pnew_old_areas[id][NEW_TRAP] = &(new_old_areas[id][NEW_TRAP]);
-		pnew_old_areas[id][OLD_TLB] = &(new_old_areas[id][OLD_TLB]);
-		pnew_old_areas[id][NEW_TLB] = &(new_old_areas[id][NEW_TLB]);
-		pnew_old_areas[id][OLD_INTS] = &(new_old_areas[id][OLD_INTS]);
-		pnew_old_areas[id][NEW_INTS] = &(new_old_areas[id][NEW_INTS]);
+		if (id == 0){
+			/* Refer to the Rom Reserved Frame */
+			pnew_old_areas[id][OLD_SYSBP] = (state_t *)SYSBK_OLDAREA;
+			pnew_old_areas[id][NEW_SYSBP] = (state_t *)SYSBK_NEWAREA;
+			pnew_old_areas[id][OLD_TRAP] = (state_t *)PGMTRAP_OLDAREA;
+			pnew_old_areas[id][NEW_TRAP] = (state_t *)PGMTRAP_NEWAREA;
+			pnew_old_areas[id][OLD_TLB] = (state_t *)TLB_OLDAREA;
+			pnew_old_areas[id][NEW_TLB] = (state_t *)TLB_NEWAREA;
+			pnew_old_areas[id][OLD_INTS] = (state_t *)INT_OLDAREA;
+			pnew_old_areas[id][NEW_INTS] = (state_t *)INT_NEWAREA;
+		} else {
+			pnew_old_areas[id][OLD_SYSBP] = &(new_old_areas[id][OLD_SYSBP]);
+			pnew_old_areas[id][NEW_SYSBP] = &(new_old_areas[id][NEW_SYSBP]);
+			pnew_old_areas[id][OLD_TRAP] = &(new_old_areas[id][OLD_TRAP]);
+			pnew_old_areas[id][NEW_TRAP] = &(new_old_areas[id][NEW_TRAP]);
+			pnew_old_areas[id][OLD_TLB] = &(new_old_areas[id][OLD_TLB]);
+			pnew_old_areas[id][NEW_TLB] = &(new_old_areas[id][NEW_TLB]);
+			pnew_old_areas[id][OLD_INTS] = &(new_old_areas[id][OLD_INTS]);
+			pnew_old_areas[id][NEW_INTS] = &(new_old_areas[id][NEW_INTS]);
+		}
 		/* Populo tutte le new area della CPU id */
 		populateNewAreas(id);
 	}
@@ -142,13 +153,5 @@ void initLock()
 	for(i=0;i<MAXPROC;i++)
 	{
 		locks[i] = PASS;
-	}
-}
-
-/* Questa funzione azzera gli stack pointer relativi ad ogni CPU */
-void initSP(){
-	int i = 0;
-	for(; i<NUM_CPU; i++){
-		sp[i] = 0;
 	}
 }

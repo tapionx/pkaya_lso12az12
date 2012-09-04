@@ -5,13 +5,22 @@
  * mutua esclusione */
 void print1(){
 	while(TRUE){
-		//debug(1603, 1);
+		int i=0;
+		SYSCALL(PASSEREN, 0, 0, 0);
+		for (; i<5; i++){
+			addokbuf("CIAO 1\n");
+		}
+		SYSCALL(VERHOGEN, 0, 0, 0);
 	}
 }
 
 void print2(){
-	//SYSCALL(PASSEREN, 0, 0, 0);
 	while(TRUE){
-		//debug(1603, 2);
+		SYSCALL(PASSEREN, 0, 0, 0);
+		int i=0;	
+		for (; i<5; i++){
+			addokbuf("CIAO 2\n");
+		}
+		SYSCALL(VERHOGEN, 0, 0, 0);
 	}
 }

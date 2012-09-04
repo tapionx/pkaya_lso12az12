@@ -17,7 +17,6 @@ int readyProcsCounter; /* contatore dei processi ready globale */
 int procs[NUM_CPU]; /* contatore dei processi per CPU (sia ready che running) */
 int softProcs[NUM_CPU]; /* contatore dei processi bloccati su I/O per CPU */
 pcb_t *currentProc[NUM_CPU]; /* puntatore al processo in esecuzione attuale per CPU */
-memaddr sp[NUM_CPU]; /* ultimi stack pointer usati per i processi da ogni CPU */
 
 /* Ready Queues */
 struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei processi in stato ready */
@@ -33,6 +32,7 @@ extern state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 /* Metodo per restituire il processo corrente della cpu N */
 pcb_t *getCurrentProc(U32 cpuid)
 {
+	debug(85, currentProc[cpuid]->custom_handlers[0]);
 	return currentProc[cpuid];
 }
 
@@ -65,7 +65,7 @@ void addReady(pcb_t *proc){
 	procs[id]++;
 	readyProcsCounter++;
 	/* Aggiorno la tabella delle readyQueue */
-	readyProcs[id][proc->priority]++;	 	 
+	readyProcs[id][proc->priority]++;	 	
 	/* Inserisco il pcb_t passato nella readyQueue della CPU id */
 	insertProcQ(&(readyQueue[id][proc->priority]), proc);
 }
@@ -93,8 +93,9 @@ void loadReady(){
 			/* Aggiorno il TPR (priorità attuale) della CPU */
 			memaddr *TPR = (memaddr *)TPR_ADDR;
 			*TPR = torun->priority;
-			/* Inizializzo il timer a TIME_SLICE */
+			/* Inizializzo il timer a TIME_SLICE e lo attivo */
 			setTIMER(TIME_SLICE);
+			setSTATUS(getSTATUS()|STATUS_TE);
 			/* Setto correttamente lo stack pointer */
 			torun->p_s.reg_sp = PFRAMES_START-(id*FRAME_SIZE);
 			/* Lancio il nuovo processo */
