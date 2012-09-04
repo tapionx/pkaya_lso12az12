@@ -27,7 +27,7 @@ extern int p2test();
 state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* puntatori alle new_old areas */
 state_t new_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
 state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
-int lock[MAXPROC]; /* Vettore di variabili di condizione per i semafori */
+int locks[MAXPROC]; /* Vettore di variabili di condizione per i semafori */
 
 /******************* MAIN **********************/
 

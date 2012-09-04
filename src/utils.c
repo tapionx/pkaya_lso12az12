@@ -255,3 +255,17 @@ int pow(int b, int e){
 	
 	return res;
 }
+
+/* Acquisizione di un lock passato come parametro */
+void lock(int semKey)
+{
+	extern int locks[MAXPROC];
+	while(!CAS(&locks[semKey],PASS,FORBID));
+}
+
+/* Liberazione di un lock passato come parametro */
+void free(int semKey)
+{
+	extern int locks[MAXPROC];
+	CAS(&locks[semKey],FORBID,PASS);
+}
