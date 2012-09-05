@@ -7,6 +7,7 @@
 
 /* Vettori handlers di tutte le CPU */
 extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
+extern state_t pstate[NUM_CPU];
 
 /* Ready Queue di tutte le CPU */
 extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei processi in stato ready */
@@ -112,6 +113,7 @@ void terminate_process()
  */
 void verhogen(int semKey)
 {
+	int cpuid = getPRID();
 	/* puntatore al processo rilasciato dal semaforo */
 	pcb_t *processoLiberato;
 	/* acquisisco il LOCK sul semaforo */
@@ -128,10 +130,8 @@ void verhogen(int semKey)
 		 /* inserire processo nella Ready Queue del processore più libero */
 		 addReady(processoLiberato);
 	}
-	/* ottengo il processo corrente */
-	pcb_t *processoCorrente = getCurrentProc(getPRID());
 	/* riprendere l'esecuzione del processo che ha chiamato la SYSCALL */
-	LDST(&(processoCorrente->p_s));
+	LDST(pnew_old_areas[cpuid][OLD_SYSBP]);
 }
 
 
@@ -141,23 +141,34 @@ void verhogen(int semKey)
  */
 void passeren(int semKey)
 {
-	/* ottengo il processo corrente */ 
-	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	int cpuid = getPRID();
 	/* acquisisco il LOCK sul semaforo */
 	lock(semKey);
+	/* ottengo il processo corrente */ 
+	pcb_t *processoCorrente = getCurrentProc(getPRID());
+	/* capisco se il semaforo e' gia' in uso da un altro processo */
+	semd_t *tempSem = getSemd(semKey);
+	/* aggiorno il p_s del pcb */
+	copyState(pnew_old_areas[cpuid][OLD_SYSBP],&(processoCorrente->p_s));
 	/* inserisco il processo nella coda del semaforo */ 
 	int result = insertBlocked(semKey, processoCorrente);
 	/* rilascio il LOCK sul semaforo */
 	free(semKey);
 	if(result == FALSE) 
 	{
-		/* incremento Soft Block Count */
-		increaseSoftProcsCounter( getPRID() );
+		/* verifico il valore del semaforo */
+		if (tempSem != NULL){
+			/* significa che prima della insertBlocked il semaforo era gia' stato allocato (e usato) */
+			/* incremento Soft Block Count */
+			increaseSoftProcsCounter( getPRID() );	
+			/* devo passare il controllo allo scheduler, il processo non e' piu' nella readyQueue */
+			LDST(&(pstate[cpuid]));
+		}
 	}
 	else
 	{
-		/* continuo l'esecuzione */
-		LDST(&(processoCorrente->p_s));
+		free(semKey);
+		/* Termino il processo */
 	} 
 }
 

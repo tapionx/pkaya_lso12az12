@@ -42,7 +42,6 @@ void sysbp_handler()
 	/* se il processo era in kernel mode */
 	if( (*old_status & STATUS_KUc) == 0 )
 	{
-		debug(69,processoCorrente->custom_handlers[NEW_SYSBP]);
 		/* controllo se il processo non ha un handler custom */
 		if(processoCorrente->custom_handlers[NEW_SYSBP] == NULL)
 		{			
@@ -99,6 +98,8 @@ void sysbp_handler()
 					terminate_process();
 					break;
 			} /*switch*/
+			/* ritorno il controllo al processo chiamante */
+			LDST(pnew_old_areas[prid][OLD_SYSBP]);
 		} /* if */
 		/* se il processo ha un custom handler lo chiamo */
 		else

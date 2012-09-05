@@ -66,10 +66,12 @@ int insertBlocked(int key, pcb_t *p)
     /*se ho trovato il puntatore alla struttura semd_t con chiave = a key */
     if (psem != NULL) 
     {
+		/* decremento il valore del semaforo */
+		psem->s_value--;
         /* la inserisco nella coda dei processi bloccati del semd_t */
         insertProcQ(&(psem->s_procQ), p);
         /* ritorno falso */
-        return FALSE; 
+        return FALSE;
     }  
     /* Se la lista SemdFree non è vuota.. */
     if (!(list_empty(&(semdFree_h)))) 
@@ -121,13 +123,17 @@ pcb_t* removeBlocked(int key)
         pcb_t* removedPcb = removeProcQ(&(psem->s_procQ));
         /* Prima controllo che la coda dei processi bloccati non sia vuota.
          * In caso contrario tolgo il semaforo dalla ASL e lo inserisco nella semdFree */
-        if (removedPcb != NULL && list_empty(&(psem->s_procQ)))
+        if (removedPcb != NULL)
         {
-			/* Dealloco il semaforo dalla ASL */
-			list_del(&(psem->s_next));
-			/* Lo inserisco nella semdFree */
-			list_add(&(psem->s_next), &(semdFree_h));
-			/* Infine ritorno il processo rimosso */
+			/* Incremento il valore del semaforo */
+			psem->s_value++;
+			if (list_empty(&(psem->s_procQ))){
+				/* Dealloco il semaforo dalla ASL */
+				list_del(&(psem->s_next));
+				/* Lo inserisco nella semdFree */
+				list_add(&(psem->s_next), &(semdFree_h));
+				/* Infine ritorno il processo rimosso */
+			}
 			return removedPcb;
 		}
     }

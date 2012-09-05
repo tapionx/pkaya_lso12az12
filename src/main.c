@@ -59,7 +59,6 @@ int main(void)
 		STST(&(test1->p_s));
 		test1->p_s.status = getSTATUS();
 		(test1->p_s).pc_epc = (test1->p_s).reg_t9 = (memaddr)print1;
-		debug(62, test1->custom_handlers[0]);
 		addReady(test1);	
 		
 		/* Test di alcuni processi di prova */

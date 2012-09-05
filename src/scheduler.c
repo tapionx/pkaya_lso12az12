@@ -32,7 +32,6 @@ extern state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
 /* Metodo per restituire il processo corrente della cpu N */
 pcb_t *getCurrentProc(U32 cpuid)
 {
-	debug(85, currentProc[cpuid]->custom_handlers[0]);
 	return currentProc[cpuid];
 }
 
@@ -68,7 +67,10 @@ void addReady(pcb_t *proc){
 	readyProcs[id][proc->priority]++;	 	
 	/* Inserisco il pcb_t passato nella readyQueue della CPU id */
 	insertProcQ(&(readyQueue[id][proc->priority]), proc);
+	pcb_t *boh = container_of(list_head(readyQueue[id][proc->priority]), pcb_t, p_next); 
+	debug(boh, proc);
 }
+
 
 /* Questa funzione si occupa di estrare un processo dalla readyQueue
  * della CPU[id] e di caricarne lo stato su quest'ultima */
@@ -116,15 +118,16 @@ void scheduler(){
 	/* Salvo lo stato corrente in modo da riprendere l'esecuzione dello
 	 * scheduler dopo ogni context switch */
 	pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
-	pstate[id].status = (getSTATUS()|STATUS_TE);
+	pstate[id].status = (getSTATUS());
 	/* Finché ci sono processi pronti ad essere eseguiti */
 	while(readyProcsCounter != 0){
 		/* Innanzitutto se lo scheduler è stato richiamato dalla fine di un
 		 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
 		 * in base alla priorità e tenendo conto dell'aging */
 		if (currentProc[id] != NULL){
+			debug(126, currentProc[id]->priority);
 			(currentProc[id]->priority)--;
-			addReady(currentProc[id]);
+			debug(128, currentProc[id]->priority);
 		}
 		/* Lancio l'esecuzione del prossimo processo */
 		loadReady();
