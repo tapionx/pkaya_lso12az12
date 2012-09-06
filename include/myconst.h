@@ -5,7 +5,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 4
+#define NUM_CPU 1
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -48,7 +48,8 @@
 
 /* Memoria usabile dai processi (i primi NUMCPU frame sono riservati agli handler) */
 #define PFRAMES (((*(memaddr *)BUS_INSTALLEDRAM)/FRAME_SIZE)-2) /* 1 Rom Res. Frame + 1 Frame per gli stack degli handler */
-#define PFRAMES_START RAMTOP-(NUM_CPU*(FRAME_SIZE/4)) /* dall'alto */
+#define SFRAMES_START RAMTOP-(NUM_CPU*(FRAME_SIZE)) /* Frame per lo scheduler */
+#define PFRAMES_START SFRAMES_START-(NUM_CPU*FRAME_SIZE) /* Frame per i processi */
 
 /* NUMERI DELLE SYSTEM CALL */
 

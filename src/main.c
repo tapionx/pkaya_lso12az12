@@ -48,10 +48,11 @@ int main(void)
 	/************* CARICAMENTO DEI PROCESSI NELLE READY QUEUE */
 	
 		/* Test phase2 */
-		pcb_t *phase2 = allocPcb();
-		STST(&(phase2->p_s));
-		phase2->p_s.status = getSTATUS();
-		phase2->p_s.pc_epc = phase2->p_s.reg_t9 = (memaddr)p2test;
+		//pcb_t *phase2 = allocPcb();
+		//STST(&(phase2->p_s));
+		//phase2->p_s.status = getSTATUS();
+		//phase2->p_s.pc_epc = phase2->p_s.reg_t9 = (memaddr)p2test;
+		//phase2->p_s.reg_sp = PFRAMES_START;
 		//addReady(phase2);
 		
 		/* Test di alcuni processi di prova */
@@ -61,15 +62,17 @@ int main(void)
 		(test1->p_s).pc_epc = (test1->p_s).reg_t9 = (memaddr)print1;
 		test1->p_s.reg_sp = PFRAMES_START;
 		addReady(test1);	
+		debug(65, test1);
 		
 		/* Test di alcuni processi di prova */
 		pcb_t *test2 = allocPcb();
 		STST(&(test2->p_s));
 		test2->p_s.status = getSTATUS();
 		test2->p_s.pc_epc = test2->p_s.reg_t9 = (memaddr)print2;
-		test2->p_s.reg_sp = PFRAMES_START-FRAME_SIZE;
+		test2->p_s.reg_sp = test1->p_s.reg_sp-FRAME_SIZE;
 		addReady(test2);
-		
+		debug(66, test2);
+
 	
 	/************* ESECUZIONE DEI PROCESSI */
 	/* Inizializzo la Interrupt Routing Table dinamica */

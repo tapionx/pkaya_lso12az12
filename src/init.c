@@ -39,7 +39,7 @@ HIDDEN void populateNewAreas(int cpuid)
 		
 		STST(temp);
 		/* Lo stack va specificato per gli handler per tutte le CPU */
-		U32 stackAddr = RAMTOP-(cpuid*FRAME_SIZE/4);
+		U32 stackAddr = RAMTOP-(cpuid*FRAME_SIZE);
 		temp->reg_sp = stackAddr;
 		
 		temp->status = getSTATUS();
@@ -124,7 +124,7 @@ void initCpus()
 		/* Tutte le CPU iniziano eseguendo lo scheduler */
 		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
 		/* Mi assicuro che non ci sia stack smashing tra le CPU */
-		pstate[id].reg_sp = PFRAMES_START-(id*FRAME_SIZE);
+		pstate[id].reg_sp = SFRAMES_START-(id*FRAME_SIZE);
 		if (id != 0) INITCPU(id, &(pstate[id]), pnew_old_areas[id][0]);
 	}
 	/* Infine reinizializzo CPU0 in modo che lo stack per i processi inizi

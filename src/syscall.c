@@ -11,6 +11,7 @@ extern state_t pstate[NUM_CPU];
 
 /* Ready Queue di tutte le CPU */
 extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei processi in stato ready */
+extern int readyProcsCounter; /* contatore dei processi ready globale */
 
 /* Il vettore di variabili di condizione */
 extern int locks[MAXPROC];
@@ -118,6 +119,7 @@ void verhogen(int semKey)
 	lock(semKey);
 	/* libero il processo dal semaforo */
 	pcb_t *processoLiberato = removeBlocked(semKey);
+	debug(processoLiberato, 122);
 	/* libero il LOCK sul semaforo */
 	free(semKey);
 	/* se il semaforo ha almeno un altro processo in coda */
@@ -162,7 +164,7 @@ void passeren(int semKey)
 		/* se la coda del semaforo e´ occupata blocco il processo */
 		if (sem_value < 0){
 			/* incremento Soft Block Count */
-			increaseSoftProcsCounter( getPRID() );	/* VA FATTA IN MUTEX?? */
+			increaseSoftProcsCounter(cpuid);	/* VA FATTA IN MUTEX?? */
 			/* devo passare il controllo allo scheduler, il processo non e' piu' nella readyQueue */
 			LDST(&(pstate[cpuid]));
 		}

@@ -10,8 +10,8 @@
 #include "handlers.h"
 
 /* Variabili dello scheduler (condivise da ogni CPU) */
-int runningProcsCounter; /* contatore dei processi running globale */
-int readyProcsCounter; /* contatore dei processi ready globale */
+int runningProcsCounter = 0; /* contatore dei processi running globale */
+int readyProcsCounter = 0; /* contatore dei processi ready globale */
 /* NOTA: Per ottenere un totale dei processi nel sistema basta sommare i
  * due contatori */
 int procs[NUM_CPU]; /* contatore dei processi per CPU (sia ready che running) */
@@ -25,7 +25,7 @@ int initdQueues = FALSE;
 
 /* Variabili del kernel */
 extern state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
-extern state_t pstate[NUM_CPU]; /* stati di load/store per le varie cpu */
+extern state_t pstate[NUM_CPU]; 
 
 /* Getter e Setter */
 
@@ -109,19 +109,21 @@ void loadReady(){
 
 /* AVVIO DELLO SCHEDULER - Passaggio del controllo */
 void scheduler(){
-	int id = getPRID();
-	STST(&pstate[id]);
-	/* Salvo lo stato corrente in modo da riprendere l'esecuzione dello
-	 * scheduler dopo ogni context switch */
-	pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
-	pstate[id].status = (getSTATUS());
-	/* Finché ci sono processi pronti ad essere eseguiti */
-	while(readyProcsCounter > 0){
-		/* TODO: INSERIRE L'AGING */
-		/* Lancio l'esecuzione del prossimo processo */
-		loadReady();
+	while(TRUE){
+		int id = getPRID();
+		STST(&pstate[id]);
+		/* Salvo lo stato corrente in modo da riprendere l'esecuzione dello
+		 * scheduler dopo ogni context switch */
+		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
+		pstate[id].status = (getSTATUS());
+		/* Finché ci sono processi pronti ad essere eseguiti */
+		while(readyProcsCounter > 0){
+			/* TODO: INSERIRE L'AGING */
+			/* Lancio l'esecuzione del prossimo processo */
+			loadReady();
+		}
+		//WAIT();
 	}
-	WAIT();
 }
 
 
