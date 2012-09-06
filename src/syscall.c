@@ -114,12 +114,10 @@ void terminate_process()
 void verhogen(int semKey)
 {
 	int cpuid = getPRID();
-	/* puntatore al processo rilasciato dal semaforo */
-	pcb_t *processoLiberato;
 	/* acquisisco il LOCK sul semaforo */
 	lock(semKey);
 	/* libero il processo dal semaforo */
-	processoLiberato = removeBlocked(semKey);
+	pcb_t *processoLiberato = removeBlocked(semKey);
 	/* libero il LOCK sul semaforo */
 	free(semKey);
 	/* se il semaforo ha almeno un altro processo in coda */
@@ -130,6 +128,8 @@ void verhogen(int semKey)
 		 /* inserire processo nella Ready Queue del processore più libero */
 		 addReady(processoLiberato);
 	}
+	/* Incremento il program counter del chiamante */
+	pnew_old_areas[cpuid][OLD_SYSBP]->pc_epc += WORD_SIZE;
 	/* riprendere l'esecuzione del processo che ha chiamato la SYSCALL */
 	LDST(pnew_old_areas[cpuid][OLD_SYSBP]);
 }
@@ -143,35 +143,39 @@ void passeren(int semKey)
 {
 	
 	int cpuid = getPRID();
-	
-	LDST(&(pnew_old_areas[cpuid][OLD_SYSBP]));
-	/* acquisisco il LOCK sul semaforo */
-	lock(semKey);
 	/* ottengo il processo corrente */ 
 	pcb_t *processoCorrente = getCurrentProc(getPRID());
-	/* capisco se il semaforo e' gia' in uso da un altro processo */
-	semd_t *tempSem = getSemd(semKey);
 	/* aggiorno il p_s del pcb */
 	copyState(pnew_old_areas[cpuid][OLD_SYSBP],&(processoCorrente->p_s));
+	/* acquisisco il LOCK sul semaforo */
+	lock(semKey);
 	/* inserisco il processo nella coda del semaforo */ 
 	int result = insertBlocked(semKey, processoCorrente);
+	/* capisco se il semaforo e' gia' in uso da un altro processo */
+	semd_t *tempSem = getSemd(semKey);
+	/* recupero il valore del semaforo */
+	int sem_value = tempSem->s_value;
 	/* rilascio il LOCK sul semaforo */
 	free(semKey);
 	if(result == FALSE) 
 	{
-		/* verifico il valore del semaforo */
-		if (tempSem != NULL){
-			/* significa che prima della insertBlocked il semaforo era gia' stato allocato (e usato) */
+		/* se la coda del semaforo e´ occupata blocco il processo */
+		if (sem_value < 0){
 			/* incremento Soft Block Count */
-			increaseSoftProcsCounter( getPRID() );
-			addReady(processoCorrente);
+			increaseSoftProcsCounter( getPRID() );	/* VA FATTA IN MUTEX?? */
 			/* devo passare il controllo allo scheduler, il processo non e' piu' nella readyQueue */
 			LDST(&(pstate[cpuid]));
+		}
+		else /* il processo puo' continuare con l'esecuzione */
+		{
+			/* incremento il program counter del processo da caricare */
+			processoCorrente->p_s.pc_epc += WORD_SIZE;
+			/* carico in esecuzione il processo che ha fatto la P() */
+			LDST(&(processoCorrente->p_s));
 		}
 	}
 	else
 	{
-		free(semKey);
 		/* Termino il processo */
 	} 
 }
