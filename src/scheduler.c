@@ -67,8 +67,6 @@ void addReady(pcb_t *proc){
 	readyProcs[id][proc->priority]++;	 	
 	/* Inserisco il pcb_t passato nella readyQueue della CPU id */
 	insertProcQ(&(readyQueue[id][proc->priority]), proc);
-	pcb_t *boh = container_of(list_head(readyQueue[id][proc->priority]), pcb_t, p_next); 
-	debug(boh, proc);
 }
 
 
@@ -79,8 +77,9 @@ void loadReady(){
 	int nqueue, priority;
 	int id = getPRID();
 	state_t temp;
+	/* Inizio a scandire da quelle con priorità più alta */
 	for (nqueue = MIN_PCB_PRIORITY; nqueue <= MAX_PCB_PRIORITY; nqueue++){
-		/* Inizio a scandire da quelle con priorità più alta */
+		/* Continua solo se ci sono realmente processi in stato ready */
 		if (readyProcs[id][nqueue] > 0){
 			/* Rimuovi il processo dalla ready queue per evitare che 
 			 * venga caricato due o più volte */
@@ -93,23 +92,20 @@ void loadReady(){
 			/* Salvo un puntatore al processo correntemente in exe */
 			currentProc[id] = torun;
 			/* Aggiorno il TPR (priorità attuale) della CPU */
-			memaddr *TPR = (memaddr *)TPR_ADDR;
-			*TPR = torun->priority;
+			//memaddr *TPR = (memaddr *)TPR_ADDR;
+			//*TPR = torun->priority;
+			//TODO
 			/* Inizializzo il timer a TIME_SLICE e lo attivo */
-			setTIMER(TIME_SLICE);
-			setSTATUS(getSTATUS()|STATUS_TE);
-			/* Setto correttamente lo stack pointer */
-			torun->p_s.reg_sp = PFRAMES_START-(id*FRAME_SIZE);
+			//setTIMER(TIME_SLICE);
+			//setSTATUS(getSTATUS());
 			/* Lancio il nuovo processo */
 			LDST(&(torun->p_s));
 		}
 	}
-	/* Non ci sono processi nelle readyQueue, metto in attesa la CPU */
+	/* Se non ci sono processi nelle readyQueue termino */
 }
 
 /*************************** SCHEDULER ********************************/
-
-extern int key;
 
 /* AVVIO DELLO SCHEDULER - Passaggio del controllo */
 void scheduler(){
@@ -120,15 +116,8 @@ void scheduler(){
 	pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
 	pstate[id].status = (getSTATUS());
 	/* Finché ci sono processi pronti ad essere eseguiti */
-	while(readyProcsCounter != 0){
-		/* Innanzitutto se lo scheduler è stato richiamato dalla fine di un
-		 * TIME_SLICE è bene che il processo sia reinserito nelle readyQueue
-		 * in base alla priorità e tenendo conto dell'aging */
-		if (currentProc[id] != NULL){
-			debug(126, currentProc[id]->priority);
-			(currentProc[id]->priority)--;
-			debug(128, currentProc[id]->priority);
-		}
+	while(readyProcsCounter > 0){
+		/* TODO: INSERIRE L'AGING */
 		/* Lancio l'esecuzione del prossimo processo */
 		loadReady();
 	}

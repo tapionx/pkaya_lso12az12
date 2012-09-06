@@ -59,6 +59,7 @@ int main(void)
 		STST(&(test1->p_s));
 		test1->p_s.status = getSTATUS();
 		(test1->p_s).pc_epc = (test1->p_s).reg_t9 = (memaddr)print1;
+		test1->p_s.reg_sp = PFRAMES_START;
 		addReady(test1);	
 		
 		/* Test di alcuni processi di prova */
@@ -66,6 +67,7 @@ int main(void)
 		STST(&(test2->p_s));
 		test2->p_s.status = getSTATUS();
 		test2->p_s.pc_epc = test2->p_s.reg_t9 = (memaddr)print2;
+		test2->p_s.reg_sp = PFRAMES_START-FRAME_SIZE;
 		addReady(test2);
 		
 	

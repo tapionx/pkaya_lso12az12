@@ -6,6 +6,7 @@
 void print1(){
 	while(TRUE){
 		int i=0;
+		debug(99, 100);
 		SYSCALL(PASSEREN, 0, 0, 0);
 		for (; i<5; i++){
 			addokbuf("CIAO 1\n");
@@ -16,8 +17,9 @@ void print1(){
 
 void print2(){
 	while(TRUE){
-		SYSCALL(PASSEREN, 0, 0, 0);
-		int i=0;	
+		int i=0;
+		debug(99, 100);
+		SYSCALL(PASSEREN, 0, 0, 0);	
 		for (; i<5; i++){
 			addokbuf("CIAO 2\n");
 		}

@@ -119,7 +119,7 @@ void initCpus()
 	int id;
 	for (id=0; id<NUM_CPU; id++){
 		U32 curStatus = getSTATUS();
-		pstate[id].status = (curStatus|STATUS_IEp|STATUS_INT_UNMASKED)\
+		pstate[id].status = (curStatus|STATUS_IEc|STATUS_INT_UNMASKED)\
 							&~(STATUS_VMc);
 		/* Tutte le CPU iniziano eseguendo lo scheduler */
 		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;

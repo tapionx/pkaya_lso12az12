@@ -141,7 +141,10 @@ void verhogen(int semKey)
  */
 void passeren(int semKey)
 {
+	
 	int cpuid = getPRID();
+	
+	LDST(&(pnew_old_areas[cpuid][OLD_SYSBP]));
 	/* acquisisco il LOCK sul semaforo */
 	lock(semKey);
 	/* ottengo il processo corrente */ 
@@ -160,7 +163,8 @@ void passeren(int semKey)
 		if (tempSem != NULL){
 			/* significa che prima della insertBlocked il semaforo era gia' stato allocato (e usato) */
 			/* incremento Soft Block Count */
-			increaseSoftProcsCounter( getPRID() );	
+			increaseSoftProcsCounter( getPRID() );
+			addReady(processoCorrente);
 			/* devo passare il controllo allo scheduler, il processo non e' piu' nella readyQueue */
 			LDST(&(pstate[cpuid]));
 		}
