@@ -67,8 +67,6 @@ void addReady(pcb_t *proc){
 	readyProcs[id][proc->priority]++;	 	
 	/* Inserisco il pcb_t passato nella readyQueue della CPU id */
 	insertProcQ(&(readyQueue[id][proc->priority]), proc);
-	pcb_t *boh = container_of(list_head(readyQueue[id][proc->priority]), pcb_t, p_next); 
-	debug(boh, proc);
 }
 
 
