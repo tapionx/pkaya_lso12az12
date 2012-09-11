@@ -70,6 +70,20 @@ int main(void)
 		test2->p_s.pc_epc = test2->p_s.reg_t9 = (memaddr)print2;
 		test2->p_s.reg_sp = test1->p_s.reg_sp-FRAME_SIZE;
 		addReady(test2);
+		
+		pcb_t *test3 = allocPcb();
+		STST(&(test3->p_s));
+		test3->p_s.status = getSTATUS();
+		test3->p_s.pc_epc = test3->p_s.reg_t9 = (memaddr)print3;
+		test3->p_s.reg_sp = test2->p_s.reg_sp-FRAME_SIZE;
+		addReady(test3);
+
+		pcb_t *test4 = allocPcb();
+		STST(&(test4->p_s));
+		test4->p_s.status = getSTATUS();
+		test4->p_s.pc_epc = test4->p_s.reg_t9 = (memaddr)print4;
+		test4->p_s.reg_sp = test3->p_s.reg_sp-FRAME_SIZE;
+		addReady(test4);
 	
 	/************* ESECUZIONE DEI PROCESSI */
 	/* Inizializzo la Interrupt Routing Table dinamica */

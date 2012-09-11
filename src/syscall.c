@@ -119,7 +119,6 @@ void verhogen(int semKey)
 	lock(semKey);
 	/* libero il processo dal semaforo */
 	pcb_t *processoLiberato = removeBlocked(semKey);
-	debug(processoLiberato, 122);
 	/* libero il LOCK sul semaforo */
 	free(semKey);
 	/* se il semaforo ha almeno un altro processo in coda */
