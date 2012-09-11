@@ -4,23 +4,13 @@
 /* Questa funzione stampa una stringa usando un semaforo per garantire
  * mutua esclusione */
 void print1(){
-	
-		int i=0;
 		SYSCALL(PASSEREN, 0, 0, 0);
-		for (; i<5; i++){
-			addokbuf("CIAO 1\n");
-		}
+		addokbuf("1\n");
 		SYSCALL(VERHOGEN, 0, 0, 0);
-	
 }
 
 void print2(){
-	
-		int i=0;
 		SYSCALL(PASSEREN, 0, 0, 0);	
-		for (; i<5; i++){
-			addokbuf("CIAO 2\n");
-		}
+		addokbuf("2\n");
 		SYSCALL(VERHOGEN, 0, 0, 0);
-	
 }

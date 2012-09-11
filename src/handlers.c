@@ -124,6 +124,9 @@ void sysbp_handler()
 
 void trap_handler()
 {
+	// TEMPORANEO
+	PANIC();
+	
 	int cause = getCAUSE();
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie

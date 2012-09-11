@@ -111,7 +111,7 @@ void loadReady(){
 void scheduler(){
 	while(TRUE){
 		int id = getPRID();
-		STST(&pstate[id]);
+		//STST(&pstate[id]);
 		/* Salvo lo stato corrente in modo da riprendere l'esecuzione dello
 		 * scheduler dopo ogni context switch */
 		pstate[id].pc_epc = pstate[id].reg_t9 = (memaddr)scheduler;
