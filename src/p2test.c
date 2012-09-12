@@ -35,7 +35,7 @@
 #include "const.h"
 #include "types11.h"
 #include "libumps.h"
-#include "myconst.h"
+#include "myConst.h"
 
 typedef unsigned int devregtr;
 

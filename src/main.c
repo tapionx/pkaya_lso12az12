@@ -1,94 +1,102 @@
-/* Da specifica */
+#include "libumps.h"
+#include "myConst.h"
 #include "const.h"
 #include "uMPStypes.h"
-#include "listx.h"
 #include "types11.h"
-#include "pcb.e"
-#include "asl.e"
 
-/* Custom */
-#include "init.h"
-#include "utils.h"
-#include "myconst.h"
-#include "handlers.h"
-#include "scheduler.h"
-#include "myProcs.c"
+/* Indici dei semafori (da usare come variabili di condizione) */
+int locks[NUM_CPU];
 
-#define	MAXSEM	MAXPROC
-#define MAX_PCB_PRIORITY		10
-#define MIN_PCB_PRIORITY		0
-#define DEFAULT_PCB_PRIORITY		5
+void sysbk_handler(){
+	debug(69, 1);
+}
 
-/* TESTS */
-extern int p1test();
-extern int p2test();
+void int_handler(){
+	debug(69, 2);
+}
 
-/* Global kernel variables */
-state_t *pnew_old_areas[NUM_CPU][NUM_AREAS]; /* puntatori alle new_old areas */
-state_t new_old_areas[NUM_CPU][NUM_AREAS]; /* 8 areas for each cpu */
-state_t pstate[NUM_CPU]; /* stati di load/store per lo scheduler */
-int locks[MAXPROC]; /* Vettore di variabili di condizione per i semafori */
+void tlb_handler(){
+	debug(69, 3);
+}
 
-/******************* MAIN **********************/
+void pgmtrap_handler(){
+	debug(69, 4);
+}
 
-int main(void)
-{
-	/************* INIZIALIZZAZIONE DEL SISTEMA */
-	/* Inizializzazione del vettore dei lock a PASS */
-	initLock();
-	/* Inizializzo le new (e old) area di tutte le CPU */
-	initAreas(pnew_old_areas, NUM_CPU);
-	/* Inizializzo le strutture dati di Phase1 */
+void prova_altracpu(){
+	debug(2,2);
+	setTIMER(50);
+	setSTATUS(PROCESS_STATUS);
+	while(TRUE);
+	//SYSCALL(0,0,0,0);
+}
+
+/* Variabili del nucleo */
+int processCount; /* Contatore della totalita' dei processi */ 
+int softBlockCount; /* Contatore dei processi bloccati su semafori */
+struct list_head readyQueue; /* Coda dei processi in stato ready */
+pcb_t *currentProcess; /* Puntatore al processo correntemente in esecuzione */
+state_t areas[NUM_CPU][NUM_AREAS];
+
+/** L'esecuzione del kernel inizia da qui */
+int main(){
+	debug(0, PROCESS_STATUS);
+	/** INIT CPU0 */
+	/* Init delle new area */
+		cleanState((state_t *)INT_NEWAREA);
+		((state_t *)INT_NEWAREA)->pc_epc = ((state_t *)INT_NEWAREA)->reg_t9 = (memaddr)int_handler;
+		((state_t *)INT_NEWAREA)->reg_sp = RAMTOP;
+		((state_t *)INT_NEWAREA)->status = EXCEPTION_STATUS;
+		cleanState((state_t *)TLB_NEWAREA);
+		((state_t *)TLB_NEWAREA)->pc_epc = ((state_t *)TLB_NEWAREA)->reg_t9 = (memaddr)tlb_handler;
+		((state_t *)TLB_NEWAREA)->reg_sp = RAMTOP;
+		((state_t *)TLB_NEWAREA)->status = EXCEPTION_STATUS;
+		cleanState((state_t *)PGMTRAP_NEWAREA);
+		((state_t *)PGMTRAP_NEWAREA)->pc_epc = ((state_t *)PGMTRAP_NEWAREA)->reg_t9 = (memaddr)pgmtrap_handler;
+		((state_t *)PGMTRAP_NEWAREA)->reg_sp = RAMTOP;
+		((state_t *)PGMTRAP_NEWAREA)->status = EXCEPTION_STATUS;
+		cleanState((state_t *)SYSBK_NEWAREA);
+		((state_t *)SYSBK_NEWAREA)->pc_epc = ((state_t *)SYSBK_NEWAREA)->reg_t9 = (memaddr)sysbk_handler;
+		((state_t *)SYSBK_NEWAREA)->reg_sp = RAMTOP;
+		((state_t *)SYSBK_NEWAREA)->status = EXCEPTION_STATUS;
+	
+	/* Init strutture phase1 */
 	initPcbs();
-	initASL();
-	/* Inizializzo le strutture dello scheduler */
-	initReadyQueues();
+	initASL();	
 	
-	
-	/************* CARICAMENTO DEI PROCESSI NELLE READY QUEUE */
-	
-		/* Test phase2 */
-		//pcb_t *phase2 = allocPcb();
-		//STST(&(phase2->p_s));
-		//phase2->p_s.status = getSTATUS();
-		//phase2->p_s.pc_epc = phase2->p_s.reg_t9 = (memaddr)p2test;
-		//phase2->p_s.reg_sp = PFRAMES_START;
-		//addReady(phase2);
+	/** INIT CPU > 0 */
+	if (NUM_CPU > 1){
+		/* Init delle new area */
+		int cpuid,area;
+		state_t *currentArea;
 		
-		/* Test di alcuni processi di prova */
-		pcb_t *test1 = allocPcb();
-		STST(&(test1->p_s));
-		test1->p_s.status = getSTATUS();
-		(test1->p_s).pc_epc = (test1->p_s).reg_t9 = (memaddr)print1;
-		test1->p_s.reg_sp = PFRAMES_START;
-		addReady(test1);
-		
-		/* Test di alcuni processi di prova */
-		pcb_t *test2 = allocPcb();
-		STST(&(test2->p_s));
-		test2->p_s.status = getSTATUS();
-		test2->p_s.pc_epc = test2->p_s.reg_t9 = (memaddr)print2;
-		test2->p_s.reg_sp = test1->p_s.reg_sp-FRAME_SIZE;
-		addReady(test2);
-		
-		pcb_t *test3 = allocPcb();
-		STST(&(test3->p_s));
-		test3->p_s.status = getSTATUS();
-		test3->p_s.pc_epc = test3->p_s.reg_t9 = (memaddr)print3;
-		test3->p_s.reg_sp = test2->p_s.reg_sp-FRAME_SIZE;
-		addReady(test3);
-
-		pcb_t *test4 = allocPcb();
-		STST(&(test4->p_s));
-		test4->p_s.status = getSTATUS();
-		test4->p_s.pc_epc = test4->p_s.reg_t9 = (memaddr)print4;
-		test4->p_s.reg_sp = test3->p_s.reg_sp-FRAME_SIZE;
-		addReady(test4);
-	
-	/************* ESECUZIONE DEI PROCESSI */
-	/* Inizializzo la Interrupt Routing Table dinamica */
-	/* initIRT(); */
-	/* Inizializzo le altre CPU e faccio partire lo scheduler */
-	initCpus();
+		for (cpuid=1; cpuid<NUM_CPU; cpuid++){
+			currentArea = &(areas[cpuid][INT_NEWAREA_INDEX]);
+			currentArea->pc_epc = currentArea->reg_t9 = (memaddr)int_handler;
+			currentArea->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			currentArea->status = EXCEPTION_STATUS;	
+			
+			currentArea = &(areas[cpuid][TLB_NEWAREA_INDEX]);
+			currentArea->pc_epc = currentArea->reg_t9 = (memaddr)tlb_handler;
+			currentArea->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			currentArea->status = EXCEPTION_STATUS;	
+			
+			currentArea = &(areas[cpuid][PGMTRAP_NEWAREA_INDEX]);
+			currentArea->pc_epc = currentArea->reg_t9 = (memaddr)int_handler;
+			currentArea->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			currentArea->status = EXCEPTION_STATUS;	
+			
+			currentArea = &(areas[cpuid][SYSBK_NEWAREA_INDEX]);
+			currentArea->pc_epc = currentArea->reg_t9 = (memaddr)int_handler;
+			currentArea->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			currentArea->status = EXCEPTION_STATUS;	
+		}
+	}
+	state_t prova;
+	STST(&prova);
+	prova.pc_epc = prova.reg_t9 = (memaddr)prova_altracpu;
+	prova.reg_sp = RAMTOP-(5*FRAME_SIZE);
+	INITCPU(1, &prova, &(areas[1]));
+	while(TRUE);
 	return 0;
 }

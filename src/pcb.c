@@ -1,6 +1,6 @@
 #include <pcb.e>
 #include "utils.h"
-#include "myconst.h"
+#include "myConst.h"
 
 /* Elemento sentinella (dummy) della lista pcbFree */
 LIST_HEAD(pcbFree_h);
