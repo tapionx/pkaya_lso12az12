@@ -1,7 +1,7 @@
-void sysbp_handler();
+void sysbk_handler();
 
-void trap_handler();
+void pgmtrap_handler();
 
 void tlb_handler();
 
-void ints_handler();
+void int_handler();

@@ -5,7 +5,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 4
+#define NUM_CPU 3
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -79,5 +79,6 @@
 #define SYSBK_NEWAREA_INDEX 7
 #define SYSBK_OLDAREA_INDEX 6
 
+#define SCHEDULER_LOCK 4
 
 

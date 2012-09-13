@@ -30,6 +30,9 @@
 #define TRANCOMMAND   3
 #define BUSY      3
 
+extern int locks[MAXPROC+MAX_DEVICES];
+
+
 /* This function is a debugging function. Through the emulator you can
  * see the value of both the parameters.
  * line : the line of the source where you're debugging
@@ -257,15 +260,13 @@ int pow(int b, int e){
 }
 
 /* Acquisizione di un lock passato come parametro */
-void lock(int semKey)
+void lock(int key)
 {
-	extern int locks[MAXPROC];
-	while(!CAS(&locks[semKey],PASS,FORBID));
+	while(!CAS(&locks[key],PASS,FORBID));
 }
 
 /* Liberazione di un lock passato come parametro */
-void free(int semKey)
+void free(int key)
 {
-	extern int locks[MAXPROC];
-	CAS(&locks[semKey],FORBID,PASS);
+	CAS(&locks[key],FORBID,PASS);
 }
