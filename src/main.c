@@ -6,17 +6,6 @@
 #include "handlers.h"
 #include "scheduler.h"
 
-void prova_altracpu(){
-	int locknum = 1;
-	int i=0;
-	while(TRUE){
-		lock(locknum);
-		for (i=0; i<5; i++)
-			printn("CPU %\n", getPRID());
-		free(locknum);
-	}
-}
-
 /* Variabili del nucleo */
 int processCount; /* Contatore della totalita' dei processi */ 
 int softBlockCount; /* Contatore dei processi bloccati su semafori */
@@ -26,8 +15,19 @@ state_t areas[NUM_CPU][NUM_AREAS];
 int locks[MAXPROC+MAX_DEVICES]; /* Variabili di condizione per CAS */
 state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 
+void prova_altracpu(){
+	int locknum = 1;
+	while(TRUE){
+		lock(locknum);
+		printn("CPU %\n", getPRID());
+		free(locknum);
+	}
+}
+
 /** L'esecuzione del kernel inizia da qui */
 int main(){
+	/* Disabilito tutto per sicurezza */
+	setSTATUS(EXCEPTION_STATUS);
 	/** INIT CPU0 */
 	/* Init delle new area */
 		cleanState((state_t *)INT_NEWAREA);
@@ -93,7 +93,8 @@ int main(){
 		STST(&(scheduler_states[i]));
 		scheduler_states[i].reg_sp = SFRAMES_START-(i*FRAME_SIZE);
 		scheduler_states[i].pc_epc = scheduler_states[i].reg_t9 = (memaddr)scheduler;
-		scheduler_states[i].status = scheduler_states[i].status | PROCESS_STATUS;
+		/* Il TIMER e' disabilitato durante l'esecuzione dello scheduler */
+		scheduler_states[i].status = PROCESS_STATUS & ~STATUS_TE;
 	}
 
 		/////////////////////////////
@@ -109,7 +110,7 @@ int main(){
 		pcb_t prova2;
 		STST(&(prova2.p_s));
 		prova2.p_s.pc_epc = prova2.p_s.reg_t9 = (memaddr)prova_altracpu;
-		prova2.p_s.reg_sp = PFRAMES_START-2*QPAGE;
+		prova2.p_s.reg_sp = PFRAMES_START-4*QPAGE;
 		prova2.p_s.status = prova2.p_s.status | PROCESS_STATUS;
 		
 		/////////////////////////////
@@ -117,7 +118,7 @@ int main(){
 		pcb_t prova3;
 		STST(&(prova3.p_s));
 		prova3.p_s.pc_epc = prova3.p_s.reg_t9 = (memaddr)prova_altracpu;
-		prova3.p_s.reg_sp = PFRAMES_START-3*QPAGE;
+		prova3.p_s.reg_sp = PFRAMES_START-6*QPAGE;
 		prova3.p_s.status = prova3.p_s.status | PROCESS_STATUS;
 		
 		/////////////////////////////
@@ -125,7 +126,7 @@ int main(){
 		pcb_t prova4;
 		STST(&(prova4.p_s));
 		prova4.p_s.pc_epc = prova4.p_s.reg_t9 = (memaddr)prova_altracpu;
-		prova4.p_s.reg_sp = PFRAMES_START-4*QPAGE;
+		prova4.p_s.reg_sp = PFRAMES_START-8*QPAGE;
 		prova4.p_s.status = prova4.p_s.status | PROCESS_STATUS;
 	
 	addReady(&prova1);

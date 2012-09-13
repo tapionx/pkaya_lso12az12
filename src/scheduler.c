@@ -3,12 +3,7 @@
 #include "libumps.h"
 #include "pcb.e"
 #include "asl.e"
-
-extern int processCount; /* Contatore della totalita' dei processi */ 
-extern int softBlockCount; /* Contatore dei processi bloccati su semafori */
-extern struct list_head readyQueue; /* Coda dei processi in stato ready */
-extern pcb_t *currentProcess; /* Puntatore al processo correntemente in esecuzione */
-int locks[MAXPROC+MAX_DEVICES]; /* Variabili di condizione per CAS */
+#include "kernelVariables.h"
 
 void addReady(pcb_t *proc){
 	lock(SCHEDULER_LOCK);
@@ -17,10 +12,14 @@ void addReady(pcb_t *proc){
 }
 
 void scheduler(){
+	int cpuId = getPRID();
 	while(!emptyProcQ(&(readyQueue))){
 		lock(SCHEDULER_LOCK);
-		pcb_t *torun = removeProcQ(&(readyQueue));
+		currentProcess[cpuId] = removeProcQ(&(readyQueue));
 		free(SCHEDULER_LOCK);
-		LDST(&(torun->p_s));
+		/* Settiamo il TIME_SLICE un istante prima di mandare il processo
+		 * in esecuzione */
+		setTIMER(TIME_SLICE);
+		LDST(&(currentProcess[cpuId]->p_s));
 	}
 }

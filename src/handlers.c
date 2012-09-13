@@ -1,15 +1,25 @@
+#include "libumps.h"
+#include "myConst.h"
+#include "const.h"
+#include "uMPStypes.h"
+#include "types11.h"
+#include "handlers.h"
+#include "scheduler.h"
+#include "utils.h"
+#include "kernelVariables.h"
+
 void sysbk_handler(){
-	debug(69, 1);
+
 }
 
 void int_handler(){
-	debug(69, 2);
+	//debug(16,16);
+	
 }
 
 void tlb_handler(){
-	debug(69, 3);
 }
 
 void pgmtrap_handler(){
-	debug(69, 4);
+
 }
