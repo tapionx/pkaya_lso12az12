@@ -7,14 +7,14 @@
 #include "scheduler.h"
 
 void prova_altracpu(){
-	//setTIMER(50);
-	//setSTATUS(PROCESS_STATUS);
+	int locknum = 1;
 	int i=0;
 	while(TRUE){
-		i++;
-		i++;
+		lock(locknum);
+		for (i=0; i<5; i++)
+			printn("CPU %\n", getPRID());
+		free(locknum);
 	}
-	//SYSCALL(0,0,0,0);
 }
 
 /* Variabili del nucleo */
@@ -83,32 +83,63 @@ int main(){
 	/** AZZERAMENTO DEI LOCK */
 	int i = 0;
 	for(i=0;i<(MAXPROC+MAX_DEVICES);i++){
-		//locks[i] = 0;
+		locks[i] = 1;
 	}
 	
 	/** INIZIALIZZAZIONE DELLO SCHEDULER */
 	
 	mkEmptyProcQ(&(readyQueue)); /* Inizializzo la ready queue */
 	for(i=0;i<NUM_CPU;i++){
-		STST(&scheduler_states[i]);
-		scheduler_states[i].reg_sp = RAMTOP-(NUM_CPU*FRAME_SIZE)-(i*FRAME_SIZE);
+		STST(&(scheduler_states[i]));
+		scheduler_states[i].reg_sp = SFRAMES_START-(i*FRAME_SIZE);
 		scheduler_states[i].pc_epc = scheduler_states[i].reg_t9 = (memaddr)scheduler;
 		scheduler_states[i].status = scheduler_states[i].status | PROCESS_STATUS;
-	} 
+	}
+
+		/////////////////////////////
+	   // PROCESSO DI PROVA 	  //
+		pcb_t prova1;
+		STST(&(prova1.p_s));
+		prova1.p_s.pc_epc = prova1.p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova1.p_s.reg_sp = PFRAMES_START;
+		prova1.p_s.status = prova1.p_s.status | PROCESS_STATUS;
+		
+		/////////////////////////////
+	   // PROCESSO DI prova2 	  //
+		pcb_t prova2;
+		STST(&(prova2.p_s));
+		prova2.p_s.pc_epc = prova2.p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova2.p_s.reg_sp = PFRAMES_START-2*QPAGE;
+		prova2.p_s.status = prova2.p_s.status | PROCESS_STATUS;
+		
+		/////////////////////////////
+	   // PROCESSO DI prova3 	  //
+		pcb_t prova3;
+		STST(&(prova3.p_s));
+		prova3.p_s.pc_epc = prova3.p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova3.p_s.reg_sp = PFRAMES_START-3*QPAGE;
+		prova3.p_s.status = prova3.p_s.status | PROCESS_STATUS;
+		
+		/////////////////////////////
+	   // PROCESSO DI prova4 	  //
+		pcb_t prova4;
+		STST(&(prova4.p_s));
+		prova4.p_s.pc_epc = prova4.p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova4.p_s.reg_sp = PFRAMES_START-4*QPAGE;
+		prova4.p_s.status = prova4.p_s.status | PROCESS_STATUS;
 	
-	/////////////////////////////
-	
-	pcb_t prova;
-	STST(&prova.p_s);
-	prova.p_s.pc_epc = prova.p_s.reg_t9 = (memaddr)prova_altracpu;
-	prova.p_s.status = prova.p_s.status | PROCESS_STATUS;
+	addReady(&prova1);
+	addReady(&prova2);
+	addReady(&prova3);
+	addReady(&prova4);
 	
 	
-	for(i=0;i<NUM_CPU;i++){
-		prova.p_s.reg_sp = RAMTOP-(NUM_CPU*FRAME_SIZE)-(i*FRAME_SIZE);
-		addReady(&prova);
+	for(i=1;i<NUM_CPU;i++){
 		INITCPU(i, &scheduler_states[i], &areas[i]);
 	}
-	
+	/* bisogna attendere che tutte le altre CPU siano inizializzate
+	 * prima di poter dare il controllo allo scheduler anche per la 
+	 * CPU 0 */
+	LDST(&(scheduler_states[0]));
 	return 0;
 }

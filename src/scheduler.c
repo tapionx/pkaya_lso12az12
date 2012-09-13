@@ -21,7 +21,6 @@ void scheduler(){
 		lock(SCHEDULER_LOCK);
 		pcb_t *torun = removeProcQ(&(readyQueue));
 		free(SCHEDULER_LOCK);
-		torun->p_s.status = torun->p_s.status | PROCESS_STATUS;
 		LDST(&(torun->p_s));
 	}
 }

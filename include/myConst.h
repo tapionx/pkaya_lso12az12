@@ -5,7 +5,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 3
+#define NUM_CPU 4
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -39,14 +39,15 @@
 #define PROCESS_STATUS (STATUS_IEc|STATUS_INT_UNMASKED|STATUS_TE)
 #define STATUS_TE 0x08000000
 #define RESET 0
-#define PASS 0 /* per CAS */
-#define FORBID 1 /* per CAS */
+#define PASS 1 /* per CAS */
+#define FORBID 0 /* per CAS */
 
 /* Organizzazione della memoria */
 #define ROM_RES_FRAME_START 0x20000000
 #define ROM_RES_FRAME_END 0x20000FFF
-#define AREAS_SIZE (sizeof(state_t)*NUM_AREAS*NUM_CPU)
-#define AREAS_DISTANCE (sizeof(state_t)) /* distanza in byte tra due aree dello stesso tipo */
+#ifndef QPAGE
+	#define QPAGE 1024
+#endif
 
 /* Memoria usabile dai processi (i primi NUMCPU frame sono riservati agli handler) */
 #define PFRAMES (((*(memaddr *)BUS_INSTALLEDRAM)/FRAME_SIZE)-2) /* 1 Rom Res. Frame + 1 Frame per gli stack degli handler */
@@ -79,6 +80,7 @@
 #define SYSBK_NEWAREA_INDEX 7
 #define SYSBK_OLDAREA_INDEX 6
 
-#define SCHEDULER_LOCK 4
+/* Costanti per lo scheduler */
+#define SCHEDULER_LOCK MAX_DEVICES+MAXPROC-1
 
 
