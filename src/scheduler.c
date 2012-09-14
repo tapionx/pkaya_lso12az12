@@ -12,14 +12,15 @@ void addReady(pcb_t *proc){
 }
 
 void scheduler(){
-	int cpuId = getPRID();
+	int cpuid = getPRID();
 	while(!emptyProcQ(&(readyQueue))){
 		lock(SCHEDULER_LOCK);
-		currentProcess[cpuId] = removeProcQ(&(readyQueue));
+		currentProcess[cpuid] = removeProcQ(&(readyQueue));
 		free(SCHEDULER_LOCK);
 		/* Settiamo il TIME_SLICE un istante prima di mandare il processo
 		 * in esecuzione */
 		setTIMER(TIME_SLICE);
-		LDST(&(currentProcess[cpuId]->p_s));
+		LDST(&(currentProcess[cpuid]->p_s));
 	}
+	WAIT();
 }

@@ -35,12 +35,13 @@
 #define TIME_SLICE 5*1000*(*(memaddr *)BUS_TIMESCALE) /* espresso in ms, 1ms = BUS_TIMESCALE*1000 clock_ticks */
 
 /* Costanti di utilità */
-#define EXCEPTION_STATUS (STATUS_TE & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp|STATUS_KUp))
-#define PROCESS_STATUS (STATUS_IEp|STATUS_INT_UNMASKED|STATUS_TE)
+#define EXCEPTION_STATUS (STATUS_TE & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp))
+#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED)
 #define STATUS_TE 0x08000000
 #define RESET 0
 #define PASS 1 /* per CAS */
 #define FORBID 0 /* per CAS */
+#define NUM_LINES 8 /* Numero delle linee di interrupt totali */
 
 /* Organizzazione della memoria */
 #define ROM_RES_FRAME_START 0x20000000
@@ -71,14 +72,15 @@
 /* identificativi New e Old Area generici (l'ordine è come da manuale) */
 #define NUM_AREAS 8
 
-#define INT_NEWAREA_INDEX 1
 #define INT_OLDAREA_INDEX 0
-#define TLB_NEWAREA_INDEX 3
+#define INT_NEWAREA_INDEX 1
 #define TLB_OLDAREA_INDEX 2
-#define PGMTRAP_NEWAREA_INDEX 5
+#define TLB_NEWAREA_INDEX 3
 #define PGMTRAP_OLDAREA_INDEX 4
-#define SYSBK_NEWAREA_INDEX 7
+#define PGMTRAP_NEWAREA_INDEX 5
 #define SYSBK_OLDAREA_INDEX 6
+#define SYSBK_NEWAREA_INDEX 7
+
 
 /* Costanti per lo scheduler */
 #define SCHEDULER_LOCK MAX_DEVICES+MAXPROC-1
