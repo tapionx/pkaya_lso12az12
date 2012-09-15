@@ -20,103 +20,86 @@ state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 
 void prova_altracpu(){
 	while(TRUE){
-		SYSCALL(PASSEREN,0,0,0);
-		debug(4,4);
-		SYSCALL(VERHOGEN,0,0,0);
+		//SYSCALL(PASSEREN,0,0,0);
+		//debug(getPRID(),getPRID());
+		//SYSCALL(VERHOGEN,0,0,0);
 	}
 }
 
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){
-	/* Disabilito tutto per sicurezza */
-	/** INIT CPU0 */
-	/* Init delle new area */
-		pareas[0][INT_NEWAREA_INDEX] = (state_t *)INT_NEWAREA;
-		pareas[0][INT_OLDAREA_INDEX] = (state_t *)INT_OLDAREA;
-		cleanState((state_t *)INT_NEWAREA);
-		((state_t *)INT_NEWAREA)->pc_epc = ((state_t *)INT_NEWAREA)->reg_t9 = (memaddr)int_handler;
-		((state_t *)INT_NEWAREA)->reg_sp = RAMTOP;
-		((state_t *)INT_NEWAREA)->status = EXCEPTION_STATUS;
-		
-		pareas[0][TLB_NEWAREA_INDEX] = (state_t *)TLB_NEWAREA;
-		pareas[0][TLB_OLDAREA_INDEX] = (state_t *)TLB_OLDAREA;
-		cleanState((state_t *)TLB_NEWAREA);
-		((state_t *)TLB_NEWAREA)->pc_epc = ((state_t *)TLB_NEWAREA)->reg_t9 = (memaddr)tlb_handler;
-		((state_t *)TLB_NEWAREA)->reg_sp = RAMTOP;
-		((state_t *)TLB_NEWAREA)->status = EXCEPTION_STATUS;
-		
-		pareas[0][PGMTRAP_NEWAREA_INDEX] = (state_t *)PGMTRAP_NEWAREA;
-		pareas[0][PGMTRAP_OLDAREA_INDEX] = (state_t *)PGMTRAP_OLDAREA;
-		cleanState((state_t *)PGMTRAP_NEWAREA);
-		((state_t *)PGMTRAP_NEWAREA)->pc_epc = ((state_t *)PGMTRAP_NEWAREA)->reg_t9 = (memaddr)pgmtrap_handler;
-		((state_t *)PGMTRAP_NEWAREA)->reg_sp = RAMTOP;
-		((state_t *)PGMTRAP_NEWAREA)->status = EXCEPTION_STATUS;
-		
-		pareas[0][SYSBK_NEWAREA_INDEX] = (state_t *)SYSBK_NEWAREA;
-		pareas[0][SYSBK_OLDAREA_INDEX] = (state_t *)SYSBK_OLDAREA;
-		cleanState((state_t *)SYSBK_NEWAREA);
-		((state_t *)SYSBK_NEWAREA)->pc_epc = ((state_t *)SYSBK_NEWAREA)->reg_t9 = (memaddr)sysbk_handler;
-		((state_t *)SYSBK_NEWAREA)->reg_sp = RAMTOP;
-		((state_t *)SYSBK_NEWAREA)->status = EXCEPTION_STATUS;
+	int cpuid, area, lockno; /* Iteratori */
+
+	/** INIZIALIZZAZIONE DEI LOCK */
+	for(lockno=0;lockno<(MAXPROC+MAX_DEVICES);lockno++){
+		locks[lockno] = 1; /* PASS */
+	}
 	
-	/* Init strutture phase1 */
+	/** INIZIALIZZAZIONE DELLE NEW AREA */
+	for (cpuid = 0; cpuid < NUM_CPU; cpuid++){
+		for (area = INT_NEWAREA_INDEX; area < NUM_AREAS; area += 2){
+			/* L'inizializzazione dipende dall'area presa in esame */
+			switch(area){
+				case INT_NEWAREA_INDEX:
+					if (cpuid == 0){
+						pareas[cpuid][area] = (state_t *)INT_NEWAREA;
+						pareas[cpuid][area-1] = (state_t *)INT_OLDAREA;
+					} else {
+						pareas[cpuid][area] = &(areas[cpuid][area]);
+						pareas[cpuid][area-1] = &(areas[cpuid][area-1]);
+					}
+					pareas[cpuid][area]->pc_epc = pareas[cpuid][area]->reg_t9 = (memaddr)int_handler;
+					break;
+				case TLB_NEWAREA_INDEX:
+					if (cpuid == 0){
+						pareas[cpuid][area] = (state_t *)TLB_NEWAREA;
+						pareas[cpuid][area-1] = (state_t *)TLB_OLDAREA;
+					} else {
+						pareas[cpuid][area] = &(areas[cpuid][area]);
+						pareas[cpuid][area-1] = &(areas[cpuid][area-1]);
+					}
+					pareas[cpuid][area]->pc_epc = pareas[cpuid][area]->reg_t9 = (memaddr)tlb_handler;
+					break;
+				case PGMTRAP_NEWAREA_INDEX:
+					if (cpuid == 0){
+						pareas[cpuid][area] = (state_t *)PGMTRAP_NEWAREA;
+						pareas[cpuid][area-1] = (state_t *)PGMTRAP_OLDAREA;
+					} else {
+						pareas[cpuid][area] = &(areas[cpuid][area]);
+						pareas[cpuid][area-1] = &(areas[cpuid][area-1]);
+					}
+					pareas[cpuid][area]->pc_epc = pareas[cpuid][area]->reg_t9 = (memaddr)pgmtrap_handler;
+					break;
+				case SYSBK_NEWAREA_INDEX:
+					if (cpuid == 0){
+						pareas[cpuid][area] = (state_t *)SYSBK_NEWAREA;
+						pareas[cpuid][area-1] = (state_t *)SYSBK_OLDAREA;
+					} else {
+						pareas[cpuid][area] = &(areas[cpuid][area]);
+						pareas[cpuid][area-1] = &(areas[cpuid][area-1]);
+					}
+					pareas[cpuid][area]->pc_epc = pareas[cpuid][area]->reg_t9 = (memaddr)sysbk_handler;
+					break;
+			}
+			/* Settaggi comuni */
+			pareas[cpuid][area]->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			pareas[cpuid][area]->status = EXCEPTION_STATUS;
+		}
+	}
+
+	/** INIZIALIZZAZIONE STRUTTURE PHASE1 */
 	initPcbs();
-	initASL();	
-	
-	/** INIT CPU > 0 */
-	if (NUM_CPU > 1){
-		/* Init delle new area */
-		int cpuid,area;
-		state_t *currentArea;
-		
-		for (cpuid=1; cpuid<NUM_CPU; cpuid++){
-			currentArea = &(areas[cpuid][INT_NEWAREA_INDEX]);
-			currentArea->pc_epc = currentArea->reg_t9 = (memaddr)int_handler;
-			currentArea->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			currentArea->status = EXCEPTION_STATUS;	
-			
-			currentArea = &(areas[cpuid][TLB_NEWAREA_INDEX]);
-			currentArea->pc_epc = currentArea->reg_t9 = (memaddr)tlb_handler;
-			currentArea->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			currentArea->status = EXCEPTION_STATUS;	
-			
-			currentArea = &(areas[cpuid][PGMTRAP_NEWAREA_INDEX]);
-			currentArea->pc_epc = currentArea->reg_t9 = (memaddr)pgmtrap_handler;
-			currentArea->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			currentArea->status = EXCEPTION_STATUS;	
-			
-			currentArea = &(areas[cpuid][SYSBK_NEWAREA_INDEX]);
-			currentArea->pc_epc = currentArea->reg_t9 = (memaddr)sysbk_handler;
-			currentArea->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			currentArea->status = EXCEPTION_STATUS;	
-		}
-	}
-	
-	/** Inizializziamo i puntatori alle aree di tutte le CPU */
-	int i = 0;
-	int j = 0;
-	
-	for (i=1; i<NUM_CPU; i++){
-		for (j=0; j<NUM_AREAS; j++){
-			pareas[i][j] = &(areas[i][j]);
-		}
-	}
-	
-	/** AZZERAMENTO DEI LOCK */
-	for(i=0;i<(MAXPROC+MAX_DEVICES);i++){
-		locks[i] = 1;
-	}
+	initASL();		
 	
 	/** INIZIALIZZAZIONE DELLO SCHEDULER */
-	
 	mkEmptyProcQ(&(readyQueue)); /* Inizializzo la ready queue */
-	for(i=0;i<NUM_CPU;i++){
-		STST(&(scheduler_states[i]));
-		scheduler_states[i].reg_sp = SFRAMES_START-(i*FRAME_SIZE);
-		scheduler_states[i].pc_epc = scheduler_states[i].reg_t9 = (memaddr)scheduler;
+	for(cpuid=0;cpuid<NUM_CPU;cpuid++){
+		STST(&(scheduler_states[cpuid]));
+		scheduler_states[cpuid].reg_sp = SFRAMES_START-(cpuid*FRAME_SIZE);
+		scheduler_states[cpuid].pc_epc = scheduler_states[cpuid].reg_t9 = (memaddr)scheduler;
 		/* Il TIMER e' disabilitato durante l'esecuzione dello scheduler */
-		scheduler_states[i].status = PROCESS_STATUS & ~STATUS_TE;
+		scheduler_states[cpuid].status = PROCESS_STATUS & ~STATUS_TE;
 	}
 
 		/////////////////////////////
@@ -156,8 +139,8 @@ int main(){
 	addReady(prova3);
 	addReady(prova4);
 	
-	for(i=1;i<NUM_CPU;i++){
-		INITCPU(i, &scheduler_states[i], *(pareas[i]));
+	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
+		INITCPU(cpuid, &scheduler_states[cpuid], *(pareas[cpuid]));
 	}
 	/* bisogna attendere che tutte le altre CPU siano inizializzate
 	 * prima di poter dare il controllo allo scheduler anche per la 

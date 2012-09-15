@@ -122,14 +122,16 @@ void int_handler(){
 	int line = 0;
 	for (line; line < NUM_LINES; line++){
 		/* Se abbiamo trovato la linea usciamo */
-		if (CAUSE_IP_GET(getCAUSE(), line)) break;
+		if (CAUSE_IP_GET(getCAUSE(), line)){
+			break;
+		}
 	}
+	
 	switch(line){
 		case INT_PLT:
 			copyState(pareas[cpuid][INT_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
-			lock(SCHEDULER_LOCK);
+			/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
 			addReady(currentProcess[cpuid]);
-			free(SCHEDULER_LOCK);
 			LDST(&(scheduler_states[cpuid]));
 	}
 	
