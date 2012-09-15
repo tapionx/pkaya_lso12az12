@@ -1,9 +1,3 @@
-/* Vettori handlers di tutte le CPU */
-extern state_t* pnew_old_areas[NUM_CPU][NUM_AREAS];
-
-/* Ready Queue di tutte le CPU */
-extern struct list_head readyQueue[NUM_CPU][MAX_PCB_PRIORITY]; /* coda dei processi in stato ready */
-
 /* Handlers delle 11 System Call */
 
 /* System Call #1  : Create Process

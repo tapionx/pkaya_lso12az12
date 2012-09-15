@@ -17,17 +17,11 @@ state_t *pareas[NUM_CPU][NUM_AREAS]; /* Puntatori alle aree di tutte le CPU */
 int locks[MAXPROC+MAX_DEVICES]; /* Variabili di condizione per CAS */
 state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 
-int common; /* VARIABILE DI PROVA */
 
 void prova_altracpu(){
-	int locknum = 5;
-	while(TRUE){
-		lock(locknum);
-		common = getPRID();
-		debug(getPRID(), common);
-		free(locknum);
-	}
+	SYSCALL(VERHOGEN,0,0,0);
 }
+
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){
