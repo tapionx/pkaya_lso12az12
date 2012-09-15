@@ -5,12 +5,20 @@
 #include "asl.e"
 #include "kernelVariables.h"
 
+/**
+ * Questa funzione si occupa di aggiungere un pcb_t (puntato da proc)
+ * alla readyQueue dello scheduler. Agisce già in mutua esclusione
+ * utilizzando la CAS e un intero globale per lo scheduler.
+ */
 void addReady(pcb_t *proc){
 	lock(SCHEDULER_LOCK);
 	insertProcQ(&(readyQueue), proc);
 	free(SCHEDULER_LOCK);
 }
 
+/**
+ * Funzione principale per lo scheduling dei processi
+ */
 void scheduler(){
 	int cpuid = getPRID();
 	while(TRUE){

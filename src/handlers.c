@@ -10,6 +10,7 @@
 #include "syscall.h"
 
 void sysbk_handler(){
+	debug(13,13);
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
 	/* recupero il processo chiamante */

@@ -20,8 +20,8 @@ state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 
 void prova_altracpu(){
 	while(TRUE){
-		//SYSCALL(PASSEREN,0,0,0);
-		//debug(getPRID(),getPRID());
+		SYSCALL(PASSEREN,0,0,0);
+		debug(getPRID(),getPRID());
 		//SYSCALL(VERHOGEN,0,0,0);
 	}
 }
