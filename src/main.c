@@ -5,6 +5,7 @@
 #include "types11.h"
 #include "handlers.h"
 #include "scheduler.h"
+#include "pcb.e"
 
 /* Variabili del nucleo */
 int processCount; /* Contatore della totalita' dei processi */ 
@@ -122,40 +123,40 @@ int main(){
 
 		/////////////////////////////
 	   // PROCESSO DI PROVA 	  //
-		pcb_t prova1;
-		STST(&(prova1.p_s));
-		prova1.p_s.pc_epc = prova1.p_s.reg_t9 = (memaddr)prova_altracpu;
-		prova1.p_s.reg_sp = PFRAMES_START;
-		prova1.p_s.status = prova1.p_s.status | PROCESS_STATUS;
+		pcb_t* prova1 = allocPcb();
+		//STST(&(prova1.p_s));
+		prova1->p_s.pc_epc = prova1->p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova1->p_s.reg_sp = PFRAMES_START;
+		prova1->p_s.status = prova1->p_s.status | PROCESS_STATUS;
 		
 		/////////////////////////////
 	   // PROCESSO DI prova2 	  //
-		pcb_t prova2;
-		STST(&(prova2.p_s));
-		prova2.p_s.pc_epc = prova2.p_s.reg_t9 = (memaddr)prova_altracpu;
-		prova2.p_s.reg_sp = PFRAMES_START-4*QPAGE;
-		prova2.p_s.status = prova2.p_s.status | PROCESS_STATUS;
+		pcb_t* prova2 = allocPcb();
+		//STST(&(prova2.p_s));
+		prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova2->p_s.reg_sp = PFRAMES_START-4*QPAGE;
+		prova2->p_s.status = prova2->p_s.status | PROCESS_STATUS;
 		
 		/////////////////////////////
 	   // PROCESSO DI prova3 	  //
-		pcb_t prova3;
-		STST(&(prova3.p_s));
-		prova3.p_s.pc_epc = prova3.p_s.reg_t9 = (memaddr)prova_altracpu;
-		prova3.p_s.reg_sp = PFRAMES_START-6*QPAGE;
-		prova3.p_s.status = prova3.p_s.status | PROCESS_STATUS;
+		pcb_t* prova3 = allocPcb();
+		//STST(&(prova3.p_s));
+		prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova3->p_s.reg_sp = PFRAMES_START-6*QPAGE;
+		prova3->p_s.status = prova3->p_s.status | PROCESS_STATUS;
 		
 		/////////////////////////////
 	   // PROCESSO DI prova4 	  //
-		pcb_t prova4;
-		STST(&(prova4.p_s));
-		prova4.p_s.pc_epc = prova4.p_s.reg_t9 = (memaddr)prova_altracpu;
-		prova4.p_s.reg_sp = PFRAMES_START-8*QPAGE;
-		prova4.p_s.status = prova4.p_s.status | PROCESS_STATUS;
+		pcb_t* prova4 = allocPcb();
+		//STST(&(prova4.p_s));
+		prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
+		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
-	addReady(&prova1);
-	addReady(&prova2);
-	addReady(&prova3);
-	addReady(&prova4);
+	addReady(prova1);
+	addReady(prova2);
+	addReady(prova3);
+	addReady(prova4);
 	
 	for(i=1;i<NUM_CPU;i++){
 		INITCPU(i, &scheduler_states[i], *(pareas[i]));

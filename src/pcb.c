@@ -57,7 +57,7 @@ pcb_t* allocPcb()
    allocPpcb->p_semkey = -1; /* non è bloccato su alcun semaforo */
    /* Inizializzo il custom handler a NULL */
    int i;
-   for(i=0;i<6;i++)
+   for(i=0;i<4;i++)
    {
 		allocPpcb->custom_handlers[i] = NULL;
    }
