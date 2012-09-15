@@ -9,8 +9,6 @@
 #include "kernelVariables.h"
 #include "syscall.h"
 
-extern void prova_altracpu();
-
 void sysbk_handler(){
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
@@ -116,8 +114,6 @@ void sysbk_handler(){
 		/* sollevare PgmTrap, se la sbriga lui */
 		pgmtrap_handler();
 	}
-
-
 }
 
 void int_handler(){
