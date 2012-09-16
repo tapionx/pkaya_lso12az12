@@ -104,23 +104,30 @@ void terminate_process()
 void verhogen(int semKey)
 {
 	int cpuid = getPRID();
-	/* acquisisco il LOCK sul semaforo */
+	/* Aggiorno il p_s del processo correntemente in esecuzione */
+	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
+	/* Effettuo semplicemente una removeBlocked sul semaforo in questione
+	 * e continuo l'esecuzione del processo chiamante. L'unica cosa a cui
+	 * devo fare attenzione è che il primo processo in coda nel semaforo è
+	 * certamente lo stesso che ha chiamato la V (a meno che una V non sia
+	 * stata fatta senza una precedente P) */
+	/* Prima di tutto mi rimuovo dalla coda del semaforo */
 	lock(semKey);
-	/* libero il processo dal semaforo */
-	pcb_t *processoLiberato = removeBlocked(semKey);
-	/* libero il LOCK sul semaforo */
+	/* Rimuovo me stesso dalla coda. Non necessariamente va a buon fine
+	 * perché posso già essere stato rimosso da un processo che usava
+	 * il semaforo prima di me */
+	pcb_t *me = outBlocked(currentProcess[cpuid]);
+	/* Rimuovo il processo da rimettere in readyQueue */
+	pcb_t *toWake = headBlocked(semKey);
+	debug(117, me);
+	debug(118, currentProcess[cpuid]);
 	free(semKey);
-	/* se il semaforo ha almeno un altro processo in coda */
-	if(processoLiberato != NULL)
-	{
-		 /* decrementare Soft Block Count */
-		 /* inserire processo nella Ready Queue del processore più libero */
-		 addReady(processoLiberato);
+	/* Se il semaforo ha ancora processi in coda sveglio il prossimo */
+	if (toWake != NULL){
+		debug(119, toWake);
+		addReady(toWake);
 	}
-	/* Incremento il program counter del chiamante */
-	pareas[cpuid][SYSBK_OLDAREA_INDEX]->pc_epc += WORD_SIZE;
-	/* riprendere l'esecuzione del processo che ha chiamato la SYSCALL */
-	LDST(pareas[cpuid][SYSBK_OLDAREA_INDEX]);
+	LDST(&(currentProcess[cpuid]));
 }
 
 
@@ -130,42 +137,25 @@ void verhogen(int semKey)
  */
 void passeren(int semKey)
 {
-	
 	int cpuid = getPRID();
-	/* ottengo il processo corrente */ 
-	pcb_t *processoCorrente = currentProcess[getPRID()];
-	/* aggiorno il p_s del pcb */
-	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX],&(processoCorrente->p_s));
-	/* acquisisco il LOCK sul semaforo */
+	/* Aggiorno il p_s del processo correntemente in esecuzione */
+	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
+	/* Se il semaforo con semKey è già stato allocato significa che c'è
+	 * almeno un altro processo che ne sta facendo uso, altrimenti
+	 * sono il primo a richiederlo. Nel primo caso mi sospendo nella sua
+	 * coda e restituisco il controllo allo scheduler, nel secondo caso
+	 * continuo semplicemente l'esecuzione (inserendomi comunque in coda) */
 	lock(semKey);
-	/* inserisco il processo nella coda del semaforo */ 
-	int result = insertBlocked(semKey, processoCorrente);
-	/* capisco se il semaforo e' gia' in uso da un altro processo */
-	semd_t *tempSem = getSemd(semKey);
-	/* recupero il valore del semaforo */
-	int sem_value = tempSem->s_value;
-	/* rilascio il LOCK sul semaforo */
+	semd_t *sem = getSemd(semKey);
+	debug(148, currentProcess[cpuid]);
+	insertBlocked(semKey, currentProcess[cpuid]);
+	debug(149, currentProcess[cpuid]->p_semkey);
 	free(semKey);
-	if(result == FALSE) 
-	{
-		/* se la coda del semaforo e´ occupata blocco il processo */
-		if (sem_value < 0){
-			/* incremento Soft Block Count */
-			/* devo passare il controllo allo scheduler, il processo non e' piu' nella readyQueue */
-			LDST(&(scheduler_states[cpuid]));
-		}
-		else /* il processo puo' continuare con l'esecuzione */
-		{
-			/* incremento il program counter del processo da caricare */
-			processoCorrente->p_s.pc_epc += WORD_SIZE;
-			/* carico in esecuzione il processo che ha fatto la P() */
-			LDST(&(processoCorrente->p_s));
-		}
+	if (sem == NULL){ /* Se il semaforo era inutilizzato prima di me */
+		LDST(&(currentProcess[cpuid]->p_s));
+	} else {
+		LDST(&(scheduler_states[cpuid]));
 	}
-	else
-	{
-		/* Termino il processo */
-	} 
 }
 
 

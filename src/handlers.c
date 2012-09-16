@@ -10,9 +10,10 @@
 #include "syscall.h"
 
 void sysbk_handler(){
-	debug(13,13);
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
+	/* recupero il valore del timer al momento della chiamata */
+	U32 oldTimer = getTIMER();
 	/* recupero il processo chiamante */
 	state_t *OLDAREA = pareas[prid][SYSBK_OLDAREA_INDEX];
 	/* incremento il PC del processo chiamante, per evitare loop */
@@ -100,7 +101,9 @@ void sysbk_handler(){
 		else
 		{
 			/* copio il processo chiamante nella OLD Area custom */
-			copyState(OLDAREA, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]); 
+			copyState(OLDAREA, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]);
+			/* Ripristino il timer al momento della chiamata */
+			setTIMER(oldTimer);
 			/* chiamo l'handler custom */
 			LDST(processoCorrente->custom_handlers[SYSBK_NEWAREA_INDEX]);
 		}

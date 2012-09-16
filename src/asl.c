@@ -66,14 +66,12 @@ int insertBlocked(int key, pcb_t *p)
     /*se ho trovato il puntatore alla struttura semd_t con chiave = a key */
     if (psem != NULL) 
     {
-		/* decremento il valore del semaforo */
-		psem->s_value--;
         /* la inserisco nella coda dei processi bloccati del semd_t */
         insertProcQ(&(psem->s_procQ), p);
         /* ritorno falso */
         return FALSE;
     }  
-    /* Se la lista SemdFree non è vuota.. */
+    /* Se il semaforo deve ancora essere allocato  e se la lista SemdFree non è vuota.. */
     if (!(list_empty(&(semdFree_h)))) 
     {    
 		/* ottengo il puntatore a un semdFree */
@@ -125,8 +123,6 @@ pcb_t* removeBlocked(int key)
          * In caso contrario tolgo il semaforo dalla ASL e lo inserisco nella semdFree */
         if (removedPcb != NULL)
         {
-			/* Incremento il valore del semaforo */
-			psem->s_value++;
 			if (list_empty(&(psem->s_procQ))){
 				/* Dealloco il semaforo dalla ASL */
 				list_del(&(psem->s_next));
@@ -171,6 +167,14 @@ pcb_t* outBlocked(pcb_t* p)
         if (curPcb == p){
 			/* rimuovo l'elemento */
             list_del(cur);
+            debug(170, curPcb);
+            /* Incremento il valore del semaforo */
+			if (list_empty(&(pSem->s_procQ))){
+				/* Dealloco il semaforo dalla ASL */
+				list_del(&(pSem->s_next));
+				/* Lo inserisco nella semdFree */
+				list_add(&(pSem->s_next), &(semdFree_h));
+			}
             /* ne ritorno l'indirizzo */
             return p;
         }

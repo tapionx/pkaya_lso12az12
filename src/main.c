@@ -21,8 +21,8 @@ state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 void prova_altracpu(){
 	while(TRUE){
 		SYSCALL(PASSEREN,0,0,0);
-		debug(getPRID(),getPRID());
-		//SYSCALL(VERHOGEN,0,0,0);
+		//debug(getPRID(),getPRID());
+		SYSCALL(VERHOGEN,0,0,0);
 	}
 }
 
@@ -135,9 +135,13 @@ int main(){
 		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
 	addReady(prova1);
+	//debug(10, prova1);
 	addReady(prova2);
+	//debug(11, prova2);
 	addReady(prova3);
+	//debug(12, prova3);
 	addReady(prova4);
+	//debug(13, prova4);
 	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], *(pareas[cpuid]));
