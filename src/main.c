@@ -6,26 +6,17 @@
 #include "handlers.h"
 #include "scheduler.h"
 #include "pcb.e"
+#include "myProcs.c"
 
 /* Variabili del nucleo */
 int processCount; /* Contatore della totalita' dei processi */ 
 int softBlockCount; /* Contatore dei processi bloccati su semafori */
 struct list_head readyQueue; /* Coda dei processi in stato ready */
-pcb_t *currentProcess; /* Puntatore al processo correntemente in esecuzione */
+pcb_t *currentProcess[NUM_CPU]; /* Puntatore al processo correntemente in esecuzione */
 state_t areas[NUM_CPU][NUM_AREAS]; /* Aree reali per CPU > 0 */
 state_t *pareas[NUM_CPU][NUM_AREAS]; /* Puntatori alle aree di tutte le CPU */
 int locks[MAXPROC+MAX_DEVICES]; /* Variabili di condizione per CAS */
 state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
-
-
-void prova_altracpu(){
-	while(TRUE){
-		SYSCALL(PASSEREN,0,0,0);
-		//debug(getPRID(),getPRID());
-		SYSCALL(VERHOGEN,0,0,0);
-	}
-}
-
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){
@@ -138,9 +129,9 @@ int main(){
 	//debug(10, prova1);
 	addReady(prova2);
 	//debug(11, prova2);
-	addReady(prova3);
+	//addReady(prova3);
 	//debug(12, prova3);
-	addReady(prova4);
+	//addReady(prova4);
 	//debug(13, prova4);
 	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){

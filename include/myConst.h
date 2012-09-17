@@ -5,7 +5,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 4
+#define NUM_CPU 2
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -36,7 +36,8 @@
 
 /* Costanti di utilità */
 #define EXCEPTION_STATUS (STATUS_TE & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp))
-#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED)
+//#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED)
+#define PROCESS_STATUS (STATUS_TE)
 #define STATUS_TE 0x08000000
 #define RESET 0
 #define PASS 1 /* per CAS */

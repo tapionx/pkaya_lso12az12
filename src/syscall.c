@@ -104,30 +104,16 @@ void terminate_process()
 void verhogen(int semKey)
 {
 	int cpuid = getPRID();
-	/* Aggiorno il p_s del processo correntemente in esecuzione */
-	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
-	/* Effettuo semplicemente una removeBlocked sul semaforo in questione
-	 * e continuo l'esecuzione del processo chiamante. L'unica cosa a cui
-	 * devo fare attenzione è che il primo processo in coda nel semaforo è
-	 * certamente lo stesso che ha chiamato la V (a meno che una V non sia
-	 * stata fatta senza una precedente P) */
-	/* Prima di tutto mi rimuovo dalla coda del semaforo */
 	lock(semKey);
-	/* Rimuovo me stesso dalla coda. Non necessariamente va a buon fine
-	 * perché posso già essere stato rimosso da un processo che usava
-	 * il semaforo prima di me */
 	pcb_t *me = outBlocked(currentProcess[cpuid]);
 	/* Rimuovo il processo da rimettere in readyQueue */
 	pcb_t *toWake = headBlocked(semKey);
-	debug(117, me);
-	debug(118, currentProcess[cpuid]);
 	free(semKey);
 	/* Se il semaforo ha ancora processi in coda sveglio il prossimo */
 	if (toWake != NULL){
-		debug(119, toWake);
 		addReady(toWake);
 	}
-	LDST(&(currentProcess[cpuid]));
+	/* ritorno il controllo al processo chiamante */
 }
 
 
@@ -140,22 +126,14 @@ void passeren(int semKey)
 	int cpuid = getPRID();
 	/* Aggiorno il p_s del processo correntemente in esecuzione */
 	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
-	/* Se il semaforo con semKey è già stato allocato significa che c'è
-	 * almeno un altro processo che ne sta facendo uso, altrimenti
-	 * sono il primo a richiederlo. Nel primo caso mi sospendo nella sua
-	 * coda e restituisco il controllo allo scheduler, nel secondo caso
-	 * continuo semplicemente l'esecuzione (inserendomi comunque in coda) */
 	lock(semKey);
 	semd_t *sem = getSemd(semKey);
-	debug(148, currentProcess[cpuid]);
-	insertBlocked(semKey, currentProcess[cpuid]);
-	debug(149, currentProcess[cpuid]->p_semkey);
+	int res = insertBlocked(semKey, currentProcess[cpuid]);
 	free(semKey);
-	if (sem == NULL){ /* Se il semaforo era inutilizzato prima di me */
-		LDST(&(currentProcess[cpuid]->p_s));
-	} else {
+	if (sem != NULL){ /* Se il semaforo era già allocato mi metto in coda */
 		LDST(&(scheduler_states[cpuid]));
 	}
+	/* altrimenti restituisco il controllo al processo chiamante */
 }
 
 
