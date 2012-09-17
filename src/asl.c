@@ -12,6 +12,25 @@ HIDDEN struct list_head semdFree_h;
 /* Elemento sentinella dell'ASL*/
 HIDDEN struct list_head semd_h;
 
+
+semd_t* allocSemd(int semKey){
+	/* ottengo il puntatore a un semdFree */
+	semd_t* allocsemd = container_of (list_next(&(semdFree_h)), semd_t, s_next);
+	/* tolgo l'elemento dalla lista semdFree */
+	list_del(list_next(&(semdFree_h)));
+	/* Inizializzo il semd_t puntato da allocsemd */
+	allocsemd->s_value = 0;
+	/* Setto la chiave del semaforo nel processo */
+	allocsemd->s_key = semKey;
+	/* Inizializzo una nuova lista sulla sentinella */
+	mkEmptyProcQ(&(allocsemd->s_procQ));
+	/* alloco nella ASL un nuovo SEMD dalla lista semdFree */
+	list_add(&(allocsemd->s_next), &(semd_h));
+	/* restituisco il puntatore al semaforo allocato */
+}
+
+
+
 /* #14 ------------------------------------------------------*/
 /* 
  * Restituisce il puntatore al SEMD nella ASL la cui chiave è pari
@@ -39,8 +58,8 @@ semd_t* getSemd(int key)
 			return curSem; 
         }
     }
-    /* altrimenti se la key non è presente restituisco NULL */
-	return NULL; 
+    /* altrimenti se la key non è presente alloca il semaforo */
+	return allocSemd(key);
 }
 
 /* #15 ------------------------------------------------------*/
@@ -59,55 +78,19 @@ int insertBlocked(int key, pcb_t *p)
 	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
 	if (key > MAXPROC) 
 		return TRUE;
-    /* richiamo la funzione che mi trova il puntatore al semaforo, se presente nell'ASL altrimenti NULL */
+    /* recupero il puntatore al semaforo */
     semd_t* psem = getSemd(key);
-    /* Setto la chiave del semaforo su cui p e' bloccato */
+    /* il processo e' bloccato sul semaforo */
     p->p_semkey = key;
-    /*se ho trovato il puntatore alla struttura semd_t con chiave = a key */
-    if (psem != NULL) 
-    {
-        /* la inserisco nella coda dei processi bloccati del semd_t */
-        insertProcQ(&(psem->s_procQ), p);
-        /* ritorno falso */
-            lock(5);
-            printn("\n% inserted\n\n",p);
-            stampaCoda(key);
-            addokbuf("\n");
-            free(5);
-        return FALSE;
-    }  
-    /* Se il semaforo deve ancora essere allocato  e se la lista SemdFree non è vuota.. */
-    if (!(list_empty(&(semdFree_h)))) 
-    {    
-		/* ottengo il puntatore a un semdFree */
-        semd_t* allocsemd = container_of (list_next(&(semdFree_h)), semd_t, s_next); 
-        /* tolgo l'elemento dalla lista semdFree */
-        list_del(list_next(&(semdFree_h))); 
-        
-        /* Inizializzo il semd_t puntato da allocsemd */
-        allocsemd->s_value = 0;
-        /* Setto la chiave del semaforo nel processo */
-        allocsemd->s_key = key;
-        mkEmptyProcQ(&(allocsemd->s_procQ));
-        /* alloco nella ASL un nuovo SEMD dalla lista semdFree */
-        list_add(&(allocsemd->s_next), &(semd_h));
-        /* Infine inserisco il processo bloccato sul semaforo */
-        insertProcQ(&(allocsemd->s_procQ), p);
-            lock(5);
-            printn("\n% inserted\n\n",p);
-            stampaCoda(key);
-            addokbuf("\n");
-            free(5);
-		/* ritorno falso */
-        return FALSE; 
-    }
-    else 
-    {
-		/* ...altrimenti mi faccio restituire true perchè semdFree è vuota */
-        return TRUE; 
-    }
+    /* inserisco il processo in fondo alla coda del semaforo */
+    list_add_tail(&(p->p_next), &(psem->s_procQ));
+    /* incremento il valore del semaforo */
+    psem->s_value++;
+    /* ritorno falso */
+    return FALSE;
+}  
 
-}
+
 
 /* #16 ------------------------------------------------------*/
 /*
@@ -129,6 +112,8 @@ pcb_t* removeBlocked(int key)
     {
         /* Ritornera' NULL se il processo non esiste, il processo stesso altrimenti */
         pcb_t* removedPcb = removeProcQ(&(psem->s_procQ));
+        /* decremento il valore del semaforo */
+        psem->s_value--;
         /* Prima controllo che la coda dei processi bloccati non sia vuota.
          * In caso contrario tolgo il semaforo dalla ASL e lo inserisco nella semdFree */
         if (removedPcb != NULL)
@@ -138,8 +123,8 @@ pcb_t* removeBlocked(int key)
 				list_del(&(psem->s_next));
 				/* Lo inserisco nella semdFree */
 				list_add(&(psem->s_next), &(semdFree_h));
-				/* Infine ritorno il processo rimosso */
 			}
+			/* Infine ritorno il processo rimosso */
 			return removedPcb;
 		}
     }
@@ -177,15 +162,8 @@ pcb_t* outBlocked(pcb_t* p)
         if (curPcb == p){
 			/* rimuovo l'elemento */
             list_del(cur);
-            lock(5);
-            printn("\n% removed\n\n",p);
-            stampaCoda(semKey);
-            addokbuf("\n");
-            free(5);
+            pSem->s_value--;
 			if (list_empty(&(pSem->s_procQ))){
-				lock(5);
-				addokbuf("ONCE\n");
-				free(5);
 				/* Dealloco il semaforo dalla ASL */
 				list_del(&(pSem->s_next));
 				/* Lo inserisco nella semdFree */
@@ -262,14 +240,4 @@ void initASL()
 		/* aggiungo il semaforo alla lista */
 		list_add(&(semd_table[i].s_next), &(semdFree_h)); 
 	}	
-}
-
-void stampaCoda(int semKey){
-	semd_t* pSem = getSemd(semKey);
-	struct list_head* qHead =  &(pSem->s_procQ);
-	struct list_head* cur = qHead;
-	list_for_each(cur, qHead){
-		pcb_t* curPcb = container_of(cur, pcb_t, p_next);
-		printn("%\n", curPcb);
-	}
 }

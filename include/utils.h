@@ -23,6 +23,7 @@ char *itoa(int i);
 /* printf like funcion, replace % with int */
 void printn(char* s, int n);
 
+void printn_mutex(char* s, int n);
 
 /* Trova l'id della CPU con minor workload in un array di procs counter */
 int minWorkloadCpu(int procs[], int size);

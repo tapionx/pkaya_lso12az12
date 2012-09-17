@@ -101,19 +101,30 @@ void terminate_process()
  * esegue la V sul semaforo con chiave semKey
  * il primo processo in coda sul semaforo va in esecuzione
  */
-void verhogen(int semKey)
-{
-	int cpuid = getPRID();
+void verhogen(int semKey){
 	lock(semKey);
-	pcb_t *me = outBlocked(currentProcess[cpuid]);
-	/* Rimuovo il processo da rimettere in readyQueue */
-	pcb_t *toWake = headBlocked(semKey);
-	free(semKey);
-	/* Se il semaforo ha ancora processi in coda sveglio il prossimo */
-	if (toWake != NULL){
-		addReady(toWake);
+	U32 cpuid = getPRID();
+	printn("CPU % ", cpuid);
+	printn("V() %\n", currentProcess[cpuid]);
+	semd_t *semd = getSemd(semKey);
+	printn(" value %\n", semd->s_value);
+	pcb_t *chiamante = currentProcess[cpuid];
+	if(semd->s_value > 0){
+		pcb_t *eliminato = removeBlocked(semKey);
+		printn(" del %\n", eliminato);
+		if(eliminato != currentProcess[cpuid])
+			printn("NON RIMUOVE SE STESSOOOOOOOOO\n");
+		if(semd->s_value > 0){
+			pcb_t *prossimo = headBlocked(semKey);
+			addReady(prossimo);
+			printn(" addready %\n", prossimo);
+			if(prossimo == currentProcess[cpuid])
+				printn("METTE IN CODA SE STESSOOOOOO\n");
+			printn(" value %\n", semd->s_value);
+		}
 	}
-	/* ritorno il controllo al processo chiamante */
+	printn("\n");
+	free(semKey);
 }
 
 
@@ -121,19 +132,23 @@ void verhogen(int semKey)
  * esegue la P sul semaforo con chiave semKey
  * il processo che ha chiamato la syscall si mette in attesa
  */
-void passeren(int semKey)
-{
-	int cpuid = getPRID();
-	/* Aggiorno il p_s del processo correntemente in esecuzione */
-	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
+void passeren(int semKey){
 	lock(semKey);
-	semd_t *sem = getSemd(semKey);
-	int res = insertBlocked(semKey, currentProcess[cpuid]);
+	U32 cpuid = getPRID();
+	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
+	pcb_t *chiamante = currentProcess[cpuid];
+	semd_t *semd = getSemd(semKey);
+	printn("CPU % ", cpuid);
+	printn("P() %\n", chiamante);
+	int risultato = insertBlocked(semKey, chiamante);
+	printn(" value %\n", semd->s_value);
+	if(semd->s_value == 1)
+		printn(" Non bloccante\n");
+	printn("\n");
 	free(semKey);
-	if (sem != NULL){ /* Se il semaforo era già allocato mi metto in coda */
+	if(semd->s_value > 1)
 		LDST(&(scheduler_states[cpuid]));
-	}
-	/* altrimenti restituisco il controllo al processo chiamante */
+	/* else ritorno il controllo al processo */
 }
 
 

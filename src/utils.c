@@ -234,6 +234,12 @@ void printn(char* s, int n)
     }
 }
 
+void printn_mutex(char* s, int n){
+	lock(5);
+	printn(s, n);
+	free(5);
+}
+
 /* Trova l'id della CPU con minor workload in un array di procs counter */
 int minWorkloadCpu(int procs[], int size){
 	int i;

@@ -8,6 +8,8 @@
 #include "pcb.e"
 #include "myProcs.c"
 
+#include "asl.e"
+
 /* Variabili del nucleo */
 int processCount; /* Contatore della totalita' dei processi */ 
 int softBlockCount; /* Contatore dei processi bloccati su semafori */
@@ -20,6 +22,52 @@ state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){
+	
+	//initPcbs();
+	//initASL();
+	
+	//semd_t *semd = getSemd(0);
+	
+	//printn("semaforo inizializzato %\n", semd);
+	//printn("valore: %\n", semd->s_value);
+	
+	//pcb_t *p1 = allocPcb();
+	//printn("p1 %\n", p1);
+	//pcb_t *p2 = allocPcb();
+	//printn("p2 %\n", p2);
+	//pcb_t *p3 = allocPcb();
+	//printn("p3 %\n", p3);
+	//pcb_t *p4 = allocPcb();
+	//printn("p4 %\n", p4);
+	
+	//insertBlocked(0, p1);
+	//printn("inserito p1, valore %\n", semd->s_value);
+	//insertBlocked(0, p2);
+	//printn("inserito p2, valore %\n", semd->s_value);
+	//insertBlocked(0, p3);
+	//printn("inserito p3, valore %\n", semd->s_value);
+	//insertBlocked(0, p4);
+	//printn("inserito p4, valore %\n", semd->s_value);
+	
+	//pcb_t *del1 = removeBlocked(0);
+	//printn("rimosso %", del1);
+	//printn(" valore: %\n", semd->s_value);
+	//pcb_t *del2 = removeBlocked(0);
+	//printn("rimosso %", del2);
+	//printn(" valore: %\n", semd->s_value);
+	//pcb_t *del3 = removeBlocked(0);
+	//printn("rimosso %", del3);
+	//printn(" valore: %\n", semd->s_value);
+	//pcb_t *del4 = removeBlocked(0);
+	//printn("rimosso %", del4);
+	//printn(" valore: %\n", semd->s_value);
+		
+	
+	//addokbuf("FINE DELLE TRASMISSIONI\n");
+	//PANIC();
+	
+	
+	
 	int cpuid, area, lockno; /* Iteratori */
 
 	/** INIZIALIZZAZIONE DEI LOCK */
@@ -81,7 +129,7 @@ int main(){
 
 	/** INIZIALIZZAZIONE STRUTTURE PHASE1 */
 	initPcbs();
-	initASL();		
+	initASL();
 	
 	/** INIZIALIZZAZIONE DELLO SCHEDULER */
 	mkEmptyProcQ(&(readyQueue)); /* Inizializzo la ready queue */
@@ -129,10 +177,12 @@ int main(){
 	//debug(10, prova1);
 	addReady(prova2);
 	//debug(11, prova2);
-	//addReady(prova3);
+	addReady(prova3);
 	//debug(12, prova3);
-	//addReady(prova4);
+	addReady(prova4);
 	//debug(13, prova4);
+	
+	getSemd(0);
 	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], *(pareas[cpuid]));
