@@ -16,7 +16,6 @@ void sysbk_handler(){
 	U32 oldTimer = getTIMER();
 	/* recupero il processo chiamante */
 	state_t *OLDAREA = pareas[prid][SYSBK_OLDAREA_INDEX];
-	debug(getPRID(), pareas[prid][SYSBK_OLDAREA_INDEX]);
 	/* incremento il PC del processo chiamante, per evitare loop */
 	/* in questo caso non serve aggiornare anche t9 */
 	/* (pag 28, 3.7.2 Student Guide) */

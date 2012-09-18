@@ -154,61 +154,73 @@ int main(){
 		locks[lockno] = 1; /* PASS */
 	}
 	
-	/** INIZIALIZZAZIONE DELLE NEW AREA */
-	for (cpuid = 0; cpuid < NUM_CPU; cpuid++){
-		for (area = INT_NEWAREA_INDEX; area < NUM_AREAS; area += 2){
-			/* L'inizializzazione dipende dall'area presa in esame */
-			switch(area){
-				case INT_NEWAREA_INDEX:
-					if (cpuid == 0){
-						pareas[cpuid][area] = (state_t *)INT_NEWAREA;
-						pareas[cpuid][area-1] = (state_t *)INT_OLDAREA;
-					} else {
-						pareas[cpuid][area] = &(areas[cpuid][area]);
-						pareas[cpuid][area-1] = &(areas[cpuid][area-1]);
-					}
-					pareas[cpuid][area]->pc_epc = pareas[cpuid][area]->reg_t9 = (memaddr)int_handler;
-					break;
-				case TLB_NEWAREA_INDEX:
-					if (cpuid == 0){
-						pareas[cpuid][area] = (state_t *)TLB_NEWAREA;
-						pareas[cpuid][area-1] = (state_t *)TLB_OLDAREA;
-					} else {
-						pareas[cpuid][area] = &(areas[cpuid][area]);
-						pareas[cpuid][area-1] = &(areas[cpuid][area-1]);
-					}
-					pareas[cpuid][area]->pc_epc = pareas[cpuid][area]->reg_t9 = (memaddr)tlb_handler;
-					break;
-				case PGMTRAP_NEWAREA_INDEX:
-					if (cpuid == 0){
-						pareas[cpuid][area] = (state_t *)PGMTRAP_NEWAREA;
-						pareas[cpuid][area-1] = (state_t *)PGMTRAP_OLDAREA;
-					} else {
-						pareas[cpuid][area] = &(areas[cpuid][area]);
-						pareas[cpuid][area-1] = &(areas[cpuid][area-1]);
-					}
-					pareas[cpuid][area]->pc_epc = pareas[cpuid][area]->reg_t9 = (memaddr)pgmtrap_handler;
-					break;
-				case SYSBK_NEWAREA_INDEX:
-					if (cpuid == 0){
-						pareas[cpuid][area] = (state_t *)SYSBK_NEWAREA;
-						pareas[cpuid][area-1] = (state_t *)SYSBK_OLDAREA;
-					} else {
-						pareas[cpuid][area] = &(areas[cpuid][area]);
-						pareas[cpuid][area-1] = &(areas[cpuid][area-1]);
-					}
-					pareas[cpuid][area]->pc_epc = pareas[cpuid][area]->reg_t9 = (memaddr)sysbk_handler;
-					break;
-			}
-			/* Settaggi comuni */
-			pareas[cpuid][area]->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			pareas[cpuid][area]->status = EXCEPTION_STATUS;
-		}
-	}
-
+	/** INIT CPU0 */
+	/* Init delle new area */
+		pareas[0][INT_NEWAREA_INDEX] = (state_t *)INT_NEWAREA;
+		pareas[0][INT_OLDAREA_INDEX] = (state_t *)INT_OLDAREA;
+		cleanState((state_t *)INT_NEWAREA);
+		((state_t *)INT_NEWAREA)->pc_epc = ((state_t *)INT_NEWAREA)->reg_t9 = (memaddr)int_handler;
+		((state_t *)INT_NEWAREA)->reg_sp = RAMTOP;
+		((state_t *)INT_NEWAREA)->status = EXCEPTION_STATUS;
+		
+		pareas[0][TLB_NEWAREA_INDEX] = (state_t *)TLB_NEWAREA;
+		pareas[0][TLB_OLDAREA_INDEX] = (state_t *)TLB_OLDAREA;
+		cleanState((state_t *)TLB_NEWAREA);
+		((state_t *)TLB_NEWAREA)->pc_epc = ((state_t *)TLB_NEWAREA)->reg_t9 = (memaddr)tlb_handler;
+		((state_t *)TLB_NEWAREA)->reg_sp = RAMTOP;
+		((state_t *)TLB_NEWAREA)->status = EXCEPTION_STATUS;
+		
+		pareas[0][PGMTRAP_NEWAREA_INDEX] = (state_t *)PGMTRAP_NEWAREA;
+		pareas[0][PGMTRAP_OLDAREA_INDEX] = (state_t *)PGMTRAP_OLDAREA;
+		cleanState((state_t *)PGMTRAP_NEWAREA);
+		((state_t *)PGMTRAP_NEWAREA)->pc_epc = ((state_t *)PGMTRAP_NEWAREA)->reg_t9 = (memaddr)pgmtrap_handler;
+		((state_t *)PGMTRAP_NEWAREA)->reg_sp = RAMTOP;
+		((state_t *)PGMTRAP_NEWAREA)->status = EXCEPTION_STATUS;
+		
+		pareas[0][SYSBK_NEWAREA_INDEX] = (state_t *)SYSBK_NEWAREA;
+		pareas[0][SYSBK_OLDAREA_INDEX] = (state_t *)SYSBK_OLDAREA;
+		cleanState((state_t *)SYSBK_NEWAREA);
+		((state_t *)SYSBK_NEWAREA)->pc_epc = ((state_t *)SYSBK_NEWAREA)->reg_t9 = (memaddr)sysbk_handler;
+		((state_t *)SYSBK_NEWAREA)->reg_sp = RAMTOP;
+		((state_t *)SYSBK_NEWAREA)->status = EXCEPTION_STATUS;
+	
 	/** INIZIALIZZAZIONE STRUTTURE PHASE1 */
 	initPcbs();
 	initASL();
+	
+	/** INIT CPU > 0 */
+	if (NUM_CPU > 1){
+		/* Init delle new area */
+		int cpuid,area;
+		state_t *currentArea;
+		
+		for (cpuid=1; cpuid<NUM_CPU; cpuid++){
+			
+			pareas[cpuid][INT_NEWAREA_INDEX] = &(areas[cpuid][INT_NEWAREA_INDEX]);
+			pareas[cpuid][INT_OLDAREA_INDEX] = &(areas[cpuid][INT_OLDAREA_INDEX]);
+			pareas[cpuid][INT_NEWAREA_INDEX]->pc_epc = pareas[cpuid][INT_NEWAREA_INDEX]->reg_t9 = (memaddr)int_handler;
+			pareas[cpuid][INT_NEWAREA_INDEX]->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			pareas[cpuid][INT_NEWAREA_INDEX]->status = EXCEPTION_STATUS;	
+			
+			pareas[cpuid][TLB_NEWAREA_INDEX] = &(areas[cpuid][TLB_NEWAREA_INDEX]);
+			pareas[cpuid][TLB_OLDAREA_INDEX] = &(areas[cpuid][TLB_OLDAREA_INDEX]);
+			pareas[cpuid][TLB_NEWAREA_INDEX]->pc_epc = pareas[cpuid][TLB_NEWAREA_INDEX] ->reg_t9 = (memaddr)tlb_handler;
+			pareas[cpuid][TLB_NEWAREA_INDEX]->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			pareas[cpuid][TLB_NEWAREA_INDEX]->status = EXCEPTION_STATUS;	
+			
+			pareas[cpuid][PGMTRAP_NEWAREA_INDEX] = &(areas[cpuid][PGMTRAP_NEWAREA_INDEX]);
+			pareas[cpuid][PGMTRAP_OLDAREA_INDEX] = &(areas[cpuid][PGMTRAP_OLDAREA_INDEX]);
+			pareas[cpuid][PGMTRAP_NEWAREA_INDEX]->pc_epc = pareas[cpuid][PGMTRAP_NEWAREA_INDEX] ->reg_t9 = (memaddr)pgmtrap_handler;
+			pareas[cpuid][PGMTRAP_NEWAREA_INDEX]->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			pareas[cpuid][PGMTRAP_NEWAREA_INDEX]->status = EXCEPTION_STATUS;
+			
+			pareas[cpuid][SYSBK_NEWAREA_INDEX] = &(areas[cpuid][SYSBK_NEWAREA_INDEX]);
+			pareas[cpuid][SYSBK_OLDAREA_INDEX] = &(areas[cpuid][SYSBK_OLDAREA_INDEX]);
+			pareas[cpuid][SYSBK_NEWAREA_INDEX]->pc_epc = pareas[cpuid][SYSBK_NEWAREA_INDEX] ->reg_t9 = (memaddr)sysbk_handler;
+			pareas[cpuid][SYSBK_NEWAREA_INDEX]->reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+			pareas[cpuid][SYSBK_NEWAREA_INDEX]->status = EXCEPTION_STATUS;
+		}
+	}
 	
 	/** INIZIALIZZAZIONE DELLO SCHEDULER */
 	mkEmptyProcQ(&(readyQueue)); /* Inizializzo la ready queue */
@@ -256,13 +268,9 @@ int main(){
 	addReady(prova2);
 	addReady(prova3);
 	addReady(prova4);
-	debug(259, sizeof(state_t));
-	debug(0, *(pareas[0]));
-	debug(0, pareas[0][SYSBK_OLDAREA_INDEX]);
+	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
-		debug(cpuid, *(pareas[cpuid]));
-		debug(cpuid, pareas[cpuid][SYSBK_OLDAREA_INDEX]);
-		INITCPU(cpuid, &scheduler_states[cpuid], pareas[cpuid]);
+		INITCPU(cpuid, &scheduler_states[cpuid], pareas[cpuid][0]);
 	}
 	/* bisogna attendere che tutte le altre CPU siano inizializzate
 	 * prima di poter dare il controllo allo scheduler anche per la 
