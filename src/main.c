@@ -23,102 +23,102 @@ state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 /** L'esecuzione del kernel inizia da qui */
 int main(){
 	
-	initPcbs();
-	initASL();
+	//initPcbs();
+	//initASL();
 	
-	semd_t *semd = getSemd(0);
+	//semd_t *semd = getSemd(0);
 	
-	printn("semaforo inizializzato %\n", semd);
-	printn("valore: %\n", semd->s_value);
+	//printn("semaforo inizializzato %\n", semd);
+	//printn("valore: %\n", semd->s_value);
 	
-	pcb_t *p1 = allocPcb();
-	printn("p1 %\n", p1);
-	pcb_t *p2 = allocPcb();
-	printn("p2 %\n", p2);
-	pcb_t *p3 = allocPcb();
-	printn("p3 %\n", p3);
-	pcb_t *p4 = allocPcb();
-	printn("p4 %\n", p4);
+	//pcb_t *p1 = allocPcb();
+	//printn("p1 %\n", p1);
+	//pcb_t *p2 = allocPcb();
+	//printn("p2 %\n", p2);
+	//pcb_t *p3 = allocPcb();
+	//printn("p3 %\n", p3);
+	//pcb_t *p4 = allocPcb();
+	//printn("p4 %\n", p4);
 	
-	printn("primo %\n", headBlocked(0));	
+	//printn("primo %\n", headBlocked(0));	
 	
-	insertBlocked(0, p1);
-	printn("inserito % ", p1); 
-	printn("valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//insertBlocked(0, p1);
+	//printn("inserito % ", p1); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 	
-	insertBlocked(0, p2);
-	printn("inserito % ", p2); 
-	printn("valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//insertBlocked(0, p2);
+	//printn("inserito % ", p2); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 	
-	insertBlocked(0, p3);
-	printn("inserito % ", p3); 
-	printn("valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//insertBlocked(0, p3);
+	//printn("inserito % ", p3); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 
-	insertBlocked(0, p4);
-	printn("inserito % ", p4); 
-	printn("valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//insertBlocked(0, p4);
+	//printn("inserito % ", p4); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	pcb_t *del1 = removeBlocked(0);
-	printn("rimosso  %", del1);
-	printn(" valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//pcb_t *del1 = removeBlocked(0);
+	//printn("rimosso  %", del1);
+	//printn(" valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 
-	pcb_t *del2 = removeBlocked(0);
-	printn("rimosso  %", del2);
-	printn(" valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//pcb_t *del2 = removeBlocked(0);
+	//printn("rimosso  %", del2);
+	//printn(" valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 	
-	pcb_t *del3 = removeBlocked(0);
-	printn("rimosso  %", del3);
-	printn(" valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//pcb_t *del3 = removeBlocked(0);
+	//printn("rimosso  %", del3);
+	//printn(" valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	pcb_t *del4 = removeBlocked(0);
-	printn("rimosso  %", del4);
-	printn(" valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//pcb_t *del4 = removeBlocked(0);
+	//printn("rimosso  %", del4);
+	//printn(" valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 	
-	insertBlocked(0, p1);
-	printn("inserito % ", p1); 
-	printn("valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//insertBlocked(0, p1);
+	//printn("inserito % ", p1); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	del1 = removeBlocked(0);
-	printn("rimosso  %", del1);
-	printn(" valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//del1 = removeBlocked(0);
+	//printn("rimosso  %", del1);
+	//printn(" valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	insertBlocked(0, p1);
-	printn("inserito % ", p1); 
-	printn("valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//insertBlocked(0, p1);
+	//printn("inserito % ", p1); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	insertBlocked(0, p2);
-	printn("inserito % ", p2); 
-	printn("valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//insertBlocked(0, p2);
+	//printn("inserito % ", p2); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	del1 = removeBlocked(0);
-	printn("rimosso  %", del1);
-	printn(" valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//del1 = removeBlocked(0);
+	//printn("rimosso  %", del1);
+	//printn(" valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	insertBlocked(0, p3);
-	printn("inserito % ", p3); 
-	printn("valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//insertBlocked(0, p3);
+	//printn("inserito % ", p3); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	del1 = removeBlocked(0);
-	printn("rimosso  %", del1);
-	printn(" valore %\n", semd->s_value);
-	printn("primo %\n", headBlocked(0));
+	//del1 = removeBlocked(0);
+	//printn("rimosso  %", del1);
+	//printn(" valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
 		
-	addokbuf("FINE DELLE TRASMISSIONI\n");
-	PANIC();
+	//addokbuf("FINE DELLE TRASMISSIONI\n");
+	//PANIC();
 	
 	
 	
@@ -199,7 +199,7 @@ int main(){
 	   // PROCESSO DI PROVA 	  //
 		pcb_t* prova1 = allocPcb();
 		//STST(&(prova1.p_s));
-		prova1->p_s.pc_epc = prova1->p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova1->p_s.pc_epc = prova1->p_s.reg_t9 = (memaddr)test1;
 		prova1->p_s.reg_sp = PFRAMES_START;
 		prova1->p_s.status = prova1->p_s.status | PROCESS_STATUS;
 		
@@ -207,7 +207,7 @@ int main(){
 	   // PROCESSO DI prova2 	  //
 		pcb_t* prova2 = allocPcb();
 		//STST(&(prova2.p_s));
-		prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
 		prova2->p_s.reg_sp = PFRAMES_START-4*QPAGE;
 		prova2->p_s.status = prova2->p_s.status | PROCESS_STATUS;
 		
@@ -215,7 +215,7 @@ int main(){
 	   // PROCESSO DI prova3 	  //
 		pcb_t* prova3 = allocPcb();
 		//STST(&(prova3.p_s));
-		prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)test3;
 		prova3->p_s.reg_sp = PFRAMES_START-6*QPAGE;
 		prova3->p_s.status = prova3->p_s.status | PROCESS_STATUS;
 		
@@ -223,20 +223,14 @@ int main(){
 	   // PROCESSO DI prova4 	  //
 		pcb_t* prova4 = allocPcb();
 		//STST(&(prova4.p_s));
-		prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)prova_altracpu;
+		prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)test4;
 		prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
 		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
 	addReady(prova1);
-	//debug(10, prova1);
 	addReady(prova2);
-	//debug(11, prova2);
 	addReady(prova3);
-	//debug(12, prova3);
 	addReady(prova4);
-	//debug(13, prova4);
-	
-	getSemd(0);
 	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], *(pareas[cpuid]));

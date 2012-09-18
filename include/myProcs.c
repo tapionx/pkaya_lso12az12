@@ -13,3 +13,35 @@ void prova_altracpu(){
 		SYSCALL(VERHOGEN,0,0,0);
 	}
 }
+
+void test1(){
+	while(TRUE){
+		SYSCALL(PASSEREN,1,0,0);
+		addokbuf("1\n");
+		SYSCALL(VERHOGEN,1,0,0);
+	}
+}
+
+void test2(){
+	while(TRUE){
+		SYSCALL(PASSEREN,1,0,0);
+		addokbuf("2\n");
+		SYSCALL(VERHOGEN,1,0,0);
+	}
+}
+
+void test3(){
+	while(TRUE){
+		SYSCALL(PASSEREN,1,0,0);
+		addokbuf("3\n");
+		SYSCALL(VERHOGEN,1,0,0);
+	}
+}
+
+void test4(){
+	while(TRUE){
+		SYSCALL(PASSEREN,1,0,0);
+		addokbuf("4\n");
+		SYSCALL(VERHOGEN,1,0,0);
+	}
+}
