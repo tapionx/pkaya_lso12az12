@@ -43,29 +43,54 @@ int main(){
 	//printn("primo %\n", headBlocked(0));	
 	
 	//insertBlocked(0, p1);
-	//printn("inserito % ", p1); 
+	//printn("inserito %\n", p1); 
 	//printn("valore %\n", semd->s_value);
 	//printn("primo %\n", headBlocked(0));
+	
+		//stampaCoda(0);
 	
 	//insertBlocked(0, p2);
-	//printn("inserito % ", p2); 
+	//printn("inserito %\n", p2); 
 	//printn("valore %\n", semd->s_value);
 	//printn("primo %\n", headBlocked(0));
 	
+		//stampaCoda(0);
+	
 	//insertBlocked(0, p3);
-	//printn("inserito % ", p3); 
+	//printn("inserito %\n", p3); 
 	//printn("valore %\n", semd->s_value);
 	//printn("primo %\n", headBlocked(0));
-
+	
+		//stampaCoda(0);
+	
+	//pcb_t *rimosso1 = removeBlocked(0);
+	//printn("rimosso %\n", rimosso1);
+	//pcb_t *head1 = headBlocked(0);
+	//printn("il primo e %\n", head1);
+	
+		//stampaCoda(0);
+	
 	//insertBlocked(0, p4);
-	//printn("inserito % ", p4); 
+	//printn("inserito %\n", p4); 
 	//printn("valore %\n", semd->s_value);
 	//printn("primo %\n", headBlocked(0));
+	
+		//stampaCoda(0);
+		
+	//insertBlocked(0, p1);
+	//printn("inserito %\n", p1); 
+	//printn("valore %\n", semd->s_value);
+	//printn("primo %\n", headBlocked(0));
+	
+	//stampaCoda(0);
 		
 	//pcb_t *del1 = removeBlocked(0);
-	//printn("rimosso  %", del1);
+	//printn("rimosso  %\n", del1);
+	//printn("ci aspettavamo %\n", p2);
 	//printn(" valore %\n", semd->s_value);
 	//printn("primo %\n", headBlocked(0));
+	
+		//stampaCoda(0);
 
 	//pcb_t *del2 = removeBlocked(0);
 	//printn("rimosso  %", del2);
@@ -231,9 +256,13 @@ int main(){
 	addReady(prova2);
 	addReady(prova3);
 	addReady(prova4);
-	
+	debug(259, sizeof(state_t));
+	debug(0, *(pareas[0]));
+	debug(0, pareas[0][SYSBK_OLDAREA_INDEX]);
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
-		INITCPU(cpuid, &scheduler_states[cpuid], *(pareas[cpuid]));
+		debug(cpuid, *(pareas[cpuid]));
+		debug(cpuid, pareas[cpuid][SYSBK_OLDAREA_INDEX]);
+		INITCPU(cpuid, &scheduler_states[cpuid], pareas[cpuid]);
 	}
 	/* bisogna attendere che tutte le altre CPU siano inizializzate
 	 * prima di poter dare il controllo allo scheduler anche per la 

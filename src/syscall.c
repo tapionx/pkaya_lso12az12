@@ -104,27 +104,22 @@ void terminate_process()
 void verhogen(int semKey){
 	lock(semKey);
 	U32 cpuid = getPRID();
-	printn("CPU % ", cpuid);
-	printn("V() %\n", currentProcess[cpuid]);
-	semd_t *semd = getSemd(semKey);
-	printn(" value %\n", semd->s_value);
 	pcb_t *chiamante = currentProcess[cpuid];
-	if(semd->s_value > 0){
-		pcb_t *eliminato = removeBlocked(semKey);
-		printn(" del %\n", eliminato);
-		if(eliminato != currentProcess[cpuid])
-			printn("NON RIMUOVE SE STESSOOOOOOOOO\n");
-		if(semd->s_value > 0){
-			pcb_t *prossimo = headBlocked(semKey);
-			addReady(prossimo);
-			printn(" addready %\n", prossimo);
-			if(prossimo == currentProcess[cpuid])
-				printn("METTE IN CODA SE STESSOOOOOO\n");
-			printn(" value %\n", semd->s_value);
-		}
+	printn("SYSCALL            V() %\n", chiamante);
+	printn("CPU % ", cpuid);
+	semd_t *semd = getSemd(semKey);
+	semd->s_value += 1;
+	printn("        value %\n", semd->s_value);
+	if(semd->s_value < 0){
+		pcb_t *daSvegliare = removeBlocked(semKey);
+		printn("        schedulo %\n", daSvegliare);
+		stampaCoda(semKey);
+		if (daSvegliare != NULL)
+			addReady(&(daSvegliare));
 	}
 	printn("\n");
 	free(semKey);
+	LDST(&(chiamante->p_s));
 }
 
 
@@ -138,16 +133,21 @@ void passeren(int semKey){
 	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
 	pcb_t *chiamante = currentProcess[cpuid];
 	semd_t *semd = getSemd(semKey);
+	printn("SYSCALL            P() %\n", chiamante);
 	printn("CPU % ", cpuid);
-	printn("P() %\n", chiamante);
-	int risultato = insertBlocked(semKey, chiamante);
-	printn(" value %\n", semd->s_value);
-	if(semd->s_value == 1)
-		printn(" Non bloccante\n");
-	printn("\n");
-	free(semKey);
-	if(semd->s_value > 1)
+	semd->s_value -= 1;
+	printn("SEMAFORO    %\n", semKey);
+	stampaCoda(semKey);
+	printn("        value %\n", semd->s_value);
+	addokbuf("\n");
+	if(semd->s_value < 0){
+		addokbuf("BLOCCANTE!\n");
+		insertBlocked(semKey, chiamante);
+		free(semKey);
 		LDST(&(scheduler_states[cpuid]));
+	}
+	free(semKey);
+	LDST(&(chiamante->p_s));
 	/* else ritorno il controllo al processo */
 }
 

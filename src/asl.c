@@ -10,7 +10,7 @@ void initASL(){
 	int i;
 	/* fino al numero massimo di processi */
 	for (i=0; i < MAXPROC+MAX_DEVICES; i++){
-		semd_table[i].s_value = 0;
+		semd_table[i].s_value = 1; //mutex
 		semd_table[i].s_key = i;
 		mkEmptyProcQ(&(semd_table[i].s_procQ));
 	}	
@@ -24,24 +24,27 @@ semd_t* getSemd(int key)
 int insertBlocked(int key, pcb_t *p)
 {
 	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
-	if (key > MAXPROC+MAX_DEVICES) 
+	if (key > MAXPROC+MAX_DEVICES || key < 0) 
 		return TRUE;
     p->p_semkey = key;
-    list_add_tail(&(p->p_next), &(semd_table[key].s_procQ));
-    semd_table[key].s_value++;
+	list_add_tail(&(p->p_next), &(semd_table[key].s_procQ));
     return FALSE;
 }  
 
 pcb_t* removeBlocked(int key)
 {
+	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
+	if (key > MAXPROC+MAX_DEVICES || key < 0) 
+		return NULL;
 	pcb_t* removedPcb = removeProcQ(&(semd_table[key].s_procQ));
-	semd_table[key].s_value--;
 	return removedPcb;
 }
 
 pcb_t* headBlocked(int key)
 {
-	if(list_empty(&(semd_table[key].s_procQ))) return NULL;
+	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
+	if (key > MAXPROC+MAX_DEVICES || key < 0) 
+		return NULL;
 	pcb_t* firstPcb = headProcQ(&(semd_table[key].s_procQ));
 	return firstPcb;
 } 

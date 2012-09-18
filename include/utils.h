@@ -1,5 +1,6 @@
 /** Utilities, constants and tools */
 #include "types11.h"
+#include "listx.h"
 
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU a 0 */
 void cleanState(state_t *state);
@@ -33,3 +34,7 @@ void lock(int semKey);
 
 /* Liberazione di un lock passato come parametro */
 void free(int semKey);
+
+void stampaCoda(int semKey);
+
+void stampaCodaHead(struct list_head *head);

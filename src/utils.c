@@ -4,6 +4,8 @@
 #include "uMPStypes.h"
 #include "listx.h"
 #include "types11.h"
+#include "asl.e"
+#include "pcb.e"
 
 /* Custom */
 #include "handlers.h"
@@ -40,6 +42,30 @@ extern int locks[MAXPROC+MAX_DEVICES];
  * REMEMBER TO ADD A BREAKPOINT FOR THIS FUNCTION */
 void debug(int row, int var){
 	return;
+}
+
+/* Questa funzione stampa il contenuto di una coda data la chiave di un semaforo */
+void stampaCoda(int semKey){
+	semd_t* pSem = getSemd(semKey);
+	struct list_head* qHead =  &(pSem->s_procQ);
+	struct list_head* cur = qHead;
+	addokbuf("[");
+	list_for_each(cur, qHead){
+		pcb_t* curPcb = container_of(cur, pcb_t, p_next);
+		printn("%  ", (U32)curPcb);
+	}
+	addokbuf("]\n");
+}
+
+/* Questa funzione stampa il contenuto di una coda data la testa di essa */
+void stampaCodaHead(struct list_head *head){
+	struct list_head* cur = head;
+	addokbuf("[  ");
+	list_for_each(cur, head){
+		pcb_t* curPcb = container_of(cur, pcb_t, p_next);
+		printn("%  ", (U32)curPcb);
+	}
+	addokbuf("]\n");
 }
 
 /* Wrapper per la printn (più comodo da trovare quando si deve pulire
