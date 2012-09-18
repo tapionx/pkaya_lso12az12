@@ -15,7 +15,7 @@ void sysbk_handler(){
 	/* recupero il valore del timer al momento della chiamata */
 	U32 oldTimer = getTIMER();
 	/* recupero il processo chiamante */
-	state_t *OLDAREA = pareas[prid][SYSBK_OLDAREA_INDEX];
+	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
 	debug(1000, OLDAREA->pc_epc);
 	/* incremento il PC del processo chiamante, per evitare loop */
 	/* in questo caso non serve aggiornare anche t9 */
@@ -96,11 +96,12 @@ void sysbk_handler(){
 					break;
 			} /*switch*/
 			/* ritorno il controllo al processo chiamante */
-			LDST(pareas[prid][SYSBK_OLDAREA_INDEX]);
+			//LDST(pareas[prid][SYSBK_OLDAREA_INDEX]);
 		} /* if */
 		/* se il processo ha un custom handler lo chiamo */
 		else
 		{
+			debug(666, 666);
 			/* copio il processo chiamante nella OLD Area custom */
 			copyState(OLDAREA, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]);
 			/* Ripristino il timer al momento della chiamata */
@@ -112,10 +113,19 @@ void sysbk_handler(){
 	/* se e' stata chiamata la SYSTEM CALL in User Mode lancio TRAP */
 	else
 	{
+		debug(666,666);
 		/* copiare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
-		copyState(pareas[prid][SYSBK_OLDAREA_INDEX], pareas[prid][PGMTRAP_OLDAREA_INDEX]); 
+		if (prid == 0){
+			copyState((state_t *)SYSBK_OLDAREA, (state_t *)PGMTRAP_OLDAREA);
+		} else {
+			copyState(&areas[prid][SYSBK_OLDAREA_INDEX], &areas[prid][PGMTRAP_OLDAREA_INDEX]); 
+		}
 		/* settare Cause a 10 : Reserved Instruction Exception*/
-		pareas[prid][PGMTRAP_OLDAREA_INDEX]->cause = EXC_RESERVEDINSTR;
+		if (prid == 0){
+			((state_t *)PGMTRAP_OLDAREA)->cause = EXC_RESERVEDINSTR;
+		} else {
+			areas[prid][PGMTRAP_OLDAREA_INDEX].cause = EXC_RESERVEDINSTR;
+		}
 		/* sollevare PgmTrap, se la sbriga lui */
 		pgmtrap_handler();
 	}
@@ -134,7 +144,11 @@ void int_handler(){
 	
 	switch(line){
 		case INT_PLT:
-			copyState(pareas[cpuid][INT_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
+			if (cpuid == 0){
+				copyState((state_t *)INT_OLDAREA, &(currentProcess[cpuid]->p_s));
+			} else {
+				copyState(&areas[cpuid][INT_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
+			}
 			/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
 			addReady(currentProcess[cpuid]);
 			LDST(&(scheduler_states[cpuid]));

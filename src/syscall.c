@@ -105,19 +105,13 @@ void verhogen(int semKey){
 	lock(semKey);
 	U32 cpuid = getPRID();
 	pcb_t *chiamante = currentProcess[cpuid];
-	printn("SYSCALL            V() %\n", chiamante);
-	printn("CPU % ", cpuid);
 	semd_t *semd = getSemd(semKey);
 	semd->s_value += 1;
-	printn("        value %\n", semd->s_value);
 	if(semd->s_value < 0){
 		pcb_t *daSvegliare = removeBlocked(semKey);
-		printn("        schedulo %\n", daSvegliare);
-		stampaCoda(semKey);
 		if (daSvegliare != NULL)
 			addReady(&(daSvegliare));
 	}
-	printn("\n");
 	free(semKey);
 	LDST(&(chiamante->p_s));
 }
@@ -130,18 +124,15 @@ void verhogen(int semKey){
 void passeren(int semKey){
 	lock(semKey);
 	U32 cpuid = getPRID();
-	copyState(pareas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
+	if (cpuid == 0){
+		copyState((state_t *)SYSBK_OLDAREA, &(currentProcess[cpuid]->p_s));
+	} else {
+		copyState(&areas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
+	}
 	pcb_t *chiamante = currentProcess[cpuid];
 	semd_t *semd = getSemd(semKey);
-	printn("SYSCALL            P() %\n", chiamante);
-	printn("CPU % ", cpuid);
 	semd->s_value -= 1;
-	printn("SEMAFORO    %\n", semKey);
-	stampaCoda(semKey);
-	printn("        value %\n", semd->s_value);
-	addokbuf("\n");
 	if(semd->s_value < 0){
-		addokbuf("BLOCCANTE!\n");
 		insertBlocked(semKey, chiamante);
 		free(semKey);
 		LDST(&(scheduler_states[cpuid]));
@@ -197,7 +188,7 @@ void specify_prg_state_vector(state_t *oldp, state_t *newp)
 	/* ottengo il processore corrente */
 	U32 prid = getPRID();
 	/* ottengo il processo chiamante */
-	state_t *OLDAREA = pareas[prid][SYSBK_OLDAREA_INDEX];
+	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
 	/* carico il processo corrente */
 	pcb_t *processoCorrente = currentProcess[prid];
 	/* copio i custom handlers */
@@ -215,7 +206,7 @@ void specify_tlb_state_vector(state_t *oldp, state_t *newp)
 	/* ottengo il processore corrente */
 	U32 prid = getPRID();
 	/* ottengo il processo chiamante */
-	state_t *OLDAREA = pareas[prid][SYSBK_OLDAREA_INDEX];
+	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
 	/* carico il processo corrente */
 	pcb_t *processoCorrente = currentProcess[prid];
 	/* copio i custom handlers */
@@ -233,7 +224,7 @@ void specify_sys_state_vector(state_t *oldp, state_t *newp)
 	/* ottengo il processore corrente */
 	U32 prid = getPRID();
 	/* ottengo il processo chiamante */
-	state_t *OLDAREA = pareas[prid][SYSBK_OLDAREA_INDEX];
+	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
 	/* carico il processo corrente */
 	pcb_t *processoCorrente = currentProcess[prid];
 	/* copio i custom handlers */

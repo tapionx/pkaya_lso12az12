@@ -22,12 +22,7 @@ void addReady(pcb_t *proc){
 void scheduler(){
 	int cpuid = getPRID();
 	while(TRUE){
-		lock(5);
 		lock(SCHEDULER_LOCK);
-		printn("SCHEDULER:        readyQueue (CPU %): ", getPRID());
-		stampaCodaHead(&readyQueue);
-		addokbuf("\n");
-		free(5);
 		if(!emptyProcQ(&(readyQueue))){
 			currentProcess[cpuid] = removeProcQ(&(readyQueue));
 			/* Settiamo il TIME_SLICE un istante prima di mandare il processo
