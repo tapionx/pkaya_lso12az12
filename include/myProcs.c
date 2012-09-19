@@ -5,41 +5,15 @@
 /* Qui definisco alcuni processi/funzioni di prova per testare
  * le modifiche individualmente */
 
-void handler(){
-	debug(6666666,6666666);
-	debug(6666666,6666666);
-	debug(6666666,6666666);
-	currentProcess[getPRID()]->custom_handlers[PGMTRAP_OLDAREA_INDEX]->pc_epc += 4;
-	LDST(currentProcess[getPRID()]->custom_handlers[PGMTRAP_OLDAREA_INDEX]);
-}
 
 void test2(){
-	state_t newarea, oldarea;
-	cleanState(&newarea);
-	cleanState(&oldarea);
-	newarea.pc_epc = newarea.reg_t9 = (memaddr)handler;
-	newarea.reg_sp = RAMTOP;
-	newarea.status = EXCEPTION_STATUS;
-	debug(77, (U32)currentProcess[getPRID()]->custom_handlers[PGMTRAP_NEWAREA_INDEX]);
-	SYSCALL(SPECPRGVEC,(U32)&oldarea,(U32)&newarea,0);
-	debug(1,1);
-	debug(78, (U32)currentProcess[getPRID()]->custom_handlers[PGMTRAP_NEWAREA_INDEX]);
-	debug(79, (U32)&newarea);
-	debug(90, (U32)currentProcess[getPRID()]->custom_handlers[PGMTRAP_NEWAREA_INDEX]->pc_epc);
-	debug(91, (memaddr)handler);
-	//SYSCALL(0,0,0,0);
-	int* a = 0xfffffffff;
-	*a = 2;
-	debug(1,1);
-	while(TRUE);
+	while(TRUE){
+		SYSCALL(PASSEREN,5,0,0);
+		printn("Io sono il processo %\n\n", (U32)currentProcess[getPRID()]);
+		SYSCALL(VERHOGEN,5,0,0);
+	}
 }
 
-void test1(){
-	while(TRUE);
-	int time = SYSCALL(GETCPUTIME,0,0,0);
-	debug(2, time);
-	while(TRUE);
-}
 
 
 void test3(){
@@ -59,6 +33,75 @@ void test4(){
 }
 
 
-
+void test1(){		
+		/////////////////////////////
+	   // PROCESSO DI prova2 	  //
+		pcb_t* prova2 = allocPcb();
+		//STST(&(prova2.p_s));
+		prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
+		prova2->p_s.reg_sp = PFRAMES_START-4*QPAGE;
+		prova2->p_s.status = prova2->p_s.status | PROCESS_STATUS;
+		
+		/////////////////////////////
+	   // PROCESSO DI prova3 	  //
+		pcb_t* prova3 = allocPcb();
+		//STST(&(prova3.p_s));
+		prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)test3;
+		prova3->p_s.reg_sp = PFRAMES_START-6*QPAGE;
+		prova3->p_s.status = prova3->p_s.status | PROCESS_STATUS;
+		
+		/////////////////////////////
+	   // PROCESSO DI prova4 	  //
+		pcb_t* prova4 = allocPcb();
+		//STST(&(prova4.p_s));
+		prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)test4;
+		prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
+		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
+		
+	SYSCALL(PASSEREN,5,0,0);
+	
+	printn("IO SONO IL PROCESSO PADRE [ %] E I MIEI FIGLI SONO: ", (U32)currentProcess[getPRID()]); 
+	
+	int res = SYSCALL(CREATEBROTHER,(U32)&(prova2->p_s),DEFAULT_PCB_PRIORITY,0);
+	if (res == 0){
+		pcb_t *child = container_of(list_next(&(currentProcess[getPRID()]->p_sib)), pcb_t, p_sib);
+		printn("% ", (U32)child);
+	} else {
+		printn("% ", (U32)res);
+	}
+	
+	res = SYSCALL(CREATEBROTHER,(U32)&(prova3->p_s),DEFAULT_PCB_PRIORITY,0);
+	if (res == 0){
+		pcb_t *child = container_of(list_next(list_next(&(currentProcess[getPRID()]->p_sib))), pcb_t, p_sib);
+		printn("% ", (U32)child);
+	} else {
+		printn("% ", (U32)res);
+	}
+	
+	res = SYSCALL(CREATEBROTHER,(U32)&(prova4->p_s),DEFAULT_PCB_PRIORITY,0);
+	if (res == 0){
+		pcb_t *child = container_of(list_next(list_next(list_next(&(currentProcess[getPRID()]->p_sib)))), pcb_t, p_sib);
+		printn("% \n\n", (U32)child);
+	} else {
+		printn("% \n\n", (U32)res);
+	}
+	
+	SYSCALL(VERHOGEN,5,0,0);
+	
+	while(TRUE);
+	
+	int i;
+	for (i=0; i<5000; i++);
+	
+	SYSCALL(PASSEREN,5,0,0);
+	
+	addokbuf("STO MORENDOOOO!!!\n");
+	
+	SYSCALL(TERMINATEPROCESS, 0, 0, 0);
+	
+	SYSCALL(VERHOGEN,5,0,0);
+	
+	
+}
 
 

@@ -91,4 +91,6 @@
 #define SCHEDULER_LOCK MAX_DEVICES+MAXPROC+1
 #define PCT_SEM MAX_DEVICES+MAXPROC+2
 
+#define CLOCK_TICK 100000 /* 100ms == 100000 microsecondi */
+
 

@@ -8,6 +8,7 @@
 #include "utils.h"
 #include "kernelVariables.h"
 #include "syscall.h"
+#include "asl.e"
 
 void sysbk_handler(){
 	/* recupero il numero della CPU attuale */
@@ -155,19 +156,29 @@ void int_handler(){
 			LDST(&(scheduler_states[cpuid]));
 			break;
 		
-		case INT_TIMER:
+		case(INT_TIMER): {
 			/* Facciamo la V "speciale" che risveglia tutti i processi bloccati */
-			/* TODO FARE IL WHILE PER FARE V CHE SVEGLIA TUTTO! */
-			
-			debug(4444,4444);
-			SET_IT(100000);
+			/* estraggo il puntatore al semaforo */
+			semd_t *pctsem = getSemd(PCT_SEM);
+			/* faccio la V finchè non escono tutti i processi */
+			while(pctsem->s_value != 0)
+				verhogen(PCT_SEM);
+			/* setto di nuovo il PCT a 100ms */
+			SET_IT(CLOCK_TICK);
+			/* estraggo il puntatore allo state_t del processo chiamante */
+			state_t *OLDAREA = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
+			/* ritorno il controllo al processo chiamante */
+			LDST(OLDAREA);
 			break;
+		}
+		default:
+			;
 	}
 	
 }
 void pgmtrap_handler(){
 
-//for(;;);
+for(;;);
 
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti termino il processo e tutta la progenie
