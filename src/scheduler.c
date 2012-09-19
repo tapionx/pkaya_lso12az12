@@ -12,7 +12,8 @@
  */
 void addReady(pcb_t *proc){
 	lock(SCHEDULER_LOCK);
-	insertProcQ(&(readyQueue), proc);
+	if (proc != NULL)
+		insertProcQ(&(readyQueue), proc);
 	free(SCHEDULER_LOCK);
 }
 

@@ -16,11 +16,12 @@ void sysbk_handler(){
 	U32 oldTimer = getTIMER();
 	/* recupero il processo chiamante */
 	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
-	debug(1000, OLDAREA->pc_epc);
 	/* incremento il PC del processo chiamante, per evitare loop */
 	/* in questo caso non serve aggiornare anche t9 */
 	/* (pag 28, 3.7.2 Student Guide) */
 	OLDAREA->pc_epc += WORD_SIZE; /* 4 */
+	/* Aggiorno il pcb corrente */
+	copyState(OLDAREA, &(currentProcess[prid]->p_s));
 	/* recupero i parametri della SYSCALL dalla OLDAREA */
 	U32 *num_syscall = &(OLDAREA->reg_a0);
 	U32 *arg1 		 =  &(OLDAREA->reg_a1);
@@ -144,6 +145,7 @@ void int_handler(){
 	
 	switch(line){
 		case INT_PLT:
+			debug(148, 148);
 			if (cpuid == 0){
 				copyState((state_t *)INT_OLDAREA, &(currentProcess[cpuid]->p_s));
 			} else {

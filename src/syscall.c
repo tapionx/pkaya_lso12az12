@@ -103,17 +103,15 @@ void terminate_process()
  */
 void verhogen(int semKey){
 	lock(semKey);
-	U32 cpuid = getPRID();
-	pcb_t *chiamante = currentProcess[cpuid];
-	semd_t *semd = getSemd(semKey);
-	semd->s_value += 1;
-	if(semd->s_value < 0){
-		pcb_t *daSvegliare = removeBlocked(semKey);
-		if (daSvegliare != NULL)
-			addReady(&(daSvegliare));
+	int cpuid = getPRID();
+	semd_t *semaphore = getSemd(semKey);
+	semaphore->s_value += 1;
+	if (semaphore->s_value <= 0){
+		pcb_t *toWake = removeBlocked(semKey);
+		addReady(toWake); // sveglio il prossimo
 	}
 	free(semKey);
-	LDST(&(chiamante->p_s));
+	LDST(&(currentProcess[cpuid]->p_s));
 }
 
 
@@ -123,23 +121,17 @@ void verhogen(int semKey){
  */
 void passeren(int semKey){
 	lock(semKey);
-	U32 cpuid = getPRID();
-	if (cpuid == 0){
-		copyState((state_t *)SYSBK_OLDAREA, &(currentProcess[cpuid]->p_s));
-	} else {
-		copyState(&areas[cpuid][SYSBK_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
-	}
-	pcb_t *chiamante = currentProcess[cpuid];
-	semd_t *semd = getSemd(semKey);
-	semd->s_value -= 1;
-	if(semd->s_value < 0){
-		insertBlocked(semKey, chiamante);
+	int cpuid = getPRID();
+	semd_t *semaphore = getSemd(semKey);
+	semaphore->s_value -= 1;
+	if (semaphore->s_value < 0){
+		insertBlocked(semKey, currentProcess[cpuid]);
 		free(semKey);
 		LDST(&(scheduler_states[cpuid]));
+	} else {
+		free(semKey);
+		LDST(&(currentProcess[cpuid]->p_s));
 	}
-	free(semKey);
-	LDST(&(chiamante->p_s));
-	/* else ritorno il controllo al processo */
 }
 
 
