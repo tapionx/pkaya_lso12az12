@@ -32,7 +32,7 @@
 #define TRANCOMMAND   3
 #define BUSY      3
 
-extern int locks[MAXPROC+MAX_DEVICES];
+extern int locks[NUM_SEMAPHORES];
 
 
 /* This function is a debugging function. Through the emulator you can

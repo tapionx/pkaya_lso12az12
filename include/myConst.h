@@ -5,7 +5,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 10
+#define NUM_CPU 4
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -85,6 +85,10 @@
 
 
 /* Costanti per lo scheduler */
-#define SCHEDULER_LOCK MAX_DEVICES+MAXPROC-1
+#define OTHER_SEMAPHORES 2
+#define NUM_SEMAPHORES MAX_DEVICES+MAXPROC+OTHER_SEMAPHORES
+
+#define SCHEDULER_LOCK MAX_DEVICES+MAXPROC+1
+#define PCT_SEM MAX_DEVICES+MAXPROC+2
 
 

@@ -97,7 +97,7 @@ void sysbk_handler(){
 					break;
 			} /*switch*/
 			/* ritorno il controllo al processo chiamante */
-			//LDST(pareas[prid][SYSBK_OLDAREA_INDEX]);
+			LDST(&(currentProcess[prid]->p_s));
 		} /* if */
 		/* se il processo ha un custom handler lo chiamo */
 		else
@@ -145,7 +145,6 @@ void int_handler(){
 	
 	switch(line){
 		case INT_PLT:
-			debug(148, 148);
 			if (cpuid == 0){
 				copyState((state_t *)INT_OLDAREA, &(currentProcess[cpuid]->p_s));
 			} else {
@@ -154,6 +153,15 @@ void int_handler(){
 			/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
 			addReady(currentProcess[cpuid]);
 			LDST(&(scheduler_states[cpuid]));
+			break;
+		
+		case INT_TIMER:
+			/* Facciamo la V "speciale" che risveglia tutti i processi bloccati */
+			/* TODO FARE IL WHILE PER FARE V CHE SVEGLIA TUTTO! */
+			
+			
+			SET_IT(100000);
+			break;
 	}
 	
 }

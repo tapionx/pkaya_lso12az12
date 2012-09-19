@@ -1,16 +1,18 @@
 #include <asl.e>
 #include <pcb.e>
+#include "myConst.h"
 
 /************ GESTIONE DEI SEMAFORI **************/
 
 /* Array di SEMD con dimensione massima MAXPROC*3 (restando "larghi") */
-HIDDEN semd_t semd_table[MAXPROC+MAX_DEVICES];
+HIDDEN semd_t semd_table[NUM_SEMAPHORES];
 
 void initASL(){
 	int i;
 	/* fino al numero massimo di processi */
-	for (i=0; i < MAXPROC+MAX_DEVICES; i++){
-		semd_table[i].s_value = 1; //mutex
+	for (i=0; i < NUM_SEMAPHORES; i++){
+		/* Lo pseudo-clock-timer ha una P sempre bloccante! */
+		semd_table[i].s_value = (i == PCT_SEM)? 0 : 1; //mutex
 		semd_table[i].s_key = i;
 		mkEmptyProcQ(&(semd_table[i].s_procQ));
 	}	
@@ -18,14 +20,14 @@ void initASL(){
 
 semd_t* getSemd(int key)
 {
-	if (key < 0 || key > MAXPROC+MAX_DEVICES) return NULL; /* Valore della chiave non valido */
+	if (key < 0 || key > NUM_SEMAPHORES) return NULL; /* Valore della chiave non valido */
 	return &(semd_table[key]);
 }
 
 int insertBlocked(int key, pcb_t *p)
 {
 	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
-	if (key > MAXPROC+MAX_DEVICES || key < 0) 
+	if (key > NUM_SEMAPHORES || key < 0)
 		return TRUE;
     p->p_semkey = key;
 	list_add_tail(&(p->p_next), &(semd_table[key].s_procQ));
@@ -35,7 +37,7 @@ int insertBlocked(int key, pcb_t *p)
 pcb_t* removeBlocked(int key)
 {
 	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
-	if (key > MAXPROC+MAX_DEVICES || key < 0) 
+	if (key > NUM_SEMAPHORES || key < 0) 
 		return NULL;
 	pcb_t* removedPcb = removeProcQ(&(semd_table[key].s_procQ));
 	removedPcb->p_semkey = -1; // reset della semkey
@@ -45,7 +47,7 @@ pcb_t* removeBlocked(int key)
 pcb_t* headBlocked(int key)
 {
 	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
-	if (key > MAXPROC+MAX_DEVICES || key < 0) 
+	if (key > NUM_SEMAPHORES || key < 0) 
 		return NULL;
 	pcb_t* firstPcb = headProcQ(&(semd_table[key].s_procQ));
 	return firstPcb;

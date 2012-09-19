@@ -123,7 +123,6 @@ void verhogen(int semKey){
 		addReady(toWake); // sveglio il prossimo
 	}
 	free(semKey);
-	LDST(&(currentProcess[cpuid]->p_s));
 }
 
 
@@ -142,7 +141,6 @@ void passeren(int semKey){
 		LDST(&(scheduler_states[cpuid]));
 	} else {
 		free(semKey);
-		LDST(&(currentProcess[cpuid]->p_s));
 	}
 }
 
@@ -156,7 +154,6 @@ void get_cpu_time()
 	/* ottengo il processo corrente */ 
 	currentProcess[cpuid]->p_s.reg_v0 = currentProcess[cpuid]->time;
 	/* continuo l'esecuzione */
-	LDST(&(currentProcess[cpuid]->p_s));
 }
 
 
@@ -166,8 +163,8 @@ void get_cpu_time()
  */
 void wait_clock()
 {
-	
-	
+	/* Semplicemente chiamiamo una P sul semaforo dedicato al PCT */
+	passeren(PCT_SEM);
 }
 
 
@@ -193,7 +190,6 @@ void specify_prg_state_vector(state_t *oldp, state_t *newp)
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
 	currentProcess[prid]->custom_handlers[PGMTRAP_NEWAREA_INDEX] = newp;
 	currentProcess[prid]->custom_handlers[PGMTRAP_OLDAREA_INDEX] = oldp;
-	LDST(&(currentProcess[prid]->p_s));
 }
 
 /* System Call #10 : Specify TLB State Vector
@@ -207,7 +203,6 @@ void specify_tlb_state_vector(state_t *oldp, state_t *newp)
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
 	currentProcess[prid]->custom_handlers[TLB_NEWAREA_INDEX] = newp;
 	currentProcess[prid]->custom_handlers[TLB_OLDAREA_INDEX] = oldp;
-	LDST(&(currentProcess[prid]->p_s));
 }
 
 /* System Call #11 : Specify SYS State Vector
@@ -221,5 +216,4 @@ void specify_sys_state_vector(state_t *oldp, state_t *newp)
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
 	currentProcess[prid]->custom_handlers[SYSBK_NEWAREA_INDEX] = newp;
 	currentProcess[prid]->custom_handlers[SYSBK_OLDAREA_INDEX] = oldp;
-	LDST(&(currentProcess[prid]->p_s));
 }

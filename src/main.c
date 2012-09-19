@@ -15,8 +15,9 @@ int softBlockCount; /* Contatore dei processi bloccati su semafori */
 struct list_head readyQueue; /* Coda dei processi in stato ready */
 pcb_t *currentProcess[NUM_CPU]; /* Puntatore al processo correntemente in esecuzione */
 state_t areas[NUM_CPU][NUM_AREAS]; /* Aree reali per CPU > 0 */
-int locks[MAXPROC+MAX_DEVICES]; /* Variabili di condizione per CAS */
+int locks[NUM_SEMAPHORES]; /* Variabili di condizione per CAS */
 state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
+int pctInit = FALSE; /* Lo Pseudo Clock Timer è stato inizializzato? */
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){
@@ -24,7 +25,7 @@ int main(){
 	int cpuid, area, lockno; /* Iteratori */
 
 	/** INIZIALIZZAZIONE DEI LOCK */
-	for(lockno=0;lockno<(MAXPROC+MAX_DEVICES);lockno++){
+	for(lockno=0;lockno<(NUM_SEMAPHORES);lockno++){
 		locks[lockno] = PASS;
 	}
 	

@@ -38,6 +38,12 @@ void scheduler(){
 			 * in esecuzione */
 			setTIMER(TIME_SLICE);
 			free(SCHEDULER_LOCK);
+			/* Setto lo pseudo-clock-timer (SOLO LA PRIMA VOLTA, si
+			 * resetta ad ogni interrupt/V) */
+			if (!pctInit){
+				SET_IT(100000); 
+				pctInit = TRUE;
+			}
 			LDST(&(currentProcess[cpuid]->p_s));
 		}
 		free(SCHEDULER_LOCK);

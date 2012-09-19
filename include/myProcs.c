@@ -88,6 +88,8 @@ void test1(){
 	
 	SYSCALL(VERHOGEN,5,0,0);
 	
+	while(TRUE);
+	
 	int i;
 	for (i=0; i<5000; i++);
 	
@@ -99,7 +101,7 @@ void test1(){
 	
 	SYSCALL(VERHOGEN,5,0,0);
 	
-	while(TRUE);
+	
 }
 
 
