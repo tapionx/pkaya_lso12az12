@@ -179,8 +179,9 @@ void specify_prg_state_vector(state_t *oldp, state_t *newp)
 {
 	U32 prid = getPRID();
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
-	copyState(oldp, &(currentProcess[prid]->custom_handlers[PGMTRAP_OLDAREA_INDEX])); 	
-	copyState(newp, &(currentProcess[prid]->custom_handlers[PGMTRAP_NEWAREA_INDEX]));
+	currentProcess[prid]->custom_handlers[PGMTRAP_NEWAREA_INDEX] = newp;
+	currentProcess[prid]->custom_handlers[PGMTRAP_OLDAREA_INDEX] = oldp;
+	LDST(&(currentProcess[prid]->p_s));
 }
 
 /* System Call #10 : Specify TLB State Vector
@@ -192,8 +193,9 @@ void specify_tlb_state_vector(state_t *oldp, state_t *newp)
 {
 	U32 prid = getPRID();
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
-	copyState(oldp, &(currentProcess[prid]->custom_handlers[TLB_OLDAREA_INDEX])); 	
-	copyState(newp, &(currentProcess[prid]->custom_handlers[TLB_NEWAREA_INDEX]));
+	currentProcess[prid]->custom_handlers[TLB_NEWAREA_INDEX] = newp;
+	currentProcess[prid]->custom_handlers[TLB_OLDAREA_INDEX] = oldp;
+	LDST(&(currentProcess[prid]->p_s));
 }
 
 /* System Call #11 : Specify SYS State Vector
@@ -205,6 +207,7 @@ void specify_sys_state_vector(state_t *oldp, state_t *newp)
 {
 	U32 prid = getPRID();
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
-	copyState(oldp, &(currentProcess[prid]->custom_handlers[SYSBK_OLDAREA_INDEX])); 	
-	copyState(newp, &(currentProcess[prid]->custom_handlers[SYSBK_NEWAREA_INDEX]));
+	currentProcess[prid]->custom_handlers[SYSBK_NEWAREA_INDEX] = newp;
+	currentProcess[prid]->custom_handlers[SYSBK_OLDAREA_INDEX] = oldp;
+	LDST(&(currentProcess[prid]->p_s));
 }

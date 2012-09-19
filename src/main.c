@@ -118,7 +118,7 @@ int main(){
 		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
 	addReady(prova1);
-	//addReady(prova2);
+	addReady(prova2);
 	//addReady(prova3);
 	//addReady(prova4);
 	

@@ -42,7 +42,8 @@ void sysbk_handler(){
 	{
 		/* controllo se il processo non ha un handler custom */
 		if(processoCorrente->custom_handlers[SYSBK_NEWAREA_INDEX] == NULL)
-		{			
+		{		
+			debug(999,999);	
 			/* eseguo la SYSCALL adeguata */
 			switch(*num_syscall)
 			{
