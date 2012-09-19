@@ -159,16 +159,13 @@ void int_handler(){
 			/* Facciamo la V "speciale" che risveglia tutti i processi bloccati */
 			/* TODO FARE IL WHILE PER FARE V CHE SVEGLIA TUTTO! */
 			
-			
+			debug(4444,4444);
 			SET_IT(100000);
 			break;
 	}
 	
 }
 void pgmtrap_handler(){
-
-	// TEMPORANEO
-	PANIC();
 
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti termino il processo e tutta la progenie

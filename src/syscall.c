@@ -38,7 +38,6 @@ void create_process(state_t *statep, int priority)
 	processoCorrente->p_s.reg_v0 = 0;
 	/* inserisco il nuovo processo in qualche ready queue */
 	addReady(nuovoProcesso);
-	LDST(&(processoCorrente->p_s));
 }
 
 /* System Call #2  : Create Brother
@@ -74,10 +73,7 @@ void create_brother(state_t *statep, int priority)
 	processoCorrente->p_s.reg_v0 = 0;
 	/* inserisco il nuovo processo in qualche ready queue */
 	addReady(nuovoProcesso);	
-	LDST(&(processoCorrente->p_s));
-
 }
-
 
 /* System Call #3  : Terminate Process
  * termina il processo corrente e tutti i discendenti
@@ -97,7 +93,6 @@ void terminate_process()
 	freePcb(currentProcess[prid]);
 	LDST(&(scheduler_states[prid]));
 }
-
 
 /* System Call #4  : Verhogen
  * esegue la V sul semaforo con chiave semKey
@@ -124,7 +119,6 @@ void verhogen(int semKey){
 	}
 	free(semKey);
 }
-
 
 /* System Call #5  : Passeren
  * esegue la P sul semaforo con chiave semKey
@@ -156,7 +150,6 @@ void get_cpu_time()
 	/* continuo l'esecuzione */
 }
 
-
 /* System Call #7  : Wait Clock
  * esegue una P sul semaforo dello PSEUDO CLOCK TIMER (PCT)
  * il PCT esegue una V ogni 100 millisecondi e sblocca tutti i processi
@@ -166,7 +159,6 @@ void wait_clock()
 	/* Semplicemente chiamiamo una P sul semaforo dedicato al PCT */
 	passeren(PCT_SEM);
 }
-
 
 /* System Call #8  : Wait I/O
  * esegue una P sul semaforo del device specificato dai parametri
