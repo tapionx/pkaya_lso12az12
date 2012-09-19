@@ -5,32 +5,35 @@
 
 void nop(){}
 
+
+void handler(){
+	debug(6666666,6666666);
+	debug(6666666,6666666);
+	debug(6666666,6666666);
+}
+
 void test1(){
-	while(TRUE){
-		SYSCALL(PASSEREN,5,0,0);
-		printn("Ciao! Sono il processo % :)\n", 1);
-		printn("E al processo % piacciono le banane!\n", 1);
-		printn("Ora il processo % vola viaaa!\n\n", 1);
-		SYSCALL(VERHOGEN,5,0,0);
-	}
+	state_t newarea, oldarea;
+	newarea.pc_epc = newarea.reg_t9 = (memaddr)handler;
+	newarea.reg_sp = RAMTOP;
+	newarea.status = EXCEPTION_STATUS;
+	SYSCALL(SPECSYSVEC,&oldarea,&newarea,0);
+	debug(1,1);
+	while(TRUE);
 }
 
 void test2(){
-	while(TRUE){
-		SYSCALL(PASSEREN,5,0,0);
-		printn("Ciao! Sono il processo % :)\n", 2);
-		printn("E al processo % piacciono le banane!\n", 2);
-		printn("Ora il processo % vola viaaa!\n\n", 2);
-		SYSCALL(VERHOGEN,5,0,0);
-	}
+	int time = SYSCALL(GETCPUTIME,0,0,0);
+	debug(2, time);
+	while(TRUE);
 }
 
 void test3(){
 	while(TRUE){
 		SYSCALL(PASSEREN,5,0,0);
-		printn("Ciao! Sono il processo % :)\n", 3);
-		printn("E al processo % piacciono le banane!\n", 3);
-		printn("Ora il processo % vola viaaa!\n\n", 3);
+		printn("888888888888888\n");
+		printn("888888888888888\n");
+		printn("888888888888888\n");
 		SYSCALL(VERHOGEN,5,0,0);
 	}
 }
@@ -38,9 +41,9 @@ void test3(){
 void test4(){
 	while(TRUE){
 		SYSCALL(PASSEREN,5,0,0);
-		printn("Ciao! Sono il processo % :)\n", 4);
-		printn("E al processo % piacciono le banane!\n", 4);
-		printn("Ora il processo % vola viaaa!\n\n", 4);
+		printn("88888888888888888888\n");
+		printn("88888888888888888888\n");
+		printn("88888888888888888888\n");
 		SYSCALL(VERHOGEN,5,0,0);
 	}
 }

@@ -9,7 +9,7 @@
 
 /* System Call #1  : Create Process
  * genera un processo figlio del processo chiamante
- * statep   = indirizzo fisico del nuovo processo
+ * statep   = indirizzo dello state_t da caricare nel nuovo processo
  * priority = priorità del nuovo processo
  * return  -> 0 ok / -1 errore (coda piena PLB)
  */
@@ -134,19 +134,17 @@ void passeren(int semKey){
 	}
 }
 
-
 /* System Call #6  : Get CPU Time
  * restituisce il tempo CPU usato dal processo in millisecondi
  * -> IL KERNEL DEVE TENERE LA CONTABILITA DEL TEMPO CPU DEI PROCESSI
  */
 void get_cpu_time()
 {
+	U32 cpuid = getPRID();
 	/* ottengo il processo corrente */ 
-	pcb_t *processoCorrente = currentProcess[getPRID()];
-	/* restituisco il tempo del processo */
-	processoCorrente->p_s.reg_v0 = processoCorrente->time;
+	currentProcess[cpuid]->p_s.reg_v0 = currentProcess[cpuid]->time;
 	/* continuo l'esecuzione */
-	LDST(&(processoCorrente->p_s));
+	LDST(&(currentProcess[cpuid]->p_s));
 }
 
 
@@ -156,6 +154,8 @@ void get_cpu_time()
  */
 void wait_clock()
 {
+	
+	
 }
 
 
@@ -177,15 +177,10 @@ int wait_io(int intNo, int dnum, int waitForTermRead)
  */
 void specify_prg_state_vector(state_t *oldp, state_t *newp)
 {
-	/* ottengo il processore corrente */
 	U32 prid = getPRID();
-	/* ottengo il processo chiamante */
-	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
-	/* carico il processo corrente */
-	pcb_t *processoCorrente = currentProcess[prid];
-	/* copio i custom handlers */
-	copyState(oldp, processoCorrente->custom_handlers[PGMTRAP_OLDAREA_INDEX]); 	
-	copyState(newp, processoCorrente->custom_handlers[PGMTRAP_NEWAREA_INDEX]);
+	/* copio i custom handlers nel pcb_t del processo chiamante*/
+	copyState(oldp, &(currentProcess[prid]->custom_handlers[PGMTRAP_OLDAREA_INDEX])); 	
+	copyState(newp, &(currentProcess[prid]->custom_handlers[PGMTRAP_NEWAREA_INDEX]));
 }
 
 /* System Call #10 : Specify TLB State Vector
@@ -195,15 +190,10 @@ void specify_prg_state_vector(state_t *oldp, state_t *newp)
  */
 void specify_tlb_state_vector(state_t *oldp, state_t *newp)
 {
-	/* ottengo il processore corrente */
 	U32 prid = getPRID();
-	/* ottengo il processo chiamante */
-	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
-	/* carico il processo corrente */
-	pcb_t *processoCorrente = currentProcess[prid];
-	/* copio i custom handlers */
-	copyState(oldp, processoCorrente->custom_handlers[TLB_OLDAREA_INDEX]); 	
-	copyState(newp, processoCorrente->custom_handlers[TLB_NEWAREA_INDEX]);
+	/* copio i custom handlers nel pcb_t del processo chiamante*/
+	copyState(oldp, &(currentProcess[prid]->custom_handlers[TLB_OLDAREA_INDEX])); 	
+	copyState(newp, &(currentProcess[prid]->custom_handlers[TLB_NEWAREA_INDEX]));
 }
 
 /* System Call #11 : Specify SYS State Vector
@@ -213,13 +203,8 @@ void specify_tlb_state_vector(state_t *oldp, state_t *newp)
  */
 void specify_sys_state_vector(state_t *oldp, state_t *newp)
 {
-	/* ottengo il processore corrente */
 	U32 prid = getPRID();
-	/* ottengo il processo chiamante */
-	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
-	/* carico il processo corrente */
-	pcb_t *processoCorrente = currentProcess[prid];
-	/* copio i custom handlers */
-	copyState(oldp, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]); 	
-	copyState(newp, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]);
+	/* copio i custom handlers nel pcb_t del processo chiamante*/
+	copyState(oldp, &(currentProcess[prid]->custom_handlers[SYSBK_OLDAREA_INDEX])); 	
+	copyState(newp, &(currentProcess[prid]->custom_handlers[SYSBK_NEWAREA_INDEX]));
 }

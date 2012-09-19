@@ -118,9 +118,9 @@ int main(){
 		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
 	addReady(prova1);
-	addReady(prova2);
-	addReady(prova3);
-	addReady(prova4);
+	//addReady(prova2);
+	//addReady(prova3);
+	//addReady(prova4);
 	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], &areas[cpuid]);
