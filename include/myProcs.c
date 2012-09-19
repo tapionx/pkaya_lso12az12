@@ -62,25 +62,25 @@ void test1(){
 	
 	printn("IO SONO IL PROCESSO PADRE [ %] E I MIEI FIGLI SONO: ", (U32)currentProcess[getPRID()]); 
 	
-	int res = SYSCALL(CREATEPROCESS,(U32)&(prova2->p_s),DEFAULT_PCB_PRIORITY,0);
+	int res = SYSCALL(CREATEBROTHER,(U32)&(prova2->p_s),DEFAULT_PCB_PRIORITY,0);
 	if (res == 0){
-		pcb_t *child = container_of(list_next(&(currentProcess[getPRID()]->p_child)), pcb_t, p_sib);
+		pcb_t *child = container_of(list_next(&(currentProcess[getPRID()]->p_sib)), pcb_t, p_sib);
 		printn("% ", (U32)child);
 	} else {
 		printn("% ", (U32)res);
 	}
 	
-	res = SYSCALL(CREATEPROCESS,(U32)&(prova3->p_s),DEFAULT_PCB_PRIORITY,0);
+	res = SYSCALL(CREATEBROTHER,(U32)&(prova3->p_s),DEFAULT_PCB_PRIORITY,0);
 	if (res == 0){
-		pcb_t *child = container_of(list_next(list_next(&(currentProcess[getPRID()]->p_child))), pcb_t, p_sib);
+		pcb_t *child = container_of(list_next(list_next(&(currentProcess[getPRID()]->p_sib))), pcb_t, p_sib);
 		printn("% ", (U32)child);
 	} else {
 		printn("% ", (U32)res);
 	}
 	
-	res = SYSCALL(CREATEPROCESS,(U32)&(prova4->p_s),DEFAULT_PCB_PRIORITY,0);
+	res = SYSCALL(CREATEBROTHER,(U32)&(prova4->p_s),DEFAULT_PCB_PRIORITY,0);
 	if (res == 0){
-		pcb_t *child = container_of(list_next(list_next(list_next(&(currentProcess[getPRID()]->p_child)))), pcb_t, p_sib);
+		pcb_t *child = container_of(list_next(list_next(list_next(&(currentProcess[getPRID()]->p_sib)))), pcb_t, p_sib);
 		printn("% \n\n", (U32)child);
 	} else {
 		printn("% \n\n", (U32)res);
