@@ -63,6 +63,8 @@ pcb_t* allocPcb()
    }
    /* Inizializzo il tempo CPU a 0 */
    allocPpcb->time = 0;
+   /* Il processo NON va terminato (ovviamente) */
+   allocPpcb->wanted = 0;
    /* Ritorno il puntatore al pcb_t */
    return allocPpcb;
 }

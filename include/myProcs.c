@@ -87,6 +87,18 @@ void test1(){
 	}
 	
 	SYSCALL(VERHOGEN,5,0,0);
+	
+	int i;
+	for (i=0; i<5000; i++);
+	
+	SYSCALL(PASSEREN,5,0,0);
+	
+	addokbuf("STO MORENDOOOO!!!\n");
+	
+	SYSCALL(TERMINATEPROCESS, 0, 0, 0);
+	
+	SYSCALL(VERHOGEN,5,0,0);
+	
 	while(TRUE);
 }
 

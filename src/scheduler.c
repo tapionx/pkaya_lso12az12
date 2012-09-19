@@ -21,11 +21,19 @@ void addReady(pcb_t *proc){
  * Funzione principale per lo scheduling dei processi
  */
 void scheduler(){
+	/* TODO: ricordarsi di gestire i casi di deadlock (procCount e softProcCount) 
+	 * e di modificare tutte le variabili del caso nelle syscall ecc. */
 	int cpuid = getPRID();
 	while(TRUE){
 		lock(SCHEDULER_LOCK);
 		if(!emptyProcQ(&(readyQueue))){
 			currentProcess[cpuid] = removeProcQ(&(readyQueue));
+			/* Se il processo è da terminare ne liberiamo il pcb e lo scartiamo */
+			if (currentProcess[cpuid]->wanted){
+				freePcb(currentProcess[cpuid]);
+				free(SCHEDULER_LOCK);
+				LDST(&(scheduler_states));
+			}
 			/* Settiamo il TIME_SLICE un istante prima di mandare il processo
 			 * in esecuzione */
 			setTIMER(TIME_SLICE);

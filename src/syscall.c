@@ -91,13 +91,11 @@ void terminate_process()
 	pcb_t *processoCorrente = currentProcess[prid]; 
 	/* elimino il processo e tutti i figli da tutti i semafori */
 	/* cioe' tutti i processi in stato di WAIT */
-	outChildBlocked(processoCorrente);
-
-	/*
-	 *	processo in stato READY: scorro tutte le Ready Queue 
-	 *  processo RUNNING: Interrupt interprocessore
-	 * 
-	 */
+	outChildBlocked(processoCorrente); /* Marca tutti i figli come da terminare */
+	/* Infine termina il processo chiamante liberando il suo pcb e ritornando il controllo allo scheduler
+	 * NOTA: Il processo terminato non sarà certamente nella readyQueue! */
+	freePcb(currentProcess[prid]);
+	LDST(&(scheduler_states[prid]));
 }
 
 
@@ -112,6 +110,16 @@ void verhogen(int semKey){
 	semaphore->s_value += 1;
 	if (semaphore->s_value <= 0){
 		pcb_t *toWake = removeBlocked(semKey);
+		/* Controllo se il processo da inserire non sia da terminare,
+		 * in tal caso potrebbe portare a problemi poiché ci potrebbe
+		 * essere un processo marcato ma non rimosso (ancora) 
+		 * dalla coda e se questo dovesse ancora dover effettuare la V si
+		 * bloccherebbe l'accesso alla Critical Section! */
+		while (toWake != NULL && toWake->wanted){
+			semaphore->s_value += 1;
+			freePcb(toWake);
+			toWake = removeBlocked(semKey);
+		}		
 		addReady(toWake); // sveglio il prossimo
 	}
 	free(semKey);

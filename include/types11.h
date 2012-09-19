@@ -31,6 +31,9 @@ typedef struct pcb_t {
 	
 	/* tempo di esecuzione del processo */
 	cpu_time			time;
+	
+	/* flag per la terminazione del processo */
+	int					wanted;
 
 } pcb_t;
 

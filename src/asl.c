@@ -18,6 +18,7 @@ void initASL(){
 
 semd_t* getSemd(int key)
 {
+	if (key < 0 || key > MAXPROC+MAX_DEVICES) return NULL; /* Valore della chiave non valido */
 	return &(semd_table[key]);
 }
 
@@ -37,6 +38,7 @@ pcb_t* removeBlocked(int key)
 	if (key > MAXPROC+MAX_DEVICES || key < 0) 
 		return NULL;
 	pcb_t* removedPcb = removeProcQ(&(semd_table[key].s_procQ));
+	removedPcb->p_semkey = -1; // reset della semkey
 	return removedPcb;
 }
 
@@ -51,6 +53,11 @@ pcb_t* headBlocked(int key)
 
 pcb_t* outBlocked(pcb_t* p)
 {
+	/* Per prima cosa marco il processo come da terminare. Se non lo
+	 * facessi a priori rischierei che mentre cerco il processo in qualche
+	 * coda questo venga prelevato e inserito nella readyQueue dello 
+	 * scheduler! */
+	p->wanted = TRUE;
     /* estraggo la chiave */
     int semKey = p->p_semkey;
 	/* estraggo il puntatore al semd */
@@ -87,14 +94,15 @@ pcb_t* outBlocked(pcb_t* p)
  * bloccato (indicato da p->p_semkey). Inoltre, elimina tutti i processi
  * dell'albero radicato in p (ossia tutti i processi che hanno come avo
  * p) dalle eventuali code dei semafori su cui sono bloccati. 
+ * 
+ * MODIFICA PHASE2: Marca anche i processi da rimuovere come da terminare
+ * (poiché è l'unico motivo per cui si utilizza) (nella outBlocked!)
  *
  */
 void outChildBlocked(pcb_t* p)
 {
 	/* Caso base: p non ha figli */
-	if (list_empty(&(p->p_child)))
-		 outBlocked(p);
-	else {
+	if (!list_empty(&(p->p_child))){
 		/* Caso ricorsivo/induttivo */
 		struct list_head* childIt = &(p->p_child);
 		/* scorro su ogni figlio */
@@ -104,7 +112,7 @@ void outChildBlocked(pcb_t* p)
 			/* elimino i processi figli */
 			outChildBlocked(curPcb);
 		}
-		/* Infine rimuovo il processo originario */
-		outBlocked(p);
 	}
+	/* Infine rimuovo il processo originario */
+	outBlocked(p);
 }
