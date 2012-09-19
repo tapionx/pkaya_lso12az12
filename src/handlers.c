@@ -165,11 +165,57 @@ void int_handler(){
 	}
 	
 }
-
-void tlb_handler(){
-
-}
-
 void pgmtrap_handler(){
 
+	// TEMPORANEO
+	PANIC();
+
+	/* se il processo ha dichiarato un handler per Program Trap
+	 * lo eseguo, altrimenti termino il processo e tutta la progenie
+	 */
+	 
+	U32 prid = getPRID();
+	/* processo chiamante */
+	state_t *OLDAREA = (prid == 0)? (state_t *)PGMTRAP_OLDAREA : &areas[prid][PGMTRAP_OLDAREA_INDEX];
+	/* carico il processo corrente */
+	pcb_t *processoCorrente = currentProcess[prid];
+	/* controllo se il processo ha un handler custom */
+	if(processoCorrente->custom_handlers[PGMTRAP_NEWAREA_INDEX] != NULL)
+	{ 
+		/* copio il processo chiamante nella OLD Area custom */
+		copyState(OLDAREA, processoCorrente->custom_handlers[PGMTRAP_OLDAREA_INDEX]);
+		/* chiamo l'handler custom */
+		LDST(processoCorrente->custom_handlers[PGMTRAP_NEWAREA_INDEX]);
+	}
+	/* altrimenti elimino il processo e tutti i figli */
+	else
+	{
+		terminate_process();
+	}	
+}
+
+void tlb_handler(){
+	
+	/* se il processo ha dichiarato un handler per TLB Exeption
+	 * lo eseguo, altrimenti killo il processo e tutta la progenie
+	 */
+	 
+	U32 prid = getPRID();
+	/* processo chiamante */
+	state_t *OLDAREA = (prid == 0)? (state_t *)TLB_OLDAREA : &areas[prid][TLB_OLDAREA_INDEX];
+	/* carico il processo corrente */
+	pcb_t *processoCorrente = currentProcess[prid];
+	/* controllo se il processo ha un handler custom */
+	if(processoCorrente->custom_handlers[TLB_NEWAREA_INDEX] != NULL)
+	{ 
+		/* copio il processo chiamante nella OLD Area custom */
+		copyState(OLDAREA, processoCorrente->custom_handlers[TLB_OLDAREA_INDEX]);
+		/* chiamo l'handler custom */
+		LDST(processoCorrente->custom_handlers[TLB_NEWAREA_INDEX]);
+	}
+	/* altrimenti elimino il processo e tutti i figli */
+	else
+	{
+		terminate_process();
+	}	
 }
