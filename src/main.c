@@ -96,11 +96,11 @@ int main(){
 		
 		///////////////////////////////
 	   //// PROCESSO DI prova2 	  //
-		//pcb_t* prova2 = allocPcb();
-		////STST(&(prova2.p_s));
-		//prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
-		//prova2->p_s.reg_sp = PFRAMES_START-4*QPAGE;
-		//prova2->p_s.status = prova2->p_s.status | PROCESS_STATUS;
+		pcb_t* prova2 = allocPcb();
+		//STST(&(prova2.p_s));
+		prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
+		prova2->p_s.reg_sp = PFRAMES_START-4*QPAGE;
+		prova2->p_s.status = prova2->p_s.status | PROCESS_STATUS;
 		
 		///////////////////////////////
 	   //// PROCESSO DI prova3 	  //
@@ -119,7 +119,7 @@ int main(){
 		//prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
 	addReady(prova1);
-	//addReady(prova2);
+	addReady(prova2);
 	//addReady(prova3);
 	//addReady(prova4);
 	

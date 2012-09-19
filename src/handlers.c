@@ -167,6 +167,8 @@ void int_handler(){
 }
 void pgmtrap_handler(){
 
+//for(;;);
+
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti termino il processo e tutta la progenie
 	 */
