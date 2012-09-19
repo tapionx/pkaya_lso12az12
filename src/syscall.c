@@ -38,6 +38,7 @@ void create_process(state_t *statep, int priority)
 	processoCorrente->p_s.reg_v0 = 0;
 	/* inserisco il nuovo processo in qualche ready queue */
 	addReady(nuovoProcesso);
+	LDST(&(processoCorrente->p_s));
 }
 
 /* System Call #2  : Create Brother

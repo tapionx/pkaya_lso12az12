@@ -93,32 +93,32 @@ int main(){
 		prova1->p_s.reg_sp = PFRAMES_START;
 		prova1->p_s.status = prova1->p_s.status | PROCESS_STATUS;
 		
-		/////////////////////////////
-	   // PROCESSO DI prova2 	  //
-		pcb_t* prova2 = allocPcb();
-		//STST(&(prova2.p_s));
-		prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
-		prova2->p_s.reg_sp = PFRAMES_START-4*QPAGE;
-		prova2->p_s.status = prova2->p_s.status | PROCESS_STATUS;
+		///////////////////////////////
+	   //// PROCESSO DI prova2 	  //
+		//pcb_t* prova2 = allocPcb();
+		////STST(&(prova2.p_s));
+		//prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
+		//prova2->p_s.reg_sp = PFRAMES_START-4*QPAGE;
+		//prova2->p_s.status = prova2->p_s.status | PROCESS_STATUS;
 		
-		/////////////////////////////
-	   // PROCESSO DI prova3 	  //
-		pcb_t* prova3 = allocPcb();
-		//STST(&(prova3.p_s));
-		prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)test3;
-		prova3->p_s.reg_sp = PFRAMES_START-6*QPAGE;
-		prova3->p_s.status = prova3->p_s.status | PROCESS_STATUS;
+		///////////////////////////////
+	   //// PROCESSO DI prova3 	  //
+		//pcb_t* prova3 = allocPcb();
+		////STST(&(prova3.p_s));
+		//prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)test3;
+		//prova3->p_s.reg_sp = PFRAMES_START-6*QPAGE;
+		//prova3->p_s.status = prova3->p_s.status | PROCESS_STATUS;
 		
-		/////////////////////////////
-	   // PROCESSO DI prova4 	  //
-		pcb_t* prova4 = allocPcb();
-		//STST(&(prova4.p_s));
-		prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)test4;
-		prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
-		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
+		///////////////////////////////
+	   //// PROCESSO DI prova4 	  //
+		//pcb_t* prova4 = allocPcb();
+		////STST(&(prova4.p_s));
+		//prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)test4;
+		//prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
+		//prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
 	addReady(prova1);
-	addReady(prova2);
+	//addReady(prova2);
 	//addReady(prova3);
 	//addReady(prova4);
 	
