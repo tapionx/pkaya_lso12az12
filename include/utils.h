@@ -1,3 +1,7 @@
+#ifndef __UTILS
+#define __UTILS
+
+
 /** Utilities, constants and tools */
 #include "types11.h"
 #include "listx.h"
@@ -38,3 +42,5 @@ void free(int semKey);
 void stampaCoda(int semKey);
 
 void stampaCodaHead(struct list_head *head);
+
+#endif

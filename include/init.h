@@ -1,3 +1,6 @@
+#ifndef __INIT
+#define __INIT
+
 /* Si occupa di avviare tutte le CPU (populando le relative new area) specificate nel valore NUM_CPU */
 #include "myconst.h"
 
@@ -19,3 +22,5 @@ void initIRT();
 
 /* Questa funzione azzera gli ultimi stack pointer usati per ogni CPU */
 void initSP();
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef MYCONST
+#define MYCONST
+
 #include "const.h"
 #include "uMPStypes.h"
 
@@ -99,3 +102,5 @@
 
 /* 100ms == 100000 microsecondi */
 #define CLOCK_TICK 100000 
+
+#endif

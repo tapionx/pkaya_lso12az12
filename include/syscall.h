@@ -1,3 +1,6 @@
+#ifndef __SYSCALL
+#define __SYSCALL
+
 /* Handlers delle 11 System Call */
 
 /* System Call #1  : Create Process
@@ -75,3 +78,5 @@ void specify_tlb_state_vector(state_t *oldp, state_t *newp);
  * newp = indirizzo della custom NEWAREA
  */
 void specify_sys_state_vector(state_t *oldp, state_t *newp);
+
+#endif

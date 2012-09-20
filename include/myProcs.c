@@ -1,3 +1,7 @@
+#ifndef MYPROCS
+#define MYPROCS
+
+
 #include "kernelVariables.h"
 #include "utils.h"
 #include "libumps.h"
@@ -28,3 +32,6 @@ void test4(){
 	debug(1,1);
 	for(;;);
 }
+
+
+#endif
