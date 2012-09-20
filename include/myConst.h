@@ -5,7 +5,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 2
+#define NUM_CPU 4
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -39,7 +39,8 @@
 #define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED) & ~STATUS_LINE_7 // TODO Riabilitare interrupt terminali per gestirli correttamente!
 //#define PROCESS_STATUS (STATUS_TE)
 #define STATUS_TE 0x08000000
-#define STATUS_LINE_7 0x8000
+#define STATUS_LINE_7 0x8000 // TERMINAL
+#define STATUS_LINE_1 0x200  // PLT
 #define RESET 0
 #define PASS 1 /* per CAS */
 #define FORBID 0 /* per CAS */
@@ -83,14 +84,18 @@
 #define SYSBK_OLDAREA_INDEX 6
 #define SYSBK_NEWAREA_INDEX 7
 
-
 /* Costanti per lo scheduler */
-#define OTHER_SEMAPHORES 2
-#define NUM_SEMAPHORES MAX_DEVICES+MAXPROC+OTHER_SEMAPHORES
 
-#define SCHEDULER_LOCK MAX_DEVICES+MAXPROC+1
-#define PCT_SEM MAX_DEVICES+MAXPROC+2
+/* In MAX_DEVICES è già considerato un semaforo in più per il PCT.
+ * aggiungiamo un semaforo per lo scheduler
+ */ 
+#define NUM_SEMAPHORES MAX_DEVICES + MAXPROC + 1
+ 
+/* Il lock per lo scheduler è l'ultimo */
+#define SCHEDULER_LOCK NUM_SEMAPHORES -1 
 
-#define CLOCK_TICK 100000 /* 100ms == 100000 microsecondi */
+/* Il lock per il PCT è il penultimo */
+#define PCT_SEM NUM_SEMAPHORES -2
 
-
+/* 100ms == 100000 microsecondi */
+#define CLOCK_TICK 100000 

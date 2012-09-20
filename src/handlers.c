@@ -146,6 +146,7 @@ void int_handler(){
 	
 	switch(line){
 		case INT_PLT:
+			debug(33,33);
 			if (cpuid == 0){
 				copyState((state_t *)INT_OLDAREA, &(currentProcess[cpuid]->p_s));
 			} else {
@@ -157,6 +158,7 @@ void int_handler(){
 			break;
 		
 		case(INT_TIMER): {
+			debug(44,44);
 			/* Facciamo la V "speciale" che risveglia tutti i processi bloccati */
 			/* estraggo il puntatore al semaforo */
 			semd_t *pctsem = getSemd(PCT_SEM);

@@ -150,6 +150,7 @@ void print(char *msg) {
 /*                                                                   */
 void p2test() {	
 
+	debug(1,1);
 	SYSCALL(VERHOGEN, TESTSEM, 0, 0);					/* V(testsem)   */
 	SYSCALL(VERHOGEN, TERM_MUT, 0, 0);	
 
