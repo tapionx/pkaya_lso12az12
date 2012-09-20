@@ -162,13 +162,22 @@ void wait_clock()
 
 /* System Call #8  : Wait I/O
  * esegue una P sul semaforo del device specificato dai parametri
- * intNo = linea di interrupt
- * dnum  = numero del device
- * waitForTermRead = operazione di terminal read/write
+ * intline = linea di interrupt da 3 a 7 (5)
+ * dnum  = numero del device, da 0 a 7   (8)
+ * read = TRUE: terminal read, FALSE: terminal write
  * return -> status del device
  */
-int wait_io(int intNo, int dnum, int waitForTermRead)
+int wait_io(int intline, int dnum, int read)
 {
+	/* calcolo il numero del semaforo da usare */
+	int nsem = MAXPROC + ((intline - INT_LOWEST) * DEV_PER_INT) + dnum;
+	/* se voglio fare una lettura da terminale aggiungo 8 */
+	if(read)
+		nsem += DEV_PER_INT;
+	
+	/* faccio una P() sul semaforo per attendere I/O */
+	passeren(nsem);
+	
 }
 
 /* System Call #9  : Specify PRG State Vector
