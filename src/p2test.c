@@ -36,6 +36,7 @@
 #include "types11.h"
 #include "libumps.h"
 #include "myConst.h"
+#include "kernelVariables.h"
 
 typedef unsigned int devregtr;
 
@@ -130,11 +131,10 @@ void print(char *msg) {
 	while (*s != '\0') {
 	  /* Put "transmit char" command+char in term0 register (3rd word). This 
 		   actually starts the operation on the device! */
-		*(base + 3) = PRINTCHR | (((devregtr) *s) << BYTELEN);
+		*(base + 3) = PRINTCHR | (((devregtr) *s) << BYTELEN); /* PRINTCHR serve per dare il comando (2 = trasmetti), lo shift per far andare il carattere nel secondo byte */
 		
 		/* Wait for I/O completion (SYS8) */
 		status = SYSCALL(WAITIO, INT_TERMINAL, 0, FALSE);
-		debug(137, status);
 		if ((status & TERMSTATMASK) != TRANSM){
 			PANIC();
 		}

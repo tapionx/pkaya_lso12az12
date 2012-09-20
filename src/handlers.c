@@ -135,6 +135,8 @@ void sysbk_handler(){
 
 void int_handler(){
 	U32 cpuid = getPRID();
+	/* estraggo il puntatore allo state_t del processo chiamante */
+	state_t *OLDAREA = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
 	/* Capiamo da che linea proviene l'interrupt */
 	int line = 0;
 	for (line; line < NUM_LINES; line++){
@@ -149,8 +151,12 @@ void int_handler(){
 	int devAddrBase = DEV_ADDR_BASE(line, devNo);
 	/* Prendiamo il numero del semaforo associato al device */
 	int devSemNo = GET_DEV_SEM(line, devNo);
-	/* Prendiamo un puntatore al pcb_t in testa alla coda (senza eliminarlo) */
+	/* Prendo un puntatore al semaforo coinvolto */
+	semd_t *devSem = getSemd(devSemNo);
+	/* Prendiamo un puntatore al pcb_t in testa alla coda (senza eliminarlo),
+	 * se non è vuota, altrimenti il processo correntemente in esecuzione */
 	pcb_t *requestingProcess = headBlocked(GET_DEV_SEM(line, devNo));
+	
 	
 	switch(line){
 		case INT_PLT: {
@@ -183,12 +189,12 @@ void int_handler(){
 		
 		case INT_TERMINAL: {
 			termreg_t *regs = (termreg_t *)devAddrBase;
+			termreg_t regsCpy = *(termreg_t *)devAddrBase;
 			if (devNo % 2 == 0){ /* Scrittura */
 				/* Sappiamo già che siamo in scrittura quindi dobbiamo 
 				 * leggere il registro di status relativo alla trasmissione
 				 * TRANSM_STATUS */
-				//int status = GET_BYTE(FIRST, regs.transm_status);
-				requestingProcess->p_s.reg_v0 = regs->transm_status;
+				requestingProcess->p_s.reg_v0 = regsCpy.transm_status;
 				regs->transm_command = DEV_C_ACK;
 				verhogen(devSemNo);
 			} else { /* Lettura */
@@ -197,10 +203,12 @@ void int_handler(){
 				 * RECV_STATUS */
 				
 			}
-			/* estraggo il puntatore allo state_t del processo chiamante */
-			state_t *OLDAREA = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
-			/* ritorno il controllo al processo chiamante */
+			/* Bisogna ricaricare la OLDAREA senza fare affidamento a
+			 * currentProcess[] perché l'interrupt potrebbe essere
+			 * arrivato durante l'esecuzione dello scheduler (che non
+			 * viene inserito tra i processi running!) */
 			LDST(OLDAREA);
+			break;
 		}
 		
 		

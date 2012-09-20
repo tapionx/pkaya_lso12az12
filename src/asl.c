@@ -11,8 +11,8 @@ void initASL(){
 	int i;
 	/* fino al numero massimo di processi */
 	for (i=0; i < NUM_SEMAPHORES; i++){
-		/* Lo pseudo-clock-timer ha una P sempre bloccante! */
-		semd_table[i].s_value = (i == PCT_SEM)? 0 : 1; //mutex
+		/* I device hanno una P sempre bloccante! I processi vengono risvegliati dall'interrupt! */
+		semd_table[i].s_value = (i > MAXPROC)? 0 : 1; //mutex
 		semd_table[i].s_key = i;
 		mkEmptyProcQ(&(semd_table[i].s_procQ));
 	}	
