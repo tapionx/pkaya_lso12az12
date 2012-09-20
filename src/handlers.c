@@ -149,14 +149,6 @@ void int_handler(){
 	int devNo = *((U32 *)PENDING_BITMAP_START);
 	/* Calcoliamo l'inizio del registro del controller per scrivere/leggere sui suoi registri */
 	int devAddrBase = DEV_ADDR_BASE(line, devNo);
-	/* Prendiamo il numero del semaforo associato al device */
-	int devSemNo = GET_DEV_SEM(line, devNo);
-	/* Prendo un puntatore al semaforo coinvolto */
-	semd_t *devSem = getSemd(devSemNo);
-	/* Prendiamo un puntatore al pcb_t in testa alla coda (senza eliminarlo),
-	 * se non è vuota, altrimenti il processo correntemente in esecuzione */
-	pcb_t *requestingProcess = headBlocked(GET_DEV_SEM(line, devNo));
-	
 	
 	switch(line){
 		case INT_PLT: {
@@ -188,15 +180,33 @@ void int_handler(){
 		}
 		
 		case INT_TERMINAL: {
+			lock(GET_TERM_SEM(line, devNo, TRUE));
 			termreg_t *regs = (termreg_t *)devAddrBase;
-			termreg_t regsCpy = *(termreg_t *)devAddrBase;
 			if (devNo % 2 == 0){ /* Scrittura */
+				/* Prendiamo il numero del semaforo associato al device */
+				int devSemNo = GET_TERM_SEM(line, devNo, TRUE);
+				/* Prendiamo un puntatore al semaforo del device */
+				semd_t *devSem = getSemd(devSemNo);
 				/* Sappiamo già che siamo in scrittura quindi dobbiamo 
 				 * leggere il registro di status relativo alla trasmissione
-				 * TRANSM_STATUS */
-				requestingProcess->p_s.reg_v0 = regsCpy.transm_status;
+				 * TRANSM_STATUS 
+				 * PROBLEMA: Tutti gli interrupt "globali" sono gestiti
+				 * dalla CPU 0! Il che significa che non possiamo usare
+				 * il vettore di currentProcess */
 				regs->transm_command = DEV_C_ACK;
-				verhogen(devSemNo);
+				/* Abbiamo due casi:
+				 * 1) Non c'è alcun processo in attesa di I/O e quindi 
+				 * inseriamo il risultato/status nell'array
+				 * 2) C'è un processo in coda, riempiamo il suo reg_v0 con 
+				 * lo status e poi chiamiamo la V */
+				if (list_empty(&(devSem->s_procQ))){
+					devStatus[GET_TERM_STATUS(line, devNo, TRUE)] = regs->transm_status;
+				} else {
+					pcb_t *requestingProcess = headBlocked(devSemNo);	
+					requestingProcess->p_s.reg_v0 = regs->transm_status;
+					verhogen(devSemNo);
+				}
+				free(GET_TERM_SEM(line, devNo, TRUE));
 			} else { /* Lettura */
 				/* Sappiamo già che siamo in lettura quindi dobbiamo 
 				 * leggere il registro di status relativo alla ricezione

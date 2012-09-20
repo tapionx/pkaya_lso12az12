@@ -18,6 +18,7 @@ state_t areas[NUM_CPU][NUM_AREAS]; /* Aree reali per CPU > 0 */
 int locks[NUM_SEMAPHORES]; /* Variabili di condizione per CAS */
 state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 int pctInit = FALSE; /* Lo Pseudo Clock Timer è stato inizializzato? */
+U32 devStatus[MAX_DEVICES]; /* Status in output dei vari device */
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){

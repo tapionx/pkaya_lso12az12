@@ -169,15 +169,22 @@ void wait_clock()
  */
 int wait_io(int intline, int dnum, int read)
 {
+	lock(GET_TERM_SEM(intline, dnum, read));
 	/* calcolo il numero del semaforo da usare */
-	int nsem = GET_DEV_SEM(intline, dnum);
-	/* se voglio fare una lettura da terminale aggiungo 8 */
-	if(read)
-		nsem += DEV_PER_INT;
-	
-	/* faccio una P() sul semaforo per attendere I/O */
-	passeren(nsem);
-	
+	int nsem = GET_TERM_SEM(intline, dnum, read);
+	/* Ora sono possibili due casi:
+	 * 1) Il controller non ha ancora terminato l'istruzione
+	 * 2) Il controller ha già terminato l'istruzione e ritornato lo status nella sua cella */
+	int statusNum = GET_TERM_STATUS(intline, dnum, read);
+	if (devStatus[statusNum] != 0){
+		currentProcess[getPRID()]->p_s.reg_v0 = devStatus[statusNum];
+		devStatus[statusNum] = 0; /* Altrimenti status condivisi! */
+		free(GET_TERM_SEM(intline, dnum, read));
+	} else {
+		free(GET_TERM_SEM(intline, dnum, read));
+		/* faccio una P() (sempre bloccante fino a interrupt) sul semaforo per attendere I/O */
+		passeren(nsem);
+	}
 }
 
 /* System Call #9  : Specify PRG State Vector
