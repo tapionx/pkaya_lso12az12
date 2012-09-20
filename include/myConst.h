@@ -39,11 +39,12 @@
 
 /* Costanti di utilità */
 #define EXCEPTION_STATUS (STATUS_TE & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp))
-#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED) & ~STATUS_LINE_7 // TODO Riabilitare interrupt terminali per gestirli correttamente!
+#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED) & ~(STATUS_VMp | STATUS_LINE_1 | STATUS_LINE_2) // TODO Riabilitare interrupt terminali per gestirli correttamente!
 //#define PROCESS_STATUS (STATUS_TE)
-#define STATUS_TE 0x08000000
+#define STATUS_TE 0x08000000 /* PLT */
 #define STATUS_LINE_7 0x8000 // TERMINAL
 #define STATUS_LINE_1 0x200  // PLT
+#define STATUS_LINE_2 0x400 // INTERVAL TIMER (PC
 #define RESET 0
 #define PASS 1 /* per CAS */
 #define FORBID 0 /* per CAS */
@@ -102,5 +103,20 @@
 
 /* 100ms == 100000 microsecondi */
 #define CLOCK_TICK 100000 
+
+
+
+/* Costanti per l'I/O */
+#define DEV_ADDR_INIT 0x10000050
+#define DEV_ADDR_BASE(LINENO, DEVNO)	DEV_ADDR_INIT+((LINENO-3)*0x80) + (DEVNO*0x10)
+
+/* Queste Macro permettono di ottenere l'N-esimo byte a partire da una word
+ * es. per ottenere lo status dallo STATUS field di un controller */
+#define FIRST 0xFF
+#define SECOND 0xFF00
+#define THIRD 0xFF0000
+#define FOURTH 0xFF000000
+#define GET_BYTE(N, WHAT)	(N & WHAT)
+#define GET_DEV_SEM(LINENO, DEVNO)	(MAXPROC + ((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO)
 
 #endif

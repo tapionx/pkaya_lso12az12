@@ -170,7 +170,7 @@ void wait_clock()
 int wait_io(int intline, int dnum, int read)
 {
 	/* calcolo il numero del semaforo da usare */
-	int nsem = MAXPROC + ((intline - INT_LOWEST) * DEV_PER_INT) + dnum;
+	int nsem = GET_DEV_SEM(intline, dnum);
 	/* se voglio fare una lettura da terminale aggiungo 8 */
 	if(read)
 		nsem += DEV_PER_INT;

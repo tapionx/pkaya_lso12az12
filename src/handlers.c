@@ -143,10 +143,17 @@ void int_handler(){
 			break;
 		}
 	}
+	/* Calcolo il numero del device che ha generato l'interrupt */
+	int devNo = *((U32 *)PENDING_BITMAP_START);
+	/* Calcoliamo l'inizio del registro del controller per scrivere/leggere sui suoi registri */
+	int devAddrBase = DEV_ADDR_BASE(line, devNo);
+	/* Prendiamo il numero del semaforo associato al device */
+	int devSemNo = GET_DEV_SEM(line, devNo);
+	/* Prendiamo un puntatore al pcb_t in testa alla coda (senza eliminarlo) */
+	pcb_t *requestingProcess = headBlocked(GET_DEV_SEM(line, devNo));
 	
 	switch(line){
-		case INT_PLT:
-			debug(33,33);
+		case INT_PLT: {
 			if (cpuid == 0){
 				copyState((state_t *)INT_OLDAREA, &(currentProcess[cpuid]->p_s));
 			} else {
@@ -156,9 +163,9 @@ void int_handler(){
 			addReady(currentProcess[cpuid]);
 			LDST(&(scheduler_states[cpuid]));
 			break;
+		}
 		
-		case(INT_TIMER): {
-			debug(44,44);
+		case INT_TIMER: {
 			/* Facciamo la V "speciale" che risveglia tutti i processi bloccati */
 			/* estraggo il puntatore al semaforo */
 			semd_t *pctsem = getSemd(PCT_SEM);
@@ -173,14 +180,35 @@ void int_handler(){
 			LDST(OLDAREA);
 			break;
 		}
-		default:
-			;
+		
+		case INT_TERMINAL: {
+			termreg_t *regs = (termreg_t *)devAddrBase;
+			if (devNo % 2 == 0){ /* Scrittura */
+				/* Sappiamo già che siamo in scrittura quindi dobbiamo 
+				 * leggere il registro di status relativo alla trasmissione
+				 * TRANSM_STATUS */
+				//int status = GET_BYTE(FIRST, regs.transm_status);
+				requestingProcess->p_s.reg_v0 = regs->transm_status;
+				regs->transm_command = DEV_C_ACK;
+				verhogen(devSemNo);
+			} else { /* Lettura */
+				/* Sappiamo già che siamo in lettura quindi dobbiamo 
+				 * leggere il registro di status relativo alla ricezione
+				 * RECV_STATUS */
+				
+			}
+			/* estraggo il puntatore allo state_t del processo chiamante */
+			state_t *OLDAREA = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
+			/* ritorno il controllo al processo chiamante */
+			LDST(OLDAREA);
+		}
+		
+		
+		default:{}
 	}
 	
 }
 void pgmtrap_handler(){
-
-for(;;);
 
 	/* se il processo ha dichiarato un handler per Program Trap
 	 * lo eseguo, altrimenti termino il processo e tutta la progenie

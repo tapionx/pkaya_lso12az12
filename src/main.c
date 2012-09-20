@@ -21,7 +21,7 @@ int pctInit = FALSE; /* Lo Pseudo Clock Timer è stato inizializzato? */
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){
-	
+		
 	int cpuid, area, lockno; /* Iteratori */
 
 	/** INIZIALIZZAZIONE DEI LOCK */

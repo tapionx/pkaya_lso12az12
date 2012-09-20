@@ -10,27 +10,27 @@
  * le modifiche individualmente */
 
 void test2(){		
-	SYSCALL(WAITCLOCK,0,0,0);
-	debug(1,1);
-	for(;;);
+	SYSCALL(PASSEREN, 6, 0, 0);
+	print("funziona cazzo!\n");
+	SYSCALL(VERHOGEN, 6, 0, 0);
 }
 
 void test1(){
-	SYSCALL(WAITCLOCK,0,0,0);
-	debug(1,1);
-	for(;;);
+	SYSCALL(PASSEREN, 6, 0, 0);
+	print("funziona cazzo!\n");
+	SYSCALL(VERHOGEN, 6, 0, 0);
 }
 
 void test3(){
-	SYSCALL(WAITCLOCK,0,0,0);
-	debug(1,1);
-	for(;;);
+	SYSCALL(PASSEREN, 6, 0, 0);
+	print("funziona cazzo!\n");
+	SYSCALL(VERHOGEN, 6, 0, 0);
 }
 
 void test4(){
-	SYSCALL(WAITCLOCK,0,0,0);
-	debug(1,1);
-	for(;;);
+	SYSCALL(PASSEREN, 6, 0, 0);
+	print("funziona cazzo!\n");
+	SYSCALL(VERHOGEN, 6, 0, 0);
 }
 
 
