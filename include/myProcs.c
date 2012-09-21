@@ -11,6 +11,9 @@
 
 
 void test1(){
+	int TERM_MUT = 0;
+	SYSCALL(VERHOGEN, TERM_MUT, 0, 0);
+	SYSCALL(VERHOGEN, 6, 0, 0);
 	while(TRUE){	
 		SYSCALL(PASSEREN, 6, 0, 0);
 		print("funziona cazzo!\n");

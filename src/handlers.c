@@ -186,41 +186,21 @@ void int_handler(){
 			 * aggiornare il currentProcess in ogni syscall dove si usa
 			 * currentProcess! */
 			termreg_t *fields = (termreg_t *)devAddrBase;
-			fields->transm_command = DEV_C_ACK;
 			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			int termStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
 			//lock(termSemNo);
 			semd_t *termSem = getSemd(termSemNo);
 			pcb_t *waitingProc = headBlocked(termSemNo);
 			if (waitingProc != NULL){
 				/* Maggior priorità alla trasmissione */
-				waitingProc->p_s.reg_v0 = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
-
-				int semKey = termSemNo;	
-				lock(semKey);
-				semd_t *semaphore = termSem;
-				semaphore->s_value += 1;
-				if (semaphore->s_value <= 0){
-					pcb_t *toWake = removeBlocked(semKey);
-					//debug(108,toWake);
-					/* Controllo se il processo da inserire non sia da terminare,
-					 * in tal caso potrebbe portare a problemi poiché ci potrebbe
-					 * essere un processo marcato ma non rimosso (ancora) 
-					 * dalla coda e se questo dovesse ancora dover effettuare la V si
-					 * bloccherebbe l'accesso alla Critical Section! */
-					while (toWake != NULL && toWake->wanted){
-						semaphore->s_value += 1;
-						freePcb(toWake);
-						toWake = removeBlocked(semKey);
-					}		
-					addReady(toWake); // sveglio il prossimo
-				}
-				free(semKey);				
-				
-				
+				waitingProc->p_s.reg_v0 = fields->transm_status;
+				debug(100, waitingProc->p_s.reg_v0);
+				debug(101, fields->transm_status);
 			} else {
-				devStatus[GET_TERM_STATUS(line, devNo, FALSE)] = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
+				devStatus[termStatusNo];
 			}
-			//free(termSemNo);
+			verhogen(termSemNo);
+			fields->transm_command = DEV_C_ACK;
 			LDST(oldProcess);
 			break;
 		}

@@ -118,6 +118,7 @@ void verhogen(int semKey){
 		 * dalla coda e se questo dovesse ancora dover effettuare la V si
 		 * bloccherebbe l'accesso alla Critical Section! */
 		while (toWake != NULL && toWake->wanted){
+			debug(121,666);
 			semaphore->s_value += 1;
 			freePcb(toWake);
 			toWake = removeBlocked(semKey);
@@ -183,14 +184,11 @@ int wait_io(int intline, int dnum, int read)
 	U32 cpuid = getPRID();
 	/* calcolo il numero del semaforo da usare */
 	int semKey = GET_TERM_SEM(intline, dnum, read);
-	debug(183, semKey);
 	/* calcolo indice del vettore delle risposte */
 	int statusNum = GET_TERM_STATUS(intline, dnum, read);
-	if (devStatus[statusNum] != 0){
-		return devStatus[statusNum];
-	} else {
-		passeren(semKey);
-	}
+	passeren(semKey);
+	/* Se la P non era bloccante (interrupt anticipato!) ritorno il valore */
+	return devStatus[statusNum];
 }
 
 /* System Call #9  : Specify PRG State Vector
