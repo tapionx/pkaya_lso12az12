@@ -302,3 +302,12 @@ void free(int key)
 {
 	CAS(&locks[key],FORBID,PASS);
 }
+
+/* Restituisci l'indice del device con interrupt pending 
+ * (il bit acceso meno significativo nella interrupt pending bitmap) */
+int getDevNo(U32 bitmap){
+	int i=0;
+	for(i=0; i<WORD_SIZE; i++){
+		if (IS_NTH_BIT_SET(i, bitmap)) return i;
+	}
+}

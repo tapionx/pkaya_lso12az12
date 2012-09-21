@@ -18,10 +18,11 @@ state_t areas[NUM_CPU][NUM_AREAS]; /* Aree reali per CPU > 0 */
 int locks[NUM_SEMAPHORES]; /* Variabili di condizione per CAS */
 state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 int pctInit = FALSE; /* Lo Pseudo Clock Timer è stato inizializzato? */
-U32 devStatus[MAX_DEVICES]; /* Status in output dei vari device */
+U32 devStatus[MAX_DEVICES] = {0}; /* Status in output dei vari device */
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){
+	
 		
 	int cpuid, area, lockno; /* Iteratori */
 
@@ -84,8 +85,10 @@ int main(){
 		scheduler_states[cpuid].reg_sp = SFRAMES_START-(cpuid*FRAME_SIZE);
 		scheduler_states[cpuid].pc_epc = scheduler_states[cpuid].reg_t9 = (memaddr)scheduler;
 		/* Il TIMER e' disabilitato durante l'esecuzione dello scheduler */
-		scheduler_states[cpuid].status = PROCESS_STATUS & ~STATUS_TE;
+		scheduler_states[cpuid].status = PROCESS_STATUS & ~(STATUS_TE);
 	}
+
+		
 
 		/////////////////////////////
 	   // PROCESSO DI PROVA 	  //
@@ -127,9 +130,9 @@ int main(){
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], &areas[cpuid]);
 	}
-	/* bisogna attendere che tutte le altre CPU siano inizializzate
-	 * prima di poter dare il controllo allo scheduler anche per la 
-	 * CPU 0 */
+	/* bisogna assicurarsi che tutte le altre CPU abbiano iniziato 
+	 * l'inizializzazione prima di poter dare il controllo allo scheduler 
+	 * anche per la CPU 0 */
 	LDST(&(scheduler_states[0]));
 	return 0;
 }

@@ -22,7 +22,7 @@ void sysbk_handler(){
 	/* (pag 28, 3.7.2 Student Guide) */
 	OLDAREA->pc_epc += WORD_SIZE; /* 4 */
 	/* Aggiorno il pcb corrente */
-	copyState(OLDAREA, &(currentProcess[prid]->p_s));
+	//copyState(OLDAREA, &(currentProcess[prid]->p_s));
 	/* recupero i parametri della SYSCALL dalla OLDAREA */
 	U32 *num_syscall = &(OLDAREA->reg_a0);
 	U32 *arg1 		 =  &(OLDAREA->reg_a1);
@@ -98,12 +98,11 @@ void sysbk_handler(){
 					break;
 			} /*switch*/
 			/* ritorno il controllo al processo chiamante */
-			LDST(&(currentProcess[prid]->p_s));
+			LDST(OLDAREA);
 		} /* if */
 		/* se il processo ha un custom handler lo chiamo */
 		else
 		{
-			debug(666, 666);
 			/* copio il processo chiamante nella OLD Area custom */
 			copyState(OLDAREA, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]);
 			/* Ripristino il timer al momento della chiamata */
@@ -115,7 +114,6 @@ void sysbk_handler(){
 	/* se e' stata chiamata la SYSTEM CALL in User Mode lancio TRAP */
 	else
 	{
-		debug(666,666);
 		/* copiare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
 		if (prid == 0){
 			copyState((state_t *)SYSBK_OLDAREA, (state_t *)PGMTRAP_OLDAREA);
@@ -135,8 +133,10 @@ void sysbk_handler(){
 
 void int_handler(){
 	U32 cpuid = getPRID();
-	/* estraggo il puntatore allo state_t del processo chiamante */
-	state_t *OLDAREA = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
+	/* estraggo il puntatore allo state_t del processo interrotto 
+	 * (non è necessariamente quello che ha sollevato l'interrupt!) */
+	state_t *oldProcess = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
+		
 	/* Capiamo da che linea proviene l'interrupt */
 	int line = 0;
 	for (line; line < NUM_LINES; line++){
@@ -146,17 +146,13 @@ void int_handler(){
 		}
 	}
 	/* Calcolo il numero del device che ha generato l'interrupt */
-	int devNo = *((U32 *)PENDING_BITMAP_START);
+	int devNo = getDevNo(GET_PENDING_INT_BITMAP(line));
 	/* Calcoliamo l'inizio del registro del controller per scrivere/leggere sui suoi registri */
 	int devAddrBase = DEV_ADDR_BASE(line, devNo);
 	
 	switch(line){
 		case INT_PLT: {
-			if (cpuid == 0){
-				copyState((state_t *)INT_OLDAREA, &(currentProcess[cpuid]->p_s));
-			} else {
-				copyState(&areas[cpuid][INT_OLDAREA_INDEX], &(currentProcess[cpuid]->p_s));
-			}
+			debug(177,177);	
 			/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
 			addReady(currentProcess[cpuid]);
 			LDST(&(scheduler_states[cpuid]));
@@ -171,61 +167,49 @@ void int_handler(){
 			while(pctsem->s_value != 0)
 				verhogen(PCT_SEM);
 			/* setto di nuovo il PCT a 100ms */
-			SET_IT(CLOCK_TICK);
-			/* estraggo il puntatore allo state_t del processo chiamante */
-			state_t *OLDAREA = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
+			SET_IT(SCHED_PSEUDO_CLOCK);
 			/* ritorno il controllo al processo chiamante */
-			LDST(OLDAREA);
+			LDST(oldProcess);
 			break;
 		}
 		
 		case INT_TERMINAL: {
-			lock(GET_TERM_SEM(line, devNo, TRUE));
-			termreg_t *regs = (termreg_t *)devAddrBase;
-			if (devNo % 2 == 0){ /* Scrittura */
-				/* Prendiamo il numero del semaforo associato al device */
-				int devSemNo = GET_TERM_SEM(line, devNo, TRUE);
-				/* Prendiamo un puntatore al semaforo del device */
-				semd_t *devSem = getSemd(devSemNo);
-				/* Sappiamo già che siamo in scrittura quindi dobbiamo 
-				 * leggere il registro di status relativo alla trasmissione
-				 * TRANSM_STATUS 
-				 * PROBLEMA: Tutti gli interrupt "globali" sono gestiti
-				 * dalla CPU 0! Il che significa che non possiamo usare
-				 * il vettore di currentProcess */
-				regs->transm_command = DEV_C_ACK;
-				/* Abbiamo due casi:
-				 * 1) Non c'è alcun processo in attesa di I/O e quindi 
-				 * inseriamo il risultato/status nell'array
-				 * 2) C'è un processo in coda, riempiamo il suo reg_v0 con 
-				 * lo status e poi chiamiamo la V */
-				if (list_empty(&(devSem->s_procQ))){
-					devStatus[GET_TERM_STATUS(line, devNo, TRUE)] = regs->transm_status;
-				} else {
-					pcb_t *requestingProcess = headBlocked(devSemNo);	
-					requestingProcess->p_s.reg_v0 = regs->transm_status;
-					verhogen(devSemNo);
-				}
-				free(GET_TERM_SEM(line, devNo, TRUE));
-			} else { /* Lettura */
-				/* Sappiamo già che siamo in lettura quindi dobbiamo 
-				 * leggere il registro di status relativo alla ricezione
-				 * RECV_STATUS */
-				
+			/* TODO: Bisogna stare attenti perché quando si chiama la 
+			 * funzione associata alla syscall (non SYSCALL!) non viene
+			 * aggiornato il currentProcess! Quindi quando lo si rimette in
+			 * readyQueue da li semplicemente va in loop se aveva fatto una P
+			 * (senza V, magari nell'esecuzione principale). Bisogna
+			 * aggiornare il currentProcess in ogni syscall dove si usa
+			 * currentProcess! */
+			termreg_t *fields = (termreg_t *)devAddrBase;
+			fields->transm_command = DEV_C_ACK;
+			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			//lock(termSemNo);
+			semd_t *termSem = getSemd(termSemNo);
+			pcb_t *waitingProc = headBlocked(termSemNo);
+			if (waitingProc != NULL){
+				/* Maggior priorità alla trasmissione */
+				waitingProc->p_s.reg_v0 = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
+				verhogen(termSemNo);
+			} else {
+				devStatus[GET_TERM_STATUS(line, devNo, FALSE)] = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
 			}
-			/* Bisogna ricaricare la OLDAREA senza fare affidamento a
-			 * currentProcess[] perché l'interrupt potrebbe essere
-			 * arrivato durante l'esecuzione dello scheduler (che non
-			 * viene inserito tra i processi running!) */
-			LDST(OLDAREA);
+			//free(termSemNo);
+			LDST(oldProcess);
 			break;
 		}
 		
-		
-		default:{}
+		default: {
+			debug(183, line);
+		}
 	}
-	
 }
+
+
+
+
+
+
 void pgmtrap_handler(){
 
 	/* se il processo ha dichiarato un handler per Program Trap

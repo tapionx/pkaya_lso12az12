@@ -9,7 +9,8 @@
 /* Qui definisco alcuni processi/funzioni di prova per testare
  * le modifiche individualmente */
 
-void test2(){
+
+void test1(){
 	while(TRUE){	
 		SYSCALL(PASSEREN, 6, 0, 0);
 		print("funziona cazzo!\n");
@@ -17,7 +18,7 @@ void test2(){
 	}
 }
 
-void test1(){
+void test2(){
 	while(TRUE){	
 		SYSCALL(PASSEREN, 6, 0, 0);
 		print("funziona cazzo!\n");

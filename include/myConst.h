@@ -8,7 +8,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 4
+#define NUM_CPU 1
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -35,16 +35,16 @@
 #define MAX_PCB_PRIORITY		10
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
-#define TIME_SLICE 5*1000*(*(memaddr *)BUS_TIMESCALE) /* espresso in ms, 1ms = BUS_TIMESCALE*1000 clock_ticks */
+#define TIME_SLICE 100*SCHED_TIME_SLICE*(*(memaddr *)BUS_TIMESCALE) /* espresso in ms, 1ms = BUS_TIMESCALE*1000 clock_ticks */
 
 /* Costanti di utilità */
-#define EXCEPTION_STATUS (STATUS_TE & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp))
-#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED) & ~(STATUS_VMp | STATUS_LINE_1 | STATUS_LINE_2) // TODO Riabilitare interrupt terminali per gestirli correttamente!
+#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED) & ~(STATUS_VMp) // TODO Riabilitare interrupt terminali per gestirli correttamente!
+#define EXCEPTION_STATUS (PROCESS_STATUS & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp))
 //#define PROCESS_STATUS (STATUS_TE)
 #define STATUS_TE 0x08000000 /* PLT */
 #define STATUS_LINE_7 0x8000 // TERMINAL
 #define STATUS_LINE_1 0x200  // PLT
-#define STATUS_LINE_2 0x400 // INTERVAL TIMER (PC
+#define STATUS_LINE_2 0x400 // INTERVAL TIMER (PCT)
 #define RESET 0
 #define PASS 1 /* per CAS */
 #define FORBID 0 /* per CAS */
@@ -91,37 +91,42 @@
 /* Costanti per lo scheduler */
 
 /* In MAX_DEVICES è già considerato un semaforo in più per il PCT.
- * aggiungiamo un semaforo per lo scheduler
- */ 
+ * aggiungiamo un semaforo per lo scheduler */
 #define NUM_SEMAPHORES MAX_DEVICES + MAXPROC + 1
- 
-/* Il lock per lo scheduler è l'ultimo */
-#define SCHEDULER_LOCK NUM_SEMAPHORES -1 
+#define SCHEDULER_SEMLOCK NUM_SEMAPHORES -1 /* Il lock per lo scheduler è l'ultimo */
+#define PCT_SEM NUM_SEMAPHORES -2 /* Il lock per il PCT è il penultimo */
+#define DEV_SEM_START MAXPROC /* L'indice di dove iniziano i semafori/lock per i device esterni */
 
-/* Il lock per il PCT è il penultimo */
-#define PCT_SEM NUM_SEMAPHORES -2
-
-/* 100ms == 100000 microsecondi */
-#define CLOCK_TICK 100000 
-
-
-
-/* Costanti per l'I/O */
+/* ******************************************** MACRO PER I/O ******************************************** */
 #define DEV_ADDR_INIT 0x10000050
 #define DEV_ADDR_BASE(LINENO, DEVNO)	DEV_ADDR_INIT+((LINENO-3)*0x80) + (DEVNO*0x10)
 
-/* Queste Macro permettono di ottenere l'N-esimo byte a partire da una word
- * es. per ottenere lo status dallo STATUS field di un controller */
+/* Macro per terminali */
+#define TERMSTATMASK	0xFF
+#define TX_COMMAND	0x02
+#define RX_COMMAND	0x01
+#define ACK		1
+#define RESET	0
+
+/* Queste Macro permettono di ottenere l'N-esimo byte di da una word (da sx a dx)
+ * ad es. per ottenere lo status byte dallo status field di un controller */
 #define FIRST 0xFF
 #define SECOND 0xFF00
 #define THIRD 0xFF0000
 #define FOURTH 0xFF000000
 #define GET_BYTE(N, WHAT)	(N & WHAT)
 
+/* Macro per ottenere gli indici di semafori/lock relativi ai diversi device (in caso di terminale c'è da specificare se R o W) */
 #define GET_TERM_SEM(LINENO, DEVNO, READ)	(MAXPROC + ((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO + (READ * 8))
 #define GET_TERM_STATUS(LINENO, DEVNO, READ)	(((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO + (READ*8))
 
 #define GET_DEV_SEM(LINENO, DEVNO)	(MAXPROC + ((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO)
 #define GET_DEV_STATUS(LINENO, DEVNO)	(((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO)
+
+/* Macro per ottenere il numero del device con interrupt pendenti */
+#define GET_PENDING_INT_BITMAP(LINENO)		*(U32 *)(PENDING_BITMAP_START + (WORD_SIZE * (LINENO - 3)))
+#define IS_NTH_BIT_SET(N, WORD)	((1 << N) & WORD)
+
+
 
 #endif

@@ -43,4 +43,6 @@ void stampaCoda(int semKey);
 
 void stampaCodaHead(struct list_head *head);
 
+int getDevNo(U32 bitmap);
+
 #endif

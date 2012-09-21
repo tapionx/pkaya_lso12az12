@@ -105,6 +105,7 @@ void verhogen(int semKey){
 	semaphore->s_value += 1;
 	if (semaphore->s_value <= 0){
 		pcb_t *toWake = removeBlocked(semKey);
+		debug(108,toWake);
 		/* Controllo se il processo da inserire non sia da terminare,
 		 * in tal caso potrebbe portare a problemi poiché ci potrebbe
 		 * essere un processo marcato ma non rimosso (ancora) 
@@ -127,11 +128,14 @@ void verhogen(int semKey){
 void passeren(int semKey){
 	lock(semKey);
 	int cpuid = getPRID();
+	state_t *oldProcess = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
 	semd_t *semaphore = getSemd(semKey);
 	semaphore->s_value -= 1;
 	if (semaphore->s_value < 0){
+		copyState(oldProcess, currentProcess[cpuid]);
 		insertBlocked(semKey, currentProcess[cpuid]);
 		free(semKey);
+		debug(138,138);	
 		LDST(&(scheduler_states[cpuid]));
 	} else {
 		free(semKey);
@@ -169,9 +173,10 @@ void wait_clock()
  */
 int wait_io(int intline, int dnum, int read)
 {
-	lock(GET_TERM_SEM(intline, dnum, read));
+	
 	/* calcolo il numero del semaforo da usare */
 	int nsem = GET_TERM_SEM(intline, dnum, read);
+	//lock(nsem);
 	/* Ora sono possibili due casi:
 	 * 1) Il controller non ha ancora terminato l'istruzione
 	 * 2) Il controller ha già terminato l'istruzione e ritornato lo status nella sua cella */
@@ -179,10 +184,10 @@ int wait_io(int intline, int dnum, int read)
 	if (devStatus[statusNum] != 0){
 		currentProcess[getPRID()]->p_s.reg_v0 = devStatus[statusNum];
 		devStatus[statusNum] = 0; /* Altrimenti status condivisi! */
-		free(GET_TERM_SEM(intline, dnum, read));
+		//free(nsem);
 	} else {
-		free(GET_TERM_SEM(intline, dnum, read));
-		/* faccio una P() (sempre bloccante fino a interrupt) sul semaforo per attendere I/O */
+		//free(nsem);
+		/* simulo una P() (sempre bloccante fino a interrupt) sul semaforo per attendere I/O */
 		passeren(nsem);
 	}
 }
