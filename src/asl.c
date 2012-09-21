@@ -4,7 +4,7 @@
 
 /************ GESTIONE DEI SEMAFORI **************/
 
-/* Array di SEMD con dimensione massima MAXPROC*3 (restando "larghi") */
+/* Array di SEMD con dimensione massima NUM_SEMAPHORES */
 HIDDEN semd_t semd_table[NUM_SEMAPHORES];
 
 void initASL(){
@@ -40,7 +40,7 @@ pcb_t* removeBlocked(int key)
 	if (key > NUM_SEMAPHORES || key < 0) 
 		return NULL;
 	pcb_t* removedPcb = removeProcQ(&(semd_table[key].s_procQ));
-	removedPcb->p_semkey = -1; // reset della semkey
+	if (removedPcb != NULL) removedPcb->p_semkey = -1; // reset della semkey
 	return removedPcb;
 }
 
@@ -59,9 +59,9 @@ pcb_t* outBlocked(pcb_t* p)
 	 * facessi a priori rischierei che mentre cerco il processo in qualche
 	 * coda questo venga prelevato e inserito nella readyQueue dello 
 	 * scheduler! */
-	p->wanted = TRUE;
     /* estraggo la chiave */
     int semKey = p->p_semkey;
+    lock(semKey);
 	/* estraggo il puntatore al semd */
     semd_t* pSem = getSemd(semKey);
     /* Se il semaforo non esiste nella ASL ritorno NULL */
@@ -82,10 +82,12 @@ pcb_t* outBlocked(pcb_t* p)
             list_del(cur);
             pSem->s_value--;
             /* ne ritorno l'indirizzo */
+            free(semKey);
             return p;
         }
     }
     /* se non c'è ritorno NULL */
+    free(semKey);
     return NULL;
 }
 
@@ -116,5 +118,6 @@ void outChildBlocked(pcb_t* p)
 		}
 	}
 	/* Infine rimuovo il processo originario */
-	outBlocked(p);
+	if(outBlocked(p) == NULL) p->wanted = TRUE;
+	
 }

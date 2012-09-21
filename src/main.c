@@ -20,9 +20,11 @@ state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 int pctInit = FALSE; /* Lo Pseudo Clock Timer è stato inizializzato? */
 U32 devStatus[MAX_DEVICES] = {0}; /* Status in output dei vari device */
 
+/* Processo di test */
+extern void p2test();
+
 /** L'esecuzione del kernel inizia da qui */
 int main(){
-	
 		
 	int cpuid, area, lockno; /* Iteratori */
 
@@ -36,19 +38,19 @@ int main(){
 	
 		((state_t *)INT_NEWAREA)->pc_epc = ((state_t *)INT_NEWAREA)->reg_t9 = (memaddr)int_handler;
 		((state_t *)INT_NEWAREA)->reg_sp = RAMTOP;
-		((state_t *)INT_NEWAREA)->status = EXCEPTION_STATUS;
+		((state_t *)INT_NEWAREA)->status &= EXCEPTION_STATUS;
 		
 		((state_t *)TLB_NEWAREA)->pc_epc = ((state_t *)TLB_NEWAREA)->reg_t9 = (memaddr)tlb_handler;
 		((state_t *)TLB_NEWAREA)->reg_sp = RAMTOP;
-		((state_t *)TLB_NEWAREA)->status = EXCEPTION_STATUS;
+		((state_t *)TLB_NEWAREA)->status &= EXCEPTION_STATUS;
 		
 		((state_t *)PGMTRAP_NEWAREA)->pc_epc = ((state_t *)PGMTRAP_NEWAREA)->reg_t9 = (memaddr)pgmtrap_handler;
 		((state_t *)PGMTRAP_NEWAREA)->reg_sp = RAMTOP;
-		((state_t *)PGMTRAP_NEWAREA)->status = EXCEPTION_STATUS;
+		((state_t *)PGMTRAP_NEWAREA)->status &= EXCEPTION_STATUS;
 
 		((state_t *)SYSBK_NEWAREA)->pc_epc = ((state_t *)SYSBK_NEWAREA)->reg_t9 = (memaddr)sysbk_handler;
 		((state_t *)SYSBK_NEWAREA)->reg_sp = RAMTOP;
-		((state_t *)SYSBK_NEWAREA)->status = EXCEPTION_STATUS;
+		((state_t *)SYSBK_NEWAREA)->status &= EXCEPTION_STATUS;
 	
 	/** INIZIALIZZAZIONE STRUTTURE PHASE1 */
 	initPcbs();
@@ -62,19 +64,19 @@ int main(){
 			
 			areas[cpuid][INT_NEWAREA_INDEX].pc_epc = areas[cpuid][INT_NEWAREA_INDEX].reg_t9 = (memaddr)int_handler;
 			areas[cpuid][INT_NEWAREA_INDEX].reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			areas[cpuid][INT_NEWAREA_INDEX].status = EXCEPTION_STATUS;	
+			areas[cpuid][INT_NEWAREA_INDEX].status &= EXCEPTION_STATUS;	
 			
 			areas[cpuid][TLB_NEWAREA_INDEX].pc_epc = areas[cpuid][TLB_NEWAREA_INDEX].reg_t9 = (memaddr)tlb_handler;
 			areas[cpuid][TLB_NEWAREA_INDEX].reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			areas[cpuid][TLB_NEWAREA_INDEX].status = EXCEPTION_STATUS;	
+			areas[cpuid][TLB_NEWAREA_INDEX].status &= EXCEPTION_STATUS;	
 			
 			areas[cpuid][PGMTRAP_NEWAREA_INDEX].pc_epc = areas[cpuid][PGMTRAP_NEWAREA_INDEX].reg_t9 = (memaddr)pgmtrap_handler;
 			areas[cpuid][PGMTRAP_NEWAREA_INDEX].reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			areas[cpuid][PGMTRAP_NEWAREA_INDEX].status = EXCEPTION_STATUS;	
+			areas[cpuid][PGMTRAP_NEWAREA_INDEX].status &= EXCEPTION_STATUS;	
 			
 			areas[cpuid][SYSBK_NEWAREA_INDEX].pc_epc = areas[cpuid][SYSBK_NEWAREA_INDEX].reg_t9 = (memaddr)sysbk_handler;
 			areas[cpuid][SYSBK_NEWAREA_INDEX].reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
-			areas[cpuid][SYSBK_NEWAREA_INDEX].status = EXCEPTION_STATUS;
+			areas[cpuid][SYSBK_NEWAREA_INDEX].status &= EXCEPTION_STATUS;
 		}
 	}
 	
@@ -82,14 +84,23 @@ int main(){
 	mkEmptyProcQ(&(readyQueue)); /* Inizializzo la ready queue */
 	for(cpuid=0;cpuid<NUM_CPU;cpuid++){
 		STST(&(scheduler_states[cpuid]));
-		scheduler_states[cpuid].reg_sp = SFRAMES_START-(cpuid*FRAME_SIZE);
+		scheduler_states[cpuid].reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
 		scheduler_states[cpuid].pc_epc = scheduler_states[cpuid].reg_t9 = (memaddr)scheduler;
 		/* Il TIMER e' disabilitato durante l'esecuzione dello scheduler */
-		scheduler_states[cpuid].status = PROCESS_STATUS & ~(STATUS_TE);
+		scheduler_states[cpuid].status &= EXCEPTION_STATUS;
 	}
 
 		
-
+	/* P2 test */
+	pcb_t* p2 = allocPcb();
+	STST(&(p2->p_s));
+	p2->p_s.pc_epc = p2->p_s.reg_t9 = (memaddr)p2test;
+	p2->p_s.reg_sp = PFRAMES_START;
+	p2->p_s.status = PROCESS_STATUS;
+	
+	//addReady(p2);
+	
+	
 		/////////////////////////////
 	   // PROCESSO DI PROVA 	  //
 		pcb_t* prova1 = allocPcb();
@@ -97,7 +108,7 @@ int main(){
 		prova1->p_s.pc_epc = prova1->p_s.reg_t9 = (memaddr)test1;
 		prova1->p_s.reg_sp = PFRAMES_START;
 		prova1->p_s.status = prova1->p_s.status | PROCESS_STATUS;
-		
+
 		///////////////////////////////
 	   //// PROCESSO DI prova2 	  //
 		pcb_t* prova2 = allocPcb();
@@ -105,7 +116,7 @@ int main(){
 		prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
 		prova2->p_s.reg_sp = PFRAMES_START-4*QPAGE;
 		prova2->p_s.status = prova2->p_s.status | PROCESS_STATUS;
-		
+
 		///////////////////////////////
 	   //// PROCESSO DI prova3 	  //
 		pcb_t* prova3 = allocPcb();
@@ -113,7 +124,7 @@ int main(){
 		prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)test3;
 		prova3->p_s.reg_sp = PFRAMES_START-6*QPAGE;
 		prova3->p_s.status = prova3->p_s.status | PROCESS_STATUS;
-		
+
 		///////////////////////////////
 	   //// PROCESSO DI prova4 	  //
 		pcb_t* prova4 = allocPcb();
@@ -121,11 +132,13 @@ int main(){
 		prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)test4;
 		prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
 		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
-	
+
+	/* PROBLEMA: Caricando più di un processo va, altrimenti nisba! O.o */
 	addReady(prova1);
 	addReady(prova2);
-	addReady(prova3);
-	addReady(prova4);
+	//addReady(prova3);
+	//addReady(prova4);
+	
 	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], &areas[cpuid]);

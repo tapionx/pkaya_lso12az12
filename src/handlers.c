@@ -14,32 +14,30 @@
 
 void sysbk_handler(){
 	/* recupero il numero della CPU attuale */
-	U32 prid = getPRID();
-	/* recupero il valore del timer al momento della chiamata */
-	U32 oldTimer = getTIMER();
+	U32 cpuid = getPRID();
 	/* recupero il processo chiamante */
-	state_t *OLDAREA = (prid == 0)? (state_t *)SYSBK_OLDAREA : &areas[prid][SYSBK_OLDAREA_INDEX];
+	state_t *oldProcess = GET_OLD_SYSBK();
 	/* incremento il PC del processo chiamante, per evitare loop */
 	/* in questo caso non serve aggiornare anche t9 */
 	/* (pag 28, 3.7.2 Student Guide) */
-	OLDAREA->pc_epc += WORD_SIZE; /* 4 */
+	oldProcess->pc_epc += WORD_SIZE; /* 4 */
 	/* Aggiorno il pcb corrente */
-	//copyState(OLDAREA, &(currentProcess[prid]->p_s));
-	/* recupero i parametri della SYSCALL dalla OLDAREA */
-	U32 *num_syscall = &(OLDAREA->reg_a0);
-	U32 *arg1 		 =  &(OLDAREA->reg_a1);
-	U32 *arg2		 =  &(OLDAREA->reg_a2);
-	U32 *arg3		 =  &(OLDAREA->reg_a3);
+	//copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+	/* recupero i parametri della SYSCALL dalla oldProcess */
+	U32 *num_syscall = &(oldProcess->reg_a0);
+	U32 *arg1 		 =  &(oldProcess->reg_a1);
+	U32 *arg2		 =  &(oldProcess->reg_a2);
+	U32 *arg3		 =  &(oldProcess->reg_a3);
 	U32 result;	/* Risultato della system call (ove disponibile) */
 	
 	/* recupero lo stato (kernel-mode o user-mode) */
-	U32 *old_status = &(OLDAREA->status);
+	U32 *old_status = &(oldProcess->status);
 
 	/* recupero la causa (tipo di eccezione sollevato) */
-	U32 *old_cause = &(OLDAREA->cause);
+	U32 *old_cause = &(oldProcess->cause);
 
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = currentProcess[prid];
+	pcb_t *processoCorrente = currentProcess[cpuid];
 	
 	/* se il processo era in kernel mode */
 	if( (*old_status & STATUS_KUc) == 0 )
@@ -99,18 +97,20 @@ void sysbk_handler(){
 					/* killo il processo */
 					terminate_process();
 					break;
-			} /*switch*/
-			/* ritorno il controllo al processo chiamante inserendo in v0 il risultato della syscall */
-			OLDAREA->reg_v0 = result;
-			LDST(OLDAREA);
-		} /* if */
+			}
+			/* Inserisco il risultato in uscita nel registro v0 */
+			oldProcess->reg_v0 = result;
+			/* Aggiorno lo state_t del processo prima di rimetterlo in coda */
+			copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+			addReady(currentProcess[cpuid]);
+			/* Richiamo lo scheduler */
+			scheduler();
+		}
 		/* se il processo ha un custom handler lo chiamo */
 		else
 		{
 			/* copio il processo chiamante nella OLD Area custom */
-			copyState(OLDAREA, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]);
-			/* Ripristino il timer al momento della chiamata */
-			setTIMER(oldTimer);
+			copyState(oldProcess, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]);
 			/* chiamo l'handler custom */
 			LDST(processoCorrente->custom_handlers[SYSBK_NEWAREA_INDEX]);
 		}
@@ -119,16 +119,16 @@ void sysbk_handler(){
 	else
 	{
 		/* copiare SYSCALL OLD AREA -> PROGRAM TRAP OLD AREA */
-		if (prid == 0){
+		if (cpuid == 0){
 			copyState((state_t *)SYSBK_OLDAREA, (state_t *)PGMTRAP_OLDAREA);
 		} else {
-			copyState(&areas[prid][SYSBK_OLDAREA_INDEX], &areas[prid][PGMTRAP_OLDAREA_INDEX]); 
+			copyState(&areas[cpuid][SYSBK_OLDAREA_INDEX], &areas[cpuid][PGMTRAP_OLDAREA_INDEX]); 
 		}
 		/* settare Cause a 10 : Reserved Instruction Exception*/
-		if (prid == 0){
+		if (cpuid == 0){
 			((state_t *)PGMTRAP_OLDAREA)->cause = EXC_RESERVEDINSTR;
 		} else {
-			areas[prid][PGMTRAP_OLDAREA_INDEX].cause = EXC_RESERVEDINSTR;
+			areas[cpuid][PGMTRAP_OLDAREA_INDEX].cause = EXC_RESERVEDINSTR;
 		}
 		/* sollevare PgmTrap, se la sbriga lui */
 		pgmtrap_handler();
@@ -139,10 +139,11 @@ void int_handler(){
 	U32 cpuid = getPRID();
 	/* estraggo il puntatore allo state_t del processo interrotto 
 	 * (non è necessariamente quello che ha sollevato l'interrupt!) */
-	state_t *oldProcess = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
+	state_t *oldProcess = GET_OLD_INT();
 	
 	/* Capiamo da che linea proviene l'interrupt */
 	int line = 0;
+	debug(146, CAUSE_IP_GET(0, 7));
 	for (line; line < NUM_LINES; line++){
 		/* Se abbiamo trovato la linea usciamo */
 		if (CAUSE_IP_GET(getCAUSE(), line)){
@@ -156,10 +157,12 @@ void int_handler(){
 	
 	switch(line){
 		case INT_PLT: {
-			//debug(177,177);	
 			/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
 			addReady(currentProcess[cpuid]);
-			LDST(&(scheduler_states[cpuid]));
+			/* ACK del PLT */
+			setTIMER(TIME_SLICE);
+			/* Richiamo lo scheduler */
+			scheduler();
 			break;
 		}
 		
@@ -168,12 +171,16 @@ void int_handler(){
 			/* estraggo il puntatore al semaforo */
 			semd_t *pctsem = getSemd(PCT_SEM);
 			/* faccio la V finchè non escono tutti i processi */
-			while(pctsem->s_value != 0)
+			while(pctsem->s_value != 0){
 				verhogen(PCT_SEM);
+			}
 			/* setto di nuovo il PCT a 100ms */
 			SET_IT(SCHED_PSEUDO_CLOCK);
-			/* ritorno il controllo al processo chiamante */
-			LDST(oldProcess);
+			/* Rimetto il processo interrotto in ready */
+			copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+			addReady(currentProcess[cpuid]);
+			/* Richiamo lo scheduler */
+			scheduler();
 			break;
 		}
 		
@@ -188,7 +195,7 @@ void int_handler(){
 			termreg_t *fields = (termreg_t *)devAddrBase;
 			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
 			int termStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
-			//lock(termSemNo);
+			lock(termSemNo);
 			semd_t *termSem = getSemd(termSemNo);
 			pcb_t *waitingProc = headBlocked(termSemNo);
 			if (waitingProc != NULL){
@@ -197,14 +204,18 @@ void int_handler(){
 			} else {
 				devStatus[termStatusNo] = fields->transm_status;
 			}
+			free(termSemNo);
 			verhogen(termSemNo);
 			fields->transm_command = DEV_C_ACK;
-			LDST(oldProcess);
+			state_t *prova = oldProcess;
+			copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+			addReady(currentProcess[cpuid]);
+			scheduler();
 			break;
 		}
 		
 		default: {
-			//debug(183, line);
+			PANIC();
 		}
 	}
 }
@@ -220,16 +231,16 @@ void pgmtrap_handler(){
 	 * lo eseguo, altrimenti termino il processo e tutta la progenie
 	 */
 	 
-	U32 prid = getPRID();
+	U32 cpuid = getPRID();
 	/* processo chiamante */
-	state_t *OLDAREA = (prid == 0)? (state_t *)PGMTRAP_OLDAREA : &areas[prid][PGMTRAP_OLDAREA_INDEX];
+	state_t *oldProcess = GET_OLD_PGMTRAP();
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = currentProcess[prid];
+	pcb_t *processoCorrente = currentProcess[cpuid];
 	/* controllo se il processo ha un handler custom */
 	if(processoCorrente->custom_handlers[PGMTRAP_NEWAREA_INDEX] != NULL)
 	{ 
 		/* copio il processo chiamante nella OLD Area custom */
-		copyState(OLDAREA, processoCorrente->custom_handlers[PGMTRAP_OLDAREA_INDEX]);
+		copyState(oldProcess, processoCorrente->custom_handlers[PGMTRAP_OLDAREA_INDEX]);
 		/* chiamo l'handler custom */
 		LDST(processoCorrente->custom_handlers[PGMTRAP_NEWAREA_INDEX]);
 	}
@@ -246,16 +257,16 @@ void tlb_handler(){
 	 * lo eseguo, altrimenti killo il processo e tutta la progenie
 	 */
 	 
-	U32 prid = getPRID();
+	U32 cpuid = getPRID();
 	/* processo chiamante */
-	state_t *OLDAREA = (prid == 0)? (state_t *)TLB_OLDAREA : &areas[prid][TLB_OLDAREA_INDEX];
+	state_t *oldProcess = GET_OLD_TLB();
 	/* carico il processo corrente */
-	pcb_t *processoCorrente = currentProcess[prid];
+	pcb_t *processoCorrente = currentProcess[cpuid];
 	/* controllo se il processo ha un handler custom */
 	if(processoCorrente->custom_handlers[TLB_NEWAREA_INDEX] != NULL)
 	{ 
 		/* copio il processo chiamante nella OLD Area custom */
-		copyState(OLDAREA, processoCorrente->custom_handlers[TLB_OLDAREA_INDEX]);
+		copyState(oldProcess, processoCorrente->custom_handlers[TLB_OLDAREA_INDEX]);
 		/* chiamo l'handler custom */
 		LDST(processoCorrente->custom_handlers[TLB_NEWAREA_INDEX]);
 	}

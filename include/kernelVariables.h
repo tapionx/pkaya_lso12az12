@@ -12,5 +12,6 @@ extern state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 extern state_t areas[NUM_CPU][NUM_AREAS]; /* Aree reali per CPU > 0 */
 extern int pctInit; /* Lo Pseudo Clock Timer è stato inizializzato? */
 extern U32 devStatus[MAX_DEVICES]; /* Status in output dei vari device */
+extern state_t dummy;
 
 #endif

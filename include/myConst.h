@@ -8,7 +8,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 7
+#define NUM_CPU 1
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -35,12 +35,11 @@
 #define MAX_PCB_PRIORITY		10
 #define MIN_PCB_PRIORITY		0
 #define DEFAULT_PCB_PRIORITY		5
-#define TIME_SLICE 100*SCHED_TIME_SLICE*(*(memaddr *)BUS_TIMESCALE) /* espresso in ms, 1ms = BUS_TIMESCALE*1000 clock_ticks */
+#define TIME_SLICE SCHED_TIME_SLICE*(*(memaddr *)BUS_TIMESCALE) /* espresso in ms, 1ms = BUS_TIMESCALE*1000 clock_ticks */
 
 /* Costanti di utilità */
-#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED) & ~(STATUS_VMp) // TODO Riabilitare interrupt terminali per gestirli correttamente!
-#define EXCEPTION_STATUS (PROCESS_STATUS & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp))
-//#define PROCESS_STATUS (STATUS_TE)
+#define PROCESS_STATUS (STATUS_IEp|STATUS_INT_UNMASKED|STATUS_TE) // TODO Riabilitare interrupt terminali per gestirli correttamente!
+#define EXCEPTION_STATUS ~(STATUS_IEc|STATUS_VMc|STATUS_INT_UNMASKED|STATUS_KUc)|STATUS_TE
 #define STATUS_TE 0x08000000 /* PLT */
 #define STATUS_LINE_7 0x8000 // TERMINAL
 #define STATUS_LINE_1 0x200  // PLT
@@ -127,6 +126,10 @@
 #define GET_PENDING_INT_BITMAP(LINENO)		*(U32 *)(PENDING_BITMAP_START + (WORD_SIZE * (LINENO - 3)))
 #define IS_NTH_BIT_SET(N, WORD)	((1 << N) & WORD)
 
-
+/* Macro per ottenere un puntatore allo state_t rappresentante la old area relativa al processore che la esegue */
+#define GET_OLD_SYSBK()	(getPRID() == 0)? (state_t *)SYSBK_OLDAREA : &areas[getPRID()][SYSBK_OLDAREA_INDEX];
+#define GET_OLD_INT()	(getPRID() == 0)? (state_t *)INT_OLDAREA : &areas[getPRID()][INT_OLDAREA_INDEX];
+#define GET_OLD_PGMTRAP()	(getPRID() == 0)? (state_t *)PGMTRAP_OLDAREA : &areas[getPRID()][PGMTRAP_OLDAREA_INDEX];
+#define GET_OLD_TLB()	(getPRID() == 0)? (state_t *)TLB_OLDAREA : &areas[getPRID()][TLB_OLDAREA_INDEX];
 
 #endif

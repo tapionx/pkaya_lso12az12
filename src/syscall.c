@@ -17,9 +17,9 @@ int create_process(state_t *statep, int priority)
 {
 	U32 cpuid = getPRID();
 	/* recupero il processo chiamante */
-	state_t *OLDAREA = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
+	state_t *oldProcess = GET_OLD_SYSBK();
 	/* ottengo il processo corrente */
-	pcb_t *processoCorrente = currentProcess[getPRID()];
+	pcb_t *processoCorrente = currentProcess[cpuid];
 	/* alloco un nuovo processo */
 	pcb_t *nuovoProcesso = allocPcb();
 	/* se non è possibile allocare un nuovo processo */
@@ -28,7 +28,7 @@ int create_process(state_t *statep, int priority)
 		/* setto il registro v0 a -1 (specifiche-failure) */
 		return -1;
 		/* riprendo l'esecuzione del processo chiamante */
-		LDST(&(OLDAREA));
+		LDST(&(oldProcess));
 	}
 	/* altrimenti, se posso allocare il processo */
 	/* copio lo stato nel processo figlio */
@@ -53,9 +53,9 @@ int create_brother(state_t *statep, int priority)
 {
 	U32 cpuid = getPRID();
 	/* recupero il processo chiamante */
-	state_t *OLDAREA = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
+	state_t *oldProcess = GET_OLD_SYSBK();
 	/* ottengo il processo corrente */
-	pcb_t *processoCorrente = currentProcess[getPRID()];
+	pcb_t *processoCorrente = currentProcess[cpuid];
 	/* alloco un nuovo processo */
 	pcb_t *nuovoProcesso = allocPcb();
 	/* se non è possibile allocare un nuovo processo */
@@ -65,7 +65,7 @@ int create_brother(state_t *statep, int priority)
 		/* setto il registro v0 a -1 (specifiche-failure) */
 		return -1;
 		/* riprendo l'esecuzione del processo chiamante */
-		LDST(&(OLDAREA));
+		LDST(&(oldProcess));
 	}
 	/* altrimenti, se posso allocare il processo */
 	/* copio lo stato nel processo figlio */
@@ -97,7 +97,7 @@ void terminate_process()
 	/* Infine termina il processo chiamante liberando il suo pcb e ritornando il controllo allo scheduler
 	 * NOTA: Il processo terminato non sarà certamente nella readyQueue! */
 	freePcb(currentProcess[cpuid]);
-	LDST(&(scheduler_states[cpuid]));
+	scheduler();
 }
 
 /* System Call #4  : Verhogen
@@ -106,25 +106,16 @@ void terminate_process()
  */
 void verhogen(int semKey){
 	lock(semKey);
-	int cpuid = getPRID();
 	semd_t *semaphore = getSemd(semKey);
 	semaphore->s_value += 1;
-	if (semaphore->s_value <= 0){
-		pcb_t *toWake = removeBlocked(semKey);
-		//debug(108,toWake);
-		/* Controllo se il processo da inserire non sia da terminare,
-		 * in tal caso potrebbe portare a problemi poiché ci potrebbe
-		 * essere un processo marcato ma non rimosso (ancora) 
-		 * dalla coda e se questo dovesse ancora dover effettuare la V si
-		 * bloccherebbe l'accesso alla Critical Section! */
-		while (toWake != NULL && toWake->wanted){
-			debug(121,666);
-			semaphore->s_value += 1;
-			freePcb(toWake);
-			toWake = removeBlocked(semKey);
-		}		
+	pcb_t *toWake = removeBlocked(semKey);
+	/* Controllo se il processo da inserire non sia da terminare,
+	 * in tal caso potrebbe portare a problemi poiché ci potrebbe
+	 * essere un processo marcato ma non rimosso (ancora) 
+	 * dalla coda e se questo dovesse ancora dover effettuare la V si
+	 * bloccherebbe l'accesso alla Critical Section! */
+	if (toWake != NULL)
 		addReady(toWake); // sveglio il prossimo
-	}
 	free(semKey);
 }
 
@@ -135,7 +126,7 @@ void verhogen(int semKey){
 void passeren(int semKey){
 	lock(semKey);
 	int cpuid = getPRID();
-	state_t *oldProcess = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
+	state_t *oldProcess = GET_OLD_SYSBK();
 	semd_t *semaphore = getSemd(semKey);
 	semaphore->s_value -= 1;
 	if (semaphore->s_value < 0){
@@ -147,10 +138,9 @@ void passeren(int semKey){
 		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 		insertBlocked(semKey, currentProcess[cpuid]);
 		free(semKey);
-		LDST(&(scheduler_states[cpuid]));
-	} else {
-		free(semKey);
+		scheduler();
 	}
+	free(semKey);
 }
 
 /* System Call #6  : Get CPU Time
@@ -185,18 +175,14 @@ void wait_clock()
  */
 int wait_io(int intline, int dnum, int read)
 {
-	U32 cpuid = getPRID();
-	/* DEBUG */state_t *oldProcess = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
-	debug(185, oldProcess->cause);
-	debug(186, oldProcess->status);
-	
 	/* calcolo il numero del semaforo da usare */
 	int semKey = GET_TERM_SEM(intline, dnum, read);
+	lock(semKey);
+	U32 cpuid = getPRID();
+	free(semKey);
+	passeren(semKey);
 	/* calcolo indice del vettore delle risposte */
 	int statusNum = GET_TERM_STATUS(intline, dnum, read);
-	
-	passeren(semKey);
-	/* TODO: capire perché CAUSE è fottuto! */
 	/* Se la P non era bloccante (interrupt anticipato!) ritorno il valore */
 	return devStatus[statusNum];
 }
