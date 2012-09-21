@@ -154,7 +154,7 @@ void int_handler(){
 	
 	switch(line){
 		case INT_PLT: {
-			debug(177,177);	
+			//debug(177,177);	
 			/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
 			addReady(currentProcess[cpuid]);
 			LDST(&(scheduler_states[cpuid]));
@@ -192,7 +192,29 @@ void int_handler(){
 			if (waitingProc != NULL){
 				/* Maggior priorità alla trasmissione */
 				waitingProc->p_s.reg_v0 = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
-				verhogen(termSemNo);
+
+				int semKey = termSemNo;	
+				lock(semKey);
+				semd_t *semaphore = termSem;
+				semaphore->s_value += 1;
+				if (semaphore->s_value <= 0){
+					pcb_t *toWake = removeBlocked(semKey);
+					//debug(108,toWake);
+					/* Controllo se il processo da inserire non sia da terminare,
+					 * in tal caso potrebbe portare a problemi poiché ci potrebbe
+					 * essere un processo marcato ma non rimosso (ancora) 
+					 * dalla coda e se questo dovesse ancora dover effettuare la V si
+					 * bloccherebbe l'accesso alla Critical Section! */
+					while (toWake != NULL && toWake->wanted){
+						semaphore->s_value += 1;
+						freePcb(toWake);
+						toWake = removeBlocked(semKey);
+					}		
+					addReady(toWake); // sveglio il prossimo
+				}
+				free(semKey);				
+				
+				
 			} else {
 				devStatus[GET_TERM_STATUS(line, devNo, FALSE)] = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
 			}
@@ -202,7 +224,7 @@ void int_handler(){
 		}
 		
 		default: {
-			debug(183, line);
+			//debug(183, line);
 		}
 	}
 }

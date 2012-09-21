@@ -44,7 +44,7 @@ void scheduler(){
 				SET_IT(SCHED_PSEUDO_CLOCK);
 				pctInit = TRUE;
 			}
-			debug(100,100);
+			//debug(100,100);
 			LDST(&(currentProcess[cpuid]->p_s));
 		}
 		free(SCHEDULER_SEMLOCK);

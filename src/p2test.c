@@ -131,10 +131,15 @@ void print(char *msg) {
 	while (*s != '\0') {
 	  /* Put "transmit char" command+char in term0 register (3rd word). This 
 		   actually starts the operation on the device! */
+		debug(1,1);
 		*(base + 3) = PRINTCHR | (((devregtr) *s) << BYTELEN); /* PRINTCHR serve per dare il comando (2 = trasmetti), lo shift per far andare il carattere nel secondo byte */
+		debug(2,2);
 		
 		/* Wait for I/O completion (SYS8) */
 		status = SYSCALL(WAITIO, INT_TERMINAL, 0, FALSE);
+		
+		debug(1,status);
+		
 		if ((status & TERMSTATMASK) != TRANSM){
 			PANIC();
 		}
@@ -151,7 +156,6 @@ void print(char *msg) {
 /*                                                                   */
 void p2test() {	
 
-	debug(1,1);
 	SYSCALL(VERHOGEN, TESTSEM, 0, 0);					/* V(testsem)   */
 	SYSCALL(VERHOGEN, TERM_MUT, 0, 0);	
 
