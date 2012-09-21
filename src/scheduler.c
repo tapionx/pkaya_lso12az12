@@ -28,7 +28,7 @@ void scheduler(){
 		lock(SCHEDULER_SEMLOCK);
 		if(!emptyProcQ(&(readyQueue))){
 			currentProcess[cpuid] = removeProcQ(&(readyQueue));
-			debug(70, currentProcess[cpuid]);
+			debug(70, currentProcess[cpuid]->p_s.status);
 			/* Se il processo è da terminare ne liberiamo il pcb e lo scartiamo */
 			if (currentProcess[cpuid]->wanted){
 				freePcb(currentProcess[cpuid]);
@@ -49,5 +49,6 @@ void scheduler(){
 			LDST(&(currentProcess[cpuid]->p_s));
 		}
 		free(SCHEDULER_SEMLOCK);
+		WAIT();
 	}
 }

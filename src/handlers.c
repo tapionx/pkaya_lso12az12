@@ -140,7 +140,7 @@ void int_handler(){
 	/* estraggo il puntatore allo state_t del processo interrotto 
 	 * (non è necessariamente quello che ha sollevato l'interrupt!) */
 	state_t *oldProcess = (cpuid == 0)? (state_t *)INT_OLDAREA : &areas[cpuid][INT_OLDAREA_INDEX];
-		
+	
 	/* Capiamo da che linea proviene l'interrupt */
 	int line = 0;
 	for (line; line < NUM_LINES; line++){
@@ -194,10 +194,8 @@ void int_handler(){
 			if (waitingProc != NULL){
 				/* Maggior priorità alla trasmissione */
 				waitingProc->p_s.reg_v0 = fields->transm_status;
-				debug(100, waitingProc->p_s.reg_v0);
-				debug(101, fields->transm_status);
 			} else {
-				devStatus[termStatusNo];
+				devStatus[termStatusNo] = fields->transm_status;
 			}
 			verhogen(termSemNo);
 			fields->transm_command = DEV_C_ACK;

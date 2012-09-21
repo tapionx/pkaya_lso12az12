@@ -139,10 +139,14 @@ void passeren(int semKey){
 	semd_t *semaphore = getSemd(semKey);
 	semaphore->s_value -= 1;
 	if (semaphore->s_value < 0){
-		copyState(oldProcess, currentProcess[cpuid]);
+		/* ATTENZIONE ATTENZIONE ATTENZIONE ATTENZIONE!!!
+		 * QUANDO SI USA LA COPYSTATE BISOGNA STARE ATTENTI A NON DARE
+		 * COME PARAMETRO UN PCB PERCHÉ IL COMPILATORE NON AVVERTE DI NULLA!!
+		 * L'ERRORE RIGUARDO MEMCPY È DOVUTO AL FATTO CHE SI È DIMENTICATO DI 
+		 * DARE L'INDIRIZZO E NON LO STATE_T VERO E PROPRIO */
+		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 		insertBlocked(semKey, currentProcess[cpuid]);
 		free(semKey);
-		//debug(138,138);	
 		LDST(&(scheduler_states[cpuid]));
 	} else {
 		free(semKey);
@@ -182,11 +186,17 @@ void wait_clock()
 int wait_io(int intline, int dnum, int read)
 {
 	U32 cpuid = getPRID();
+	/* DEBUG */state_t *oldProcess = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
+	debug(185, oldProcess->cause);
+	debug(186, oldProcess->status);
+	
 	/* calcolo il numero del semaforo da usare */
 	int semKey = GET_TERM_SEM(intline, dnum, read);
 	/* calcolo indice del vettore delle risposte */
 	int statusNum = GET_TERM_STATUS(intline, dnum, read);
+	
 	passeren(semKey);
+	/* TODO: capire perché CAUSE è fottuto! */
 	/* Se la P non era bloccante (interrupt anticipato!) ritorno il valore */
 	return devStatus[statusNum];
 }

@@ -135,7 +135,7 @@ void print(char *msg) {
 		
 		/* Wait for I/O completion (SYS8) */
 		status = SYSCALL(WAITIO, INT_TERMINAL, 0, FALSE);
-		
+		debug(138, status);
 		if ((status & TERMSTATMASK) != TRANSM){
 			PANIC();
 		}

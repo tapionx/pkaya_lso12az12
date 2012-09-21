@@ -16,7 +16,7 @@ void test1(){
 	SYSCALL(VERHOGEN, 6, 0, 0);
 	while(TRUE){	
 		SYSCALL(PASSEREN, 6, 0, 0);
-		print("funziona cazzo!\n");
+		print("\n\nATTENZIONE ATTENZIONE ATTENZIONE!!\n");
 		SYSCALL(VERHOGEN, 6, 0, 0);
 	}
 }
@@ -24,7 +24,7 @@ void test1(){
 void test2(){
 	while(TRUE){	
 		SYSCALL(PASSEREN, 6, 0, 0);
-		print("funziona cazzo!\n");
+		print("\n\nNON USARE UN PCB_T COME PARAMETRO DELLA COPYSTATE!!\n");
 		SYSCALL(VERHOGEN, 6, 0, 0);
 	}
 }
@@ -32,7 +32,7 @@ void test2(){
 void test3(){
 	while(TRUE){	
 		SYSCALL(PASSEREN, 6, 0, 0);
-		print("funziona cazzo!\n");
+		print("\n\nHAI CAPITO???!\n");
 		SYSCALL(VERHOGEN, 6, 0, 0);
 	}
 }
@@ -40,7 +40,7 @@ void test3(){
 void test4(){
 	while(TRUE){	
 		SYSCALL(PASSEREN, 6, 0, 0);
-		print("funziona cazzo!\n");
+		print("\n\nMARCO PARLO CON TE...E CON VOI CHE NON VE NE SIETE ACCORTI!! XD\n");
 		SYSCALL(VERHOGEN, 6, 0, 0);
 	}
 }
