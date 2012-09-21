@@ -10,6 +10,8 @@
 #include "syscall.h"
 #include "asl.e"
 
+/* ATTENZIONE! USARE UN VALORE DI RITORNO PER LE SYSCALL E NON COPIARE DIRETTAMENTE NEL V0! */
+
 void sysbk_handler(){
 	/* recupero il numero della CPU attuale */
 	U32 prid = getPRID();
