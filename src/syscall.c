@@ -13,8 +13,11 @@
  * priority = priorità del nuovo processo
  * return  -> 0 ok / -1 errore (coda piena PLB)
  */
-void create_process(state_t *statep, int priority)
+int create_process(state_t *statep, int priority)
 {
+	U32 cpuid = getPRID();
+	/* recupero il processo chiamante */
+	state_t *OLDAREA = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
 	/* ottengo il processo corrente */
 	pcb_t *processoCorrente = currentProcess[getPRID()];
 	/* alloco un nuovo processo */
@@ -23,9 +26,9 @@ void create_process(state_t *statep, int priority)
 	if(nuovoProcesso == NULL)
 	{
 		/* setto il registro v0 a -1 (specifiche-failure) */
-		processoCorrente->p_s.reg_v0 = -1;
+		return -1;
 		/* riprendo l'esecuzione del processo chiamante */
-		LDST(&(processoCorrente->p_s));
+		LDST(&(OLDAREA));
 	}
 	/* altrimenti, se posso allocare il processo */
 	/* copio lo stato nel processo figlio */
@@ -34,10 +37,10 @@ void create_process(state_t *statep, int priority)
 	nuovoProcesso->priority = priority;
 	/* inserisco il nuovo processo come figlio del chiamante */
 	insertChild(processoCorrente, nuovoProcesso);
-	/* setto il registro v0 a 0 (specifiche-success) */
-	processoCorrente->p_s.reg_v0 = 0;
 	/* inserisco il nuovo processo in qualche ready queue */
 	addReady(nuovoProcesso);
+	/* Ritorno 0 = OK */
+	return 0;
 }
 
 /* System Call #2  : Create Brother
@@ -46,8 +49,11 @@ void create_process(state_t *statep, int priority)
  * priority = priorità del nuovo processo
  * return  -> 0 ok / -1 errore
  */
-void create_brother(state_t *statep, int priority)
+int create_brother(state_t *statep, int priority)
 {
+	U32 cpuid = getPRID();
+	/* recupero il processo chiamante */
+	state_t *OLDAREA = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
 	/* ottengo il processo corrente */
 	pcb_t *processoCorrente = currentProcess[getPRID()];
 	/* alloco un nuovo processo */
@@ -57,9 +63,9 @@ void create_brother(state_t *statep, int priority)
 	if(nuovoProcesso == NULL)
 	{
 		/* setto il registro v0 a -1 (specifiche-failure) */
-		processoCorrente->p_s.reg_v0 = -1;
+		return -1;
 		/* riprendo l'esecuzione del processo chiamante */
-		LDST(&(processoCorrente->p_s));
+		LDST(&(OLDAREA));
 	}
 	/* altrimenti, se posso allocare il processo */
 	/* copio lo stato nel processo figlio */
@@ -69,10 +75,10 @@ void create_brother(state_t *statep, int priority)
 	/* inserisco il nuovo processo come FRATELLO del chiamante */
 	list_add_tail(&(nuovoProcesso->p_sib), &(processoCorrente->p_sib));
 	nuovoProcesso->p_parent = processoCorrente->p_parent;
-	/* setto il registro v0 a 0 (specifiche-success) */
-	processoCorrente->p_s.reg_v0 = 0;
 	/* inserisco il nuovo processo in qualche ready queue */
 	addReady(nuovoProcesso);	
+	/* ritorno 0 = OK */
+	return 0;
 }
 
 /* System Call #3  : Terminate Process
@@ -82,16 +88,16 @@ void create_brother(state_t *statep, int priority)
 void terminate_process()
 {
 	/* ottengo il processore corrente*/
-	U32 prid = getPRID();
+	U32 cpuid = getPRID();
 	/* ottengo il processo corrente */
-	pcb_t *processoCorrente = currentProcess[prid]; 
+	pcb_t *processoCorrente = currentProcess[cpuid]; 
 	/* elimino il processo e tutti i figli da tutti i semafori */
 	/* cioe' tutti i processi in stato di WAIT */
 	outChildBlocked(processoCorrente); /* Marca tutti i figli come da terminare */
 	/* Infine termina il processo chiamante liberando il suo pcb e ritornando il controllo allo scheduler
 	 * NOTA: Il processo terminato non sarà certamente nella readyQueue! */
-	freePcb(currentProcess[prid]);
-	LDST(&(scheduler_states[prid]));
+	freePcb(currentProcess[cpuid]);
+	LDST(&(scheduler_states[cpuid]));
 }
 
 /* System Call #4  : Verhogen
@@ -146,11 +152,12 @@ void passeren(int semKey){
  * restituisce il tempo CPU usato dal processo in millisecondi
  * -> IL KERNEL DEVE TENERE LA CONTABILITA DEL TEMPO CPU DEI PROCESSI
  */
-void get_cpu_time()
+int get_cpu_time()
 {
+	/* TODO: bisogna inizializzare un pcb con il TOD e qui restituire la differenza tra il TOD attuale e il suo! */
 	U32 cpuid = getPRID();
 	/* ottengo il processo corrente */ 
-	currentProcess[cpuid]->p_s.reg_v0 = currentProcess[cpuid]->time;
+	return currentProcess[cpuid]->time;
 	/* continuo l'esecuzione */
 }
 
@@ -176,20 +183,13 @@ int wait_io(int intline, int dnum, int read)
 	U32 cpuid = getPRID();
 	/* calcolo il numero del semaforo da usare */
 	int semKey = GET_TERM_SEM(intline, dnum, read);
+	debug(183, semKey);
 	/* calcolo indice del vettore delle risposte */
 	int statusNum = GET_TERM_STATUS(intline, dnum, read);
 	if (devStatus[statusNum] != 0){
-		currentProcess[cpuid]->p_s.reg_v0 = devStatus[statusNum];
-		devStatus[statusNum] = 0; /* Altrimenti status condivisi! */
+		return devStatus[statusNum];
 	} else {
-		lock(semKey);
-		state_t *oldProcess = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
-		semd_t *semaphore = getSemd(semKey);
-		semaphore->s_value -= 1;
-		copyState(oldProcess, currentProcess[cpuid]);
-		insertBlocked(semKey, currentProcess[cpuid]);
-		free(semKey);
-		LDST(&(scheduler_states[cpuid]));
+		passeren(semKey);
 	}
 }
 
@@ -200,10 +200,10 @@ int wait_io(int intline, int dnum, int read)
  */
 void specify_prg_state_vector(state_t *oldp, state_t *newp)
 {
-	U32 prid = getPRID();
+	U32 cpuid = getPRID();
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
-	currentProcess[prid]->custom_handlers[PGMTRAP_NEWAREA_INDEX] = newp;
-	currentProcess[prid]->custom_handlers[PGMTRAP_OLDAREA_INDEX] = oldp;
+	currentProcess[cpuid]->custom_handlers[PGMTRAP_NEWAREA_INDEX] = newp;
+	currentProcess[cpuid]->custom_handlers[PGMTRAP_OLDAREA_INDEX] = oldp;
 }
 
 /* System Call #10 : Specify TLB State Vector
@@ -213,10 +213,10 @@ void specify_prg_state_vector(state_t *oldp, state_t *newp)
  */
 void specify_tlb_state_vector(state_t *oldp, state_t *newp)
 {
-	U32 prid = getPRID();
+	U32 cpuid = getPRID();
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
-	currentProcess[prid]->custom_handlers[TLB_NEWAREA_INDEX] = newp;
-	currentProcess[prid]->custom_handlers[TLB_OLDAREA_INDEX] = oldp;
+	currentProcess[cpuid]->custom_handlers[TLB_NEWAREA_INDEX] = newp;
+	currentProcess[cpuid]->custom_handlers[TLB_OLDAREA_INDEX] = oldp;
 }
 
 /* System Call #11 : Specify SYS State Vector
@@ -226,8 +226,8 @@ void specify_tlb_state_vector(state_t *oldp, state_t *newp)
  */
 void specify_sys_state_vector(state_t *oldp, state_t *newp)
 {
-	U32 prid = getPRID();
+	U32 cpuid = getPRID();
 	/* copio i custom handlers nel pcb_t del processo chiamante*/
-	currentProcess[prid]->custom_handlers[SYSBK_NEWAREA_INDEX] = newp;
-	currentProcess[prid]->custom_handlers[SYSBK_OLDAREA_INDEX] = oldp;
+	currentProcess[cpuid]->custom_handlers[SYSBK_NEWAREA_INDEX] = newp;
+	currentProcess[cpuid]->custom_handlers[SYSBK_OLDAREA_INDEX] = oldp;
 }

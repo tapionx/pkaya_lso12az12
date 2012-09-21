@@ -12,7 +12,7 @@ void initASL(){
 	/* fino al numero massimo di processi */
 	for (i=0; i < NUM_SEMAPHORES; i++){
 		/* I device hanno una P sempre bloccante! I processi vengono risvegliati dall'interrupt! */
-		semd_table[i].s_value = (i > MAXPROC)? 0 : 1; //mutex
+		semd_table[i].s_value = 0; //mutex
 		semd_table[i].s_key = i;
 		mkEmptyProcQ(&(semd_table[i].s_procQ));
 	}	

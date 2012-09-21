@@ -9,7 +9,7 @@
  * priority = priorità del nuovo processo
  * return  -> 0 ok / -1 errore (coda piena PLB)
  */
-void create_process(state_t *statep, int priority);
+int create_process(state_t *statep, int priority);
 
 /* System Call #2  : Create Brother
  * genera un processo fratello del processo chiamante
@@ -17,7 +17,7 @@ void create_process(state_t *statep, int priority);
  * priority = priorità del nuovo processo
  * return  -> 0 ok / -1 errore
  */
-void create_brother(state_t *statep, int priority);
+int create_brother(state_t *statep, int priority);
 
 /* System Call #3  : Terminate Process
  * termina il processo corrente e tutti i discendenti
@@ -41,7 +41,7 @@ void passeren(int semKey);
  * restituisce il tempo CPU usato dal processo in millisecondi
  * -> IL KERNEL DEVE TENERE LA CONTABILITA DEL TEMPO CPU DEI PROCESSI
  */
-void get_cpu_time();
+int get_cpu_time();
 
 /* System Call #7  : Wait Clock
  * esegue una P sul semaforo dello PSEUDO CLOCK TIMER (PCT)

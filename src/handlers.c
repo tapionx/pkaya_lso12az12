@@ -30,7 +30,8 @@ void sysbk_handler(){
 	U32 *arg1 		 =  &(OLDAREA->reg_a1);
 	U32 *arg2		 =  &(OLDAREA->reg_a2);
 	U32 *arg3		 =  &(OLDAREA->reg_a3);
-
+	U32 result;	/* Risultato della system call (ove disponibile) */
+	
 	/* recupero lo stato (kernel-mode o user-mode) */
 	U32 *old_status = &(OLDAREA->status);
 
@@ -51,11 +52,11 @@ void sysbk_handler(){
 			{
 				case CREATEPROCESS:
 					/* int create_process(state_t *statep, int priority) */
-					create_process((state_t*) *arg1, (int) *arg2);
+					result = create_process((state_t*) *arg1, (int) *arg2);
 					break;
 				case CREATEBROTHER:
 					/* int create_brother(state_t *statep, int priority) */
-					create_brother((state_t*) *arg1, (int) *arg2);
+					result = create_brother((state_t*) *arg1, (int) *arg2);
 					break;
 				case TERMINATEPROCESS:
 					/* void terminate_process() */
@@ -71,7 +72,7 @@ void sysbk_handler(){
 					break;
 				case GETCPUTIME:
 					/* int get_cpu_time()  */
-					get_cpu_time();
+					result = get_cpu_time();
 					break;
 				case WAITCLOCK:
 					/* void wait_clock() */
@@ -79,7 +80,7 @@ void sysbk_handler(){
 					break;
 				case WAITIO:
 					/* int wait_io(int intNo, int dnum, int waitForTermRead) */
-					wait_io((int) *arg1, (int) *arg2, (int) *arg3);
+					result = wait_io((int) *arg1, (int) *arg2, (int) *arg3);
 					break;
 				case SPECPRGVEC:
 					/* void specify_prg_state_vector(state_t *oldp, state_t *newp) */
@@ -99,7 +100,8 @@ void sysbk_handler(){
 					terminate_process();
 					break;
 			} /*switch*/
-			/* ritorno il controllo al processo chiamante */
+			/* ritorno il controllo al processo chiamante inserendo in v0 il risultato della syscall */
+			OLDAREA->reg_v0 = result;
 			LDST(OLDAREA);
 		} /* if */
 		/* se il processo ha un custom handler lo chiamo */
