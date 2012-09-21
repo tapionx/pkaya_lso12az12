@@ -117,8 +117,8 @@
 #define GET_BYTE(N, WHAT)	(N & WHAT)
 
 /* Macro per ottenere gli indici di semafori/lock relativi ai diversi device (in caso di terminale c'è da specificare se R o W) */
-#define GET_TERM_SEM(LINENO, DEVNO, READ)	(MAXPROC + ((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO + (READ * 8))
-#define GET_TERM_STATUS(LINENO, DEVNO, READ)	(((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO + (READ*8))
+#define GET_TERM_SEM(LINENO, DEVNO, READ)	(MAXPROC + ((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO + (READ * DEV_PER_INT))
+#define GET_TERM_STATUS(LINENO, DEVNO, READ)	(((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO + (READ * DEV_PER_INT))
 
 #define GET_DEV_SEM(LINENO, DEVNO)	(MAXPROC + ((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO)
 #define GET_DEV_STATUS(LINENO, DEVNO)	(((LINENO - INT_LOWEST) * DEV_PER_INT) + DEVNO)

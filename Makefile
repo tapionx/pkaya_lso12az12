@@ -24,7 +24,6 @@ all : compile link kernela
 
 # Compile source and create obj
 compile :
-	clear
 	@echo -n "COMPILING...  "
 	@cd obj/ ; mipsel-linux-gcc -I ../$(INCLUDES) ../src/*.c -c
 	@echo "$(GREEN)[OK]$(NORMAL)"
