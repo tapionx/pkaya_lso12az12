@@ -176,7 +176,127 @@ void int_handler(){
 			LDST(oldProcess);
 			break;
 		}
+
+		case INT_DISK: {
+			/* puntatore ai registri del device */	
+			dtpreg_t *fields = (dtpreg_t *)devAddrBase;
+			/* indice del semaforo da usare */
+			int devSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			/* indice del vettore delle risposte associato al device */
+			int devStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
+			//lock(termSemNo);
+			/* puntatore al semaforo associato al device */
+			semd_t *termSem = getSemd(devSemNo);
+			/* puntatore al primo processo bloccato sulla coda */
+			pcb_t *waitingProc = headBlocked(devSemNo);
+			/* se non ci sono processi in coda */
+			if (waitingProc != NULL){
+				/* Maggior priorità alla trasmissione */
+				/* scrivo la risposta nel processo in coda */
+				waitingProc->p_s.reg_v0 = fields->status;
+			} else {
+				/* scrivo lo status nel vettore, il processo non
+				 * ha ancora fatto la P */
+				devStatus[devStatusNo] = fields->status;
+			}
+			verhogen(devSemNo);
+			/* acknowledgement al device */
+			fields->command = DEV_C_ACK;
+			/* restituisco il controllo al processo interrotto dall INT */
+			LDST(oldProcess);
+			break;
+		}
 		
+		case INT_TAPE: {
+			/* puntatore ai registri del device */	
+			dtpreg_t *fields = (dtpreg_t *)devAddrBase;
+			/* indice del semaforo da usare */
+			int devSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			/* indice del vettore delle risposte associato al device */
+			int devStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
+			//lock(termSemNo);
+			/* puntatore al semaforo associato al device */
+			semd_t *termSem = getSemd(devSemNo);
+			/* puntatore al primo processo bloccato sulla coda */
+			pcb_t *waitingProc = headBlocked(devSemNo);
+			/* se non ci sono processi in coda */
+			if (waitingProc != NULL){
+				/* Maggior priorità alla trasmissione */
+				/* scrivo la risposta nel processo in coda */
+				waitingProc->p_s.reg_v0 = fields->status;
+			} else {
+				/* scrivo lo status nel vettore, il processo non
+				 * ha ancora fatto la P */
+				devStatus[devStatusNo] = fields->status;
+			}
+			verhogen(devSemNo);
+			/* acknowledgement al device */
+			fields->command = DEV_C_ACK;
+			/* restituisco il controllo al processo interrotto dall INT */
+			LDST(oldProcess);
+			break;
+		}
+		
+		case INT_UNUSED: {
+			/* puntatore ai registri del device */	
+			dtpreg_t *fields = (dtpreg_t *)devAddrBase;
+			/* indice del semaforo da usare */
+			int devSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			/* indice del vettore delle risposte associato al device */
+			int devStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
+			//lock(termSemNo);
+			/* puntatore al semaforo associato al device */
+			semd_t *termSem = getSemd(devSemNo);
+			/* puntatore al primo processo bloccato sulla coda */
+			pcb_t *waitingProc = headBlocked(devSemNo);
+			/* se non ci sono processi in coda */
+			if (waitingProc != NULL){
+				/* Maggior priorità alla trasmissione */
+				/* scrivo la risposta nel processo in coda */
+				waitingProc->p_s.reg_v0 = fields->status;
+			} else {
+				/* scrivo lo status nel vettore, il processo non
+				 * ha ancora fatto la P */
+				devStatus[devStatusNo] = fields->status;
+			}
+			verhogen(devSemNo);
+			/* acknowledgement al device */
+			fields->command = DEV_C_ACK;
+			/* restituisco il controllo al processo interrotto dall INT */
+			LDST(oldProcess);
+			break;
+		}
+		
+		case INT_PRINTER: {
+			/* puntatore ai registri del device */	
+			dtpreg_t *fields = (dtpreg_t *)devAddrBase;
+			/* indice del semaforo da usare */
+			int devSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			/* indice del vettore delle risposte associato al device */
+			int devStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
+			//lock(termSemNo);
+			/* puntatore al semaforo associato al device */
+			semd_t *termSem = getSemd(devSemNo);
+			/* puntatore al primo processo bloccato sulla coda */
+			pcb_t *waitingProc = headBlocked(devSemNo);
+			/* se non ci sono processi in coda */
+			if (waitingProc != NULL){
+				/* Maggior priorità alla trasmissione */
+				/* scrivo la risposta nel processo in coda */
+				waitingProc->p_s.reg_v0 = fields->status;
+			} else {
+				/* scrivo lo status nel vettore, il processo non
+				 * ha ancora fatto la P */
+				devStatus[devStatusNo] = fields->status;
+			}
+			verhogen(devSemNo);
+			/* acknowledgement al device */
+			fields->command = DEV_C_ACK;
+			/* restituisco il controllo al processo interrotto dall INT */
+			LDST(oldProcess);
+			break;
+		}
+
 		case INT_TERMINAL: {
 			/* TODO: Bisogna stare attenti perché quando si chiama la 
 			 * funzione associata alla syscall (non SYSCALL!) non viene
@@ -185,20 +305,31 @@ void int_handler(){
 			 * (senza V, magari nell'esecuzione principale). Bisogna
 			 * aggiornare il currentProcess in ogni syscall dove si usa
 			 * currentProcess! */
+			/* puntatore ai registri del device */	
 			termreg_t *fields = (termreg_t *)devAddrBase;
+			/* indice del semaforo da usare */
 			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			/* indice del vettore delle risposte associato al device */
 			int termStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
 			//lock(termSemNo);
+			/* puntatore al semaforo associato al device */
 			semd_t *termSem = getSemd(termSemNo);
+			/* puntatore al primo processo bloccato sulla coda */
 			pcb_t *waitingProc = headBlocked(termSemNo);
+			/* se non ci sono processi in coda */
 			if (waitingProc != NULL){
 				/* Maggior priorità alla trasmissione */
+				/* scrivo la risposta nel processo in coda */
 				waitingProc->p_s.reg_v0 = fields->transm_status;
 			} else {
+				/* scrivo lo status nel vettore, il processo non
+				 * ha ancora fatto la P */
 				devStatus[termStatusNo] = fields->transm_status;
 			}
 			verhogen(termSemNo);
+			/* acknowledgement al device */
 			fields->transm_command = DEV_C_ACK;
+			/* restituisco il controllo al processo interrotto dall INT */
 			LDST(oldProcess);
 			break;
 		}
