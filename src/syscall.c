@@ -3,9 +3,9 @@
 #include "pcb.e"
 #include "asl.e"
 #include "myConst.h"
-#include "kernelVariables.h" 
+#include "kernelVariables.h"
 
-/* Handlers delle 11 System Call */
+/** Handlers delle 11 System Call */
 
 /* System Call #1  : Create Process
  * genera un processo figlio del processo chiamante
@@ -109,11 +109,6 @@ void verhogen(int semKey){
 	semd_t *semaphore = getSemd(semKey);
 	semaphore->s_value += 1;
 	pcb_t *toWake = removeBlocked(semKey);
-	/* Controllo se il processo da inserire non sia da terminare,
-	 * in tal caso potrebbe portare a problemi poiché ci potrebbe
-	 * essere un processo marcato ma non rimosso (ancora) 
-	 * dalla coda e se questo dovesse ancora dover effettuare la V si
-	 * bloccherebbe l'accesso alla Critical Section! */
 	if (toWake != NULL){
 		addReady(toWake); // sveglio il prossimo
 	}
@@ -127,18 +122,11 @@ void verhogen(int semKey){
 void passeren(int semKey){
 	lock(semKey);
 	int cpuid = getPRID();
-	state_t *oldProcess = GET_OLD_SYSBK();
 	semd_t *semaphore = getSemd(semKey);
 	semaphore->s_value -= 1;
 	if (semaphore->s_value < 0){
-		/* ATTENZIONE ATTENZIONE ATTENZIONE ATTENZIONE!!!
-		 * QUANDO SI USA LA COPYSTATE BISOGNA STARE ATTENTI A NON DARE
-		 * COME PARAMETRO UN PCB PERCHÉ IL COMPILATORE NON AVVERTE DI NULLA!!
-		 * L'ERRORE RIGUARDO MEMCPY È DOVUTO AL FATTO CHE SI È DIMENTICATO DI 
-		 * DARE L'INDIRIZZO E NON LO STATE_T VERO E PROPRIO */
 		insertBlocked(semKey, currentProcess[cpuid]);
-		free(semKey);
-		scheduler();
+		LDST(&(scheduler_states[cpuid]));
 	}
 	free(semKey);
 }
@@ -176,11 +164,11 @@ void wait_clock()
 int wait_io(int intline, int dnum, int read)
 {
 	/* calcolo il numero del semaforo da usare */
-	int semKey = GET_TERM_SEM(intline, dnum, read);
+	int semKey = GET_TERM_SEM(dnum, read);
 	U32 cpuid = getPRID();
 	passeren(semKey);
 	/* calcolo indice del vettore delle risposte */
-	int statusNum = GET_TERM_STATUS(intline, dnum, read);
+	int statusNum = GET_TERM_STATUS(dnum, read);
 	/* Se la P non era bloccante (interrupt anticipato!) ritorno il valore */
 	return devStatus;
 }

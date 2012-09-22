@@ -9,7 +9,7 @@
 /* Funzione ausiliaria per la "dummy initialization" degli stati delle CPU a 0 */
 void cleanState(state_t *state);
 /* Funzione per copiare uno state_t in un altro */
-void copyState(state_t *from, state_t *to);
+void copyState(state_t *src, state_t *dest);
 
 /* Funzione per l'inizializzazione dello stato di un pcb_t dai parametri */
 pcb_t *initPcbState(pcb_t *pcb, U32 status, memaddr pc_epc, U32 reg_sp);
@@ -39,10 +39,14 @@ void lock(int semKey);
 /* Liberazione di un lock passato come parametro */
 void free(int semKey);
 
+/* Stampa la coda dei processi bloccati sul semaforo con chiave semKey */
 void stampaCoda(int semKey);
 
+/* Stampa la coda la cui sentinella è head */
 void stampaCodaHead(struct list_head *head);
 
+/* Restituisce il numero del device che ha sollevato l'interrupt pendente 
+ * @bitmap : [U32] la PENDING_INT_BITMAP */
 int getDevNo(U32 bitmap);
 
 #endif

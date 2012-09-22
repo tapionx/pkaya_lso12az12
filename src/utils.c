@@ -93,43 +93,53 @@ void cleanState(state_t* state)
 }
 
 /* Funzione che serve per copiare il primo state_t nel secondo */
-void copyState(state_t *from, state_t *to){
+void copyState(state_t *src, state_t *dest){
 	/* Brutto ma molto più efficente! */
-	to->entry_hi = from->entry_hi;
-	to->cause = from->cause;
-	to->status = from->status;
-	to->pc_epc = from->pc_epc;
-	to->gpr[0] = from->gpr[0];
-	to->gpr[1] = from->gpr[1];
-	to->gpr[2] = from->gpr[2];
-	to->gpr[3] = from->gpr[3];
-	to->gpr[4] = from->gpr[4];
-	to->gpr[5] = from->gpr[5];
-	to->gpr[6] = from->gpr[6];
-	to->gpr[7] = from->gpr[7];
-	to->gpr[8] = from->gpr[8];
-	to->gpr[9] = from->gpr[9];
-	to->gpr[10] = from->gpr[10];
-	to->gpr[11] = from->gpr[11];
-	to->gpr[12] = from->gpr[12];
-	to->gpr[13] = from->gpr[13];
-	to->gpr[14] = from->gpr[14];
-	to->gpr[15] = from->gpr[15];
-	to->gpr[16] = from->gpr[16];
-	to->gpr[17] = from->gpr[17];
-	to->gpr[18] = from->gpr[18];
-	to->gpr[19] = from->gpr[19];
-	to->gpr[20] = from->gpr[20];
-	to->gpr[21] = from->gpr[21];
-	to->gpr[22] = from->gpr[22];
-	to->gpr[23] = from->gpr[23];
-	to->gpr[24] = from->gpr[24];
-	to->gpr[25] = from->gpr[25];
-	to->gpr[26] = from->gpr[26];
-	to->gpr[27] = from->gpr[27];
-	to->gpr[28] = from->gpr[28];
-	to->hi = from->hi;
-	to->lo = from->lo;
+	int i;
+	dest->entry_hi = src->entry_hi;
+	dest->cause = src->cause;
+	dest->status = src->status;
+	dest->pc_epc = src->pc_epc;
+	dest->hi = src->hi;
+	dest->lo = src->lo;
+	for(i=0;i<29;i++){
+			dest->gpr[i]=src->gpr[i];
+	}
+	//to->entry_hi = from->entry_hi;
+	//to->cause = from->cause;
+	//to->status = from->status;
+	//to->pc_epc = from->pc_epc;
+	//to->gpr[0] = from->gpr[0];
+	//to->gpr[1] = from->gpr[1];
+	//to->gpr[2] = from->gpr[2];
+	//to->gpr[3] = from->gpr[3];
+	//to->gpr[4] = from->gpr[4];
+	//to->gpr[5] = from->gpr[5];
+	//to->gpr[6] = from->gpr[6];
+	//to->gpr[7] = from->gpr[7];
+	//to->gpr[8] = from->gpr[8];
+	//to->gpr[9] = from->gpr[9];
+	//to->gpr[10] = from->gpr[10];
+	//to->gpr[11] = from->gpr[11];
+	//to->gpr[12] = from->gpr[12];
+	//to->gpr[13] = from->gpr[13];
+	//to->gpr[14] = from->gpr[14];
+	//to->gpr[15] = from->gpr[15];
+	//to->gpr[16] = from->gpr[16];
+	//to->gpr[17] = from->gpr[17];
+	//to->gpr[18] = from->gpr[18];
+	//to->gpr[19] = from->gpr[19];
+	//to->gpr[20] = from->gpr[20];
+	//to->gpr[21] = from->gpr[21];
+	//to->gpr[22] = from->gpr[22];
+	//to->gpr[23] = from->gpr[23];
+	//to->gpr[24] = from->gpr[24];
+	//to->gpr[25] = from->gpr[25];
+	//to->gpr[26] = from->gpr[26];
+	//to->gpr[27] = from->gpr[27];
+	//to->gpr[28] = from->gpr[28];
+	//to->hi = from->hi;
+	//to->lo = from->lo;
 }
 
 /* Funzione ausiliaria per inizializzare un pcb_t con gli argomenti 
