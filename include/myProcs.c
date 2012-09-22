@@ -11,10 +11,9 @@
 
 
 void test1(){
-	int TERM_MUT = 0;
-	SYSCALL(VERHOGEN, TERM_MUT, 0, 0);
+	SYSCALL(VERHOGEN, 0, 0, 0);
 	while(TRUE){	
-		print("\n\nATTENZIONE ATTENZIONE ATTENZIONE!!\n");
+		print("ATTENZIONE ATTENZIONE ATTENZIONE!!\n");
 	}
 }
 

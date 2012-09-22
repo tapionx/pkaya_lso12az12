@@ -18,7 +18,7 @@ state_t areas[NUM_CPU][NUM_AREAS]; /* Aree reali per CPU > 0 */
 int locks[NUM_SEMAPHORES]; /* Variabili di condizione per CAS */
 state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 int pctInit = FALSE; /* Lo Pseudo Clock Timer è stato inizializzato? */
-U32 devStatus[MAX_DEVICES] = {0}; /* Status in output dei vari device */
+U32 devStatus; /* Status in output dei vari device (solo uno perché solo il terminale è usato) */
 
 /* Processo di test */
 extern void p2test();
@@ -135,7 +135,7 @@ int main(){
 
 	/* PROBLEMA: Caricando più di un processo va, altrimenti nisba! O.o */
 	addReady(prova1);
-	addReady(prova2);
+	//addReady(prova2);
 	//addReady(prova3);
 	//addReady(prova4);
 	

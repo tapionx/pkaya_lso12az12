@@ -39,6 +39,7 @@ void scheduler(){
 	 * e di modificare tutte le variabili del caso nelle syscall ecc. */
 	int cpuid = getPRID();
 	lock(SCHEDULER_SEMLOCK);
+	currentProcess[cpuid] = NULL;
 	if(!emptyProcQ(&(readyQueue))){
 		currentProcess[cpuid] = removeProcQ(&(readyQueue));
 		/* Se il processo è da terminare ne liberiamo il pcb e lo scartiamo */

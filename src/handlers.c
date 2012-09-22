@@ -21,29 +21,27 @@ void sysbk_handler(){
 	/* in questo caso non serve aggiornare anche t9 */
 	/* (pag 28, 3.7.2 Student Guide) */
 	oldProcess->pc_epc += WORD_SIZE; /* 4 */
+	copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 	/* Aggiorno il pcb corrente */
 	//copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 	/* recupero i parametri della SYSCALL dalla oldProcess */
-	U32 *num_syscall = &(oldProcess->reg_a0);
-	U32 *arg1 		 =  &(oldProcess->reg_a1);
-	U32 *arg2		 =  &(oldProcess->reg_a2);
-	U32 *arg3		 =  &(oldProcess->reg_a3);
-	U32 result;	/* Risultato della system call (ove disponibile) */
+	U32 *num_syscall = &(currentProcess[cpuid]->p_s.reg_a0);
+	U32 *arg1 		 =  &(currentProcess[cpuid]->p_s.reg_a1);
+	U32 *arg2		 =  &(currentProcess[cpuid]->p_s.reg_a2);
+	U32 *arg3		 =  &(currentProcess[cpuid]->p_s.reg_a3);
+	U32 result = -2;	/* Risultato della system call (ove disponibile), -2 per indicare che il risultato "non esiste" ancora */
 	
 	/* recupero lo stato (kernel-mode o user-mode) */
-	U32 *old_status = &(oldProcess->status);
+	U32 *old_status = &(currentProcess[cpuid]->p_s.status);
 
 	/* recupero la causa (tipo di eccezione sollevato) */
-	U32 *old_cause = &(oldProcess->cause);
-
-	/* carico il processo corrente */
-	pcb_t *processoCorrente = currentProcess[cpuid];
+	U32 *old_cause = &(currentProcess[cpuid]->p_s.cause);
 	
 	/* se il processo era in kernel mode */
 	if( (*old_status & STATUS_KUc) == 0 )
 	{
 		/* controllo se il processo non ha un handler custom */
-		if(processoCorrente->custom_handlers[SYSBK_NEWAREA_INDEX] == NULL)
+		if(currentProcess[cpuid]->custom_handlers[SYSBK_NEWAREA_INDEX] == NULL)
 		{		
 			/* eseguo la SYSCALL adeguata */
 			switch(*num_syscall)
@@ -99,20 +97,19 @@ void sysbk_handler(){
 					break;
 			}
 			/* Inserisco il risultato in uscita nel registro v0 */
-			oldProcess->reg_v0 = result;
+			if (result != -2)	
+				currentProcess[cpuid]->p_s.reg_v0 = result;
+			/* Se si arriva qui nessuna syscall è stata bloccante (ad es. la P) */
 			/* Aggiorno lo state_t del processo prima di rimetterlo in coda */
-			copyState(oldProcess, &(currentProcess[cpuid]->p_s));
-			addReady(currentProcess[cpuid]);
-			/* Richiamo lo scheduler */
-			scheduler();
+			LDST(&(currentProcess[cpuid]->p_s));
 		}
 		/* se il processo ha un custom handler lo chiamo */
 		else
 		{
 			/* copio il processo chiamante nella OLD Area custom */
-			copyState(oldProcess, processoCorrente->custom_handlers[SYSBK_OLDAREA_INDEX]);
+			copyState(oldProcess, currentProcess[cpuid]->custom_handlers[SYSBK_OLDAREA_INDEX]);
 			/* chiamo l'handler custom */
-			LDST(processoCorrente->custom_handlers[SYSBK_NEWAREA_INDEX]);
+			LDST(currentProcess[cpuid]->custom_handlers[SYSBK_NEWAREA_INDEX]);
 		}
 	}
 	/* se e' stata chiamata la SYSTEM CALL in User Mode lancio TRAP */
@@ -140,10 +137,14 @@ void int_handler(){
 	/* estraggo il puntatore allo state_t del processo interrotto 
 	 * (non è necessariamente quello che ha sollevato l'interrupt!) */
 	state_t *oldProcess = GET_OLD_INT();
+	/* Aggiorniamo il pcb corrente solo se necessario */
+	if (currentProcess[cpuid] != NULL){
+		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+		addReady(currentProcess[cpuid]);
+	}
 	
 	/* Capiamo da che linea proviene l'interrupt */
 	int line = 0;
-	debug(146, CAUSE_IP_GET(0, 7));
 	for (line; line < NUM_LINES; line++){
 		/* Se abbiamo trovato la linea usciamo */
 		if (CAUSE_IP_GET(getCAUSE(), line)){
@@ -204,13 +205,13 @@ void int_handler(){
 			} else {
 				/* scrivo lo status nel vettore, il processo non
 				 * ha ancora fatto la P */
-				devStatus[devStatusNo] = fields->status;
+				devStatus = fields->status;
 			}
 			verhogen(devSemNo);
 			/* acknowledgement al device */
 			fields->command = DEV_C_ACK;
 			/* restituisco il controllo al processo interrotto dall INT */
-			LDST(oldProcess);
+			LDST(&(currentProcess[cpuid]->p_s));
 			break;
 		}
 		
@@ -234,13 +235,13 @@ void int_handler(){
 			} else {
 				/* scrivo lo status nel vettore, il processo non
 				 * ha ancora fatto la P */
-				devStatus[devStatusNo] = fields->status;
+				devStatus = fields->status;
 			}
 			verhogen(devSemNo);
 			/* acknowledgement al device */
 			fields->command = DEV_C_ACK;
 			/* restituisco il controllo al processo interrotto dall INT */
-			LDST(oldProcess);
+			LDST(&(currentProcess[cpuid]->p_s));
 			break;
 		}
 		
@@ -264,13 +265,13 @@ void int_handler(){
 			} else {
 				/* scrivo lo status nel vettore, il processo non
 				 * ha ancora fatto la P */
-				devStatus[devStatusNo] = fields->status;
+				devStatus = fields->status;
 			}
 			verhogen(devSemNo);
 			/* acknowledgement al device */
 			fields->command = DEV_C_ACK;
 			/* restituisco il controllo al processo interrotto dall INT */
-			LDST(oldProcess);
+			LDST(&(currentProcess[cpuid]->p_s));
 			break;
 		}
 		
@@ -294,17 +295,19 @@ void int_handler(){
 			} else {
 				/* scrivo lo status nel vettore, il processo non
 				 * ha ancora fatto la P */
-				devStatus[devStatusNo] = fields->status;
+				devStatus = fields->status;
 			}
 			verhogen(devSemNo);
 			/* acknowledgement al device */
 			fields->command = DEV_C_ACK;
 			/* restituisco il controllo al processo interrotto dall INT */
-			LDST(oldProcess);
+			LDST(&(currentProcess[cpuid]->p_s));
 			break;
 		}
 
 		case INT_TERMINAL: {
+			/* indice del semaforo da usare */
+			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
 			/* TODO: Bisogna stare attenti perché quando si chiama la 
 			 * funzione associata alla syscall (non SYSCALL!) non viene
 			 * aggiornato il currentProcess! Quindi quando lo si rimette in
@@ -314,36 +317,33 @@ void int_handler(){
 			 * currentProcess! */
 			/* puntatore ai registri del device */	
 			termreg_t *fields = (termreg_t *)devAddrBase;
-			/* indice del semaforo da usare */
-			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
 			/* indice del vettore delle risposte associato al device */
 			int termStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
-			lock(termSemNo);
 			semd_t *termSem = getSemd(termSemNo);
 			/* puntatore al primo processo bloccato sulla coda */
 			pcb_t *waitingProc = headBlocked(termSemNo);
 			/* se non ci sono processi in coda */
 			if (waitingProc != NULL){
+				debug(326, termSemNo);
+				debug(327, waitingProc);
 				/* Maggior priorità alla trasmissione */
 				/* scrivo la risposta nel processo in coda */
 				waitingProc->p_s.reg_v0 = fields->transm_status;
 			} else {
 				/* scrivo lo status nel vettore, il processo non
 				 * ha ancora fatto la P */
-				devStatus[termStatusNo] = fields->transm_status;
+				devStatus = fields->transm_status;
 			}
-			free(termSemNo);
 			verhogen(termSemNo);
 			/* acknowledgement al device */
 			fields->transm_command = DEV_C_ACK;
-			state_t *prova = oldProcess;
-			copyState(oldProcess, &(currentProcess[cpuid]->p_s));
-			addReady(currentProcess[cpuid]);
+			/* Faccio ripartire lo scheduler */
 			scheduler();
 			break;
 		}
 		
 		default: {
+			debug(666,666);
 			PANIC();
 		}
 	}

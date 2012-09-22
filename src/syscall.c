@@ -114,8 +114,9 @@ void verhogen(int semKey){
 	 * essere un processo marcato ma non rimosso (ancora) 
 	 * dalla coda e se questo dovesse ancora dover effettuare la V si
 	 * bloccherebbe l'accesso alla Critical Section! */
-	if (toWake != NULL)
+	if (toWake != NULL){
 		addReady(toWake); // sveglio il prossimo
+	}
 	free(semKey);
 }
 
@@ -135,7 +136,6 @@ void passeren(int semKey){
 		 * COME PARAMETRO UN PCB PERCHÉ IL COMPILATORE NON AVVERTE DI NULLA!!
 		 * L'ERRORE RIGUARDO MEMCPY È DOVUTO AL FATTO CHE SI È DIMENTICATO DI 
 		 * DARE L'INDIRIZZO E NON LO STATE_T VERO E PROPRIO */
-		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 		insertBlocked(semKey, currentProcess[cpuid]);
 		free(semKey);
 		scheduler();
@@ -177,14 +177,12 @@ int wait_io(int intline, int dnum, int read)
 {
 	/* calcolo il numero del semaforo da usare */
 	int semKey = GET_TERM_SEM(intline, dnum, read);
-	lock(semKey);
 	U32 cpuid = getPRID();
-	free(semKey);
 	passeren(semKey);
 	/* calcolo indice del vettore delle risposte */
 	int statusNum = GET_TERM_STATUS(intline, dnum, read);
 	/* Se la P non era bloccante (interrupt anticipato!) ritorno il valore */
-	return devStatus[statusNum];
+	return devStatus;
 }
 
 /* System Call #9  : Specify PRG State Vector
