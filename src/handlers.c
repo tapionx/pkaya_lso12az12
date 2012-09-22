@@ -156,9 +156,11 @@ void int_handler(){
 		case INT_PLT: {
 			//debug(177,177);	
 			/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
-			addReady(currentProcess[cpuid]);
-			LDST(&(scheduler_states[cpuid]));
-			break;
+			//addReady(currentProcess[cpuid]);
+			//LDST(&(scheduler_states[cpuid]));
+			//break;
+		
+			LDST(oldProcess);
 		}
 		
 		case INT_TIMER: {
@@ -184,43 +186,50 @@ void int_handler(){
 			 * aggiornare il currentProcess in ogni syscall dove si usa
 			 * currentProcess! */
 			termreg_t *fields = (termreg_t *)devAddrBase;
+			int chiave = GET_TERM_STATUS(line,devNo,FALSE);
+			int status = fields->transm_status;
 			fields->transm_command = DEV_C_ACK;
-			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
-			//lock(termSemNo);
-			semd_t *termSem = getSemd(termSemNo);
-			pcb_t *waitingProc = headBlocked(termSemNo);
-			if (waitingProc != NULL){
-				/* Maggior priorità alla trasmissione */
-				waitingProc->p_s.reg_v0 = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
-
-				int semKey = termSemNo;	
-				lock(semKey);
-				semd_t *semaphore = termSem;
-				semaphore->s_value += 1;
-				if (semaphore->s_value <= 0){
-					pcb_t *toWake = removeBlocked(semKey);
-					//debug(108,toWake);
-					/* Controllo se il processo da inserire non sia da terminare,
-					 * in tal caso potrebbe portare a problemi poiché ci potrebbe
-					 * essere un processo marcato ma non rimosso (ancora) 
-					 * dalla coda e se questo dovesse ancora dover effettuare la V si
-					 * bloccherebbe l'accesso alla Critical Section! */
-					while (toWake != NULL && toWake->wanted){
-						semaphore->s_value += 1;
-						freePcb(toWake);
-						toWake = removeBlocked(semKey);
-					}		
-					addReady(toWake); // sveglio il prossimo
-				}
-				free(semKey);				
-				
-				
-			} else {
-				devStatus[GET_TERM_STATUS(line, devNo, FALSE)] = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
-			}
-			//free(termSemNo);
+			debug(444,status);
+			devStatus[chiave] = status;
 			LDST(oldProcess);
-			break;
+			
+			
+			//int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			////lock(termSemNo);
+			//semd_t *termSem = getSemd(termSemNo);
+			//pcb_t *waitingProc = headBlocked(termSemNo);
+			//if (waitingProc != NULL){
+				///* Maggior priorità alla trasmissione */
+				//waitingProc->p_s.reg_v0 = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
+
+				//int semKey = termSemNo;	
+				//lock(semKey);
+				//semd_t *semaphore = termSem;
+				//semaphore->s_value += 1;
+				//if (semaphore->s_value <= 0){
+					//pcb_t *toWake = removeBlocked(semKey);
+					////debug(108,toWake);
+					///* Controllo se il processo da inserire non sia da terminare,
+					 //* in tal caso potrebbe portare a problemi poiché ci potrebbe
+					 //* essere un processo marcato ma non rimosso (ancora) 
+					 //* dalla coda e se questo dovesse ancora dover effettuare la V si
+					 //* bloccherebbe l'accesso alla Critical Section! */
+					//while (toWake != NULL && toWake->wanted){
+						//semaphore->s_value += 1;
+						//freePcb(toWake);
+						//toWake = removeBlocked(semKey);
+					//}		
+					//addReady(toWake); // sveglio il prossimo
+				//}
+				//free(semKey);				
+				
+				
+			//} else {
+				//devStatus[GET_TERM_STATUS(line, devNo, FALSE)] = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
+			//}
+			////free(termSemNo);
+			//LDST(oldProcess);
+			//break;
 		}
 		
 		default: {

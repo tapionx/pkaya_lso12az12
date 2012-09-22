@@ -132,7 +132,7 @@ void passeren(int semKey){
 	semd_t *semaphore = getSemd(semKey);
 	semaphore->s_value -= 1;
 	if (semaphore->s_value < 0){
-		copyState(oldProcess, currentProcess[cpuid]);
+		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 		insertBlocked(semKey, currentProcess[cpuid]);
 		free(semKey);
 		//debug(138,138);	
@@ -174,23 +174,30 @@ void wait_clock()
 int wait_io(int intline, int dnum, int read)
 {
 	U32 cpuid = getPRID();
-	/* calcolo il numero del semaforo da usare */
-	int semKey = GET_TERM_SEM(intline, dnum, read);
-	/* calcolo indice del vettore delle risposte */
+	state_t *OLDAREA = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
 	int statusNum = GET_TERM_STATUS(intline, dnum, read);
-	if (devStatus[statusNum] != 0){
-		currentProcess[cpuid]->p_s.reg_v0 = devStatus[statusNum];
-		devStatus[statusNum] = 0; /* Altrimenti status condivisi! */
-	} else {
-		lock(semKey);
-		state_t *oldProcess = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
-		semd_t *semaphore = getSemd(semKey);
-		semaphore->s_value -= 1;
-		copyState(oldProcess, currentProcess[cpuid]);
-		insertBlocked(semKey, currentProcess[cpuid]);
-		free(semKey);
-		LDST(&(scheduler_states[cpuid]));
-	}
+	while(devStatus[statusNum] == 0)
+		debug(33333,33333);
+	debug(11, devStatus[statusNum]);
+	OLDAREA->reg_v0 = devStatus[statusNum];
+	copyState(OLDAREA, &(currentProcess[cpuid]->p_s));
+	debug(66666, (currentProcess[cpuid]->p_s).reg_v0);
+	devStatus[statusNum] = 0;
+	
+	
+	//if (devStatus[statusNum] != 0){
+		//currentProcess[cpuid]->p_s.reg_v0 = devStatus[statusNum];
+		//devStatus[statusNum] = 0; /* Altrimenti status condivisi! */
+	//} else {
+		//lock(semKey);
+		//state_t *oldProcess = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
+		//semd_t *semaphore = getSemd(semKey);
+		//semaphore->s_value -= 1;
+		//copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+		//insertBlocked(semKey, currentProcess[cpuid]);
+		//free(semKey);
+		//LDST(&(scheduler_states[cpuid]));
+	//}
 }
 
 /* System Call #9  : Specify PRG State Vector

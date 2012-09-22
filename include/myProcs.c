@@ -10,36 +10,25 @@
  * le modifiche individualmente */
 
 
-void test1(){
-	while(TRUE){	
-		SYSCALL(PASSEREN, 6, 0, 0);
-		print("funziona cazzo!\n");
-		SYSCALL(VERHOGEN, 6, 0, 0);
-	}
+void test1(){	
+	while(TRUE);
+	print("111111111111\n");
+	while(TRUE);
 }
 
 void test2(){
-	while(TRUE){	
-		SYSCALL(PASSEREN, 6, 0, 0);
-		print("funziona cazzo!\n");
-		SYSCALL(VERHOGEN, 6, 0, 0);
-	}
+	print("222222222222\n");
+	while(TRUE);
 }
 
 void test3(){
-	while(TRUE){	
-		SYSCALL(PASSEREN, 6, 0, 0);
-		print("funziona cazzo!\n");
-		SYSCALL(VERHOGEN, 6, 0, 0);
-	}
+	print("33333333\n");
+	while(TRUE);
 }
 
 void test4(){
-	while(TRUE){	
-		SYSCALL(PASSEREN, 6, 0, 0);
-		print("funziona cazzo!\n");
-		SYSCALL(VERHOGEN, 6, 0, 0);
-	}
+	print("4444444\n");
+	while(TRUE);	
 }
 
 

@@ -96,7 +96,7 @@ int main(){
 		//STST(&(prova1.p_s));
 		prova1->p_s.pc_epc = prova1->p_s.reg_t9 = (memaddr)test1;
 		prova1->p_s.reg_sp = PFRAMES_START;
-		prova1->p_s.status = prova1->p_s.status | PROCESS_STATUS;
+		prova1->p_s.status = prova1->p_s.status | PROCESS_STATUS &~ INT_PLT;
 		
 		///////////////////////////////
 	   //// PROCESSO DI prova2 	  //
@@ -122,10 +122,10 @@ int main(){
 		prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
 		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
-	addReady(prova1);
-	//addReady(prova2);
-	//addReady(prova3);
-	//addReady(prova4);
+	//addReady(prova1);
+	addReady(prova2);
+	addReady(prova3);
+	addReady(prova4);
 	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], &areas[cpuid]);
@@ -133,6 +133,10 @@ int main(){
 	/* bisogna assicurarsi che tutte le altre CPU abbiano iniziato 
 	 * l'inizializzazione prima di poter dare il controllo allo scheduler 
 	 * anche per la CPU 0 */
+	setTIMER(999999999);
+	currentProcess[0] = prova1;
+	LDST(&(currentProcess[0]->p_s));
+	
 	LDST(&(scheduler_states[0]));
 	return 0;
 }
