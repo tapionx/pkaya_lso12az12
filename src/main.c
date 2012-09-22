@@ -22,7 +22,7 @@ U32 devStatus[MAX_DEVICES] = {0}; /* Status in output dei vari device */
 
 /** L'esecuzione del kernel inizia da qui */
 int main(){
-	
+
 		
 	int cpuid, area, lockno; /* Iteratori */
 
@@ -85,18 +85,17 @@ int main(){
 		scheduler_states[cpuid].reg_sp = SFRAMES_START-(cpuid*FRAME_SIZE);
 		scheduler_states[cpuid].pc_epc = scheduler_states[cpuid].reg_t9 = (memaddr)scheduler;
 		/* Il TIMER e' disabilitato durante l'esecuzione dello scheduler */
-		scheduler_states[cpuid].status = PROCESS_STATUS & ~(STATUS_TE);
+		scheduler_states[cpuid].status = PROCESS_STATUS;
 	}
 
-		
-
+	
 		/////////////////////////////
 	   // PROCESSO DI PROVA 	  //
 		pcb_t* prova1 = allocPcb();
 		//STST(&(prova1.p_s));
 		prova1->p_s.pc_epc = prova1->p_s.reg_t9 = (memaddr)test1;
 		prova1->p_s.reg_sp = PFRAMES_START;
-		prova1->p_s.status = prova1->p_s.status | PROCESS_STATUS &~ INT_PLT;
+		prova1->p_s.status = prova1->p_s.status | PROCESS_STATUS;
 		
 		///////////////////////////////
 	   //// PROCESSO DI prova2 	  //
@@ -122,7 +121,7 @@ int main(){
 		prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
 		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
-	//addReady(prova1);
+	addReady(prova1);
 	addReady(prova2);
 	addReady(prova3);
 	addReady(prova4);
@@ -133,10 +132,7 @@ int main(){
 	/* bisogna assicurarsi che tutte le altre CPU abbiano iniziato 
 	 * l'inizializzazione prima di poter dare il controllo allo scheduler 
 	 * anche per la CPU 0 */
-	setTIMER(999999999);
-	currentProcess[0] = prova1;
-	LDST(&(currentProcess[0]->p_s));
-	
+	 	
 	LDST(&(scheduler_states[0]));
 	return 0;
 }

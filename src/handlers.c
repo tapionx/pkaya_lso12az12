@@ -154,13 +154,11 @@ void int_handler(){
 	
 	switch(line){
 		case INT_PLT: {
-			//debug(177,177);	
+			debug(177,177);	
 			/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
-			//addReady(currentProcess[cpuid]);
-			//LDST(&(scheduler_states[cpuid]));
-			//break;
-		
-			LDST(oldProcess);
+			addReady(currentProcess[cpuid]);
+			LDST(&(scheduler_states[cpuid]));
+			break;
 		}
 		
 		case INT_TIMER: {
@@ -189,7 +187,6 @@ void int_handler(){
 			int chiave = GET_TERM_STATUS(line,devNo,FALSE);
 			int status = fields->transm_status;
 			fields->transm_command = DEV_C_ACK;
-			debug(444,status);
 			
 			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
 			semd_t *termSem = getSemd(termSemNo);
@@ -204,6 +201,7 @@ void int_handler(){
 				lock(termSemNo);
 				termSem->s_value += 1;
 				pcb_t *toWake = removeBlocked(termSemNo);
+				debug(77777,(U32)toWake);
 				addReady(toWake); // sveglio il prossimo
 				free(termSemNo);
 				LDST(oldProcess);				

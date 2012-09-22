@@ -189,8 +189,8 @@ int wait_io(int intline, int dnum, int read)
 		semd_t *semaphore = getSemd(semKey);
 		semaphore->s_value -= 1;
 		copyState(OLDAREA, &(currentProcess[cpuid]->p_s));
-		insertBlocked(semKey, currentProcess[cpuid]);
-		debug(888888,888888);
+		int a = insertBlocked(semKey, currentProcess[cpuid]);
+		debug(888888,a);
 		free(semKey);
 		LDST(&(scheduler_states[cpuid]));
 	}
