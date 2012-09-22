@@ -190,46 +190,33 @@ void int_handler(){
 			int status = fields->transm_status;
 			fields->transm_command = DEV_C_ACK;
 			debug(444,status);
-			devStatus[chiave] = status;
+			
+			int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
+			semd_t *termSem = getSemd(termSemNo);
+			lock(termSemNo);
+			pcb_t *waitingProc = headBlocked(termSemNo);
+			debug(888888,(U32)waitingProc);
+			if (waitingProc != NULL){
+				free(termSemNo);
+				debug(222,222);
+				/* Maggior priorità alla trasmissione */
+				waitingProc->p_s.reg_v0 = status;
+				lock(termSemNo);
+				termSem->s_value += 1;
+				pcb_t *toWake = removeBlocked(termSemNo);
+				addReady(toWake); // sveglio il prossimo
+				free(termSemNo);
+				LDST(oldProcess);				
+			} else {
+				lock(termSemNo);
+				debug(111,111);
+				devStatus[chiave] = status;
+				LDST(oldProcess);
+			}
+			debug(67676767,67676767); //WTF?????
+			//free(termSemNo);
 			LDST(oldProcess);
-			
-			
-			//int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
-			////lock(termSemNo);
-			//semd_t *termSem = getSemd(termSemNo);
-			//pcb_t *waitingProc = headBlocked(termSemNo);
-			//if (waitingProc != NULL){
-				///* Maggior priorità alla trasmissione */
-				//waitingProc->p_s.reg_v0 = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
-
-				//int semKey = termSemNo;	
-				//lock(semKey);
-				//semd_t *semaphore = termSem;
-				//semaphore->s_value += 1;
-				//if (semaphore->s_value <= 0){
-					//pcb_t *toWake = removeBlocked(semKey);
-					////debug(108,toWake);
-					///* Controllo se il processo da inserire non sia da terminare,
-					 //* in tal caso potrebbe portare a problemi poiché ci potrebbe
-					 //* essere un processo marcato ma non rimosso (ancora) 
-					 //* dalla coda e se questo dovesse ancora dover effettuare la V si
-					 //* bloccherebbe l'accesso alla Critical Section! */
-					//while (toWake != NULL && toWake->wanted){
-						//semaphore->s_value += 1;
-						//freePcb(toWake);
-						//toWake = removeBlocked(semKey);
-					//}		
-					//addReady(toWake); // sveglio il prossimo
-				//}
-				//free(semKey);				
-				
-				
-			//} else {
-				//devStatus[GET_TERM_STATUS(line, devNo, FALSE)] = (fields->transm_command == TX_COMMAND)? fields->transm_status : fields->recv_status;
-			//}
-			////free(termSemNo);
-			//LDST(oldProcess);
-			//break;
+			break;
 		}
 		
 		default: {

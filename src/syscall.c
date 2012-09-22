@@ -176,28 +176,33 @@ int wait_io(int intline, int dnum, int read)
 	U32 cpuid = getPRID();
 	state_t *OLDAREA = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
 	int statusNum = GET_TERM_STATUS(intline, dnum, read);
-	while(devStatus[statusNum] == 0)
-		debug(33333,33333);
-	debug(11, devStatus[statusNum]);
-	OLDAREA->reg_v0 = devStatus[statusNum];
-	copyState(OLDAREA, &(currentProcess[cpuid]->p_s));
-	debug(66666, (currentProcess[cpuid]->p_s).reg_v0);
-	devStatus[statusNum] = 0;
-	
-	
-	//if (devStatus[statusNum] != 0){
-		//currentProcess[cpuid]->p_s.reg_v0 = devStatus[statusNum];
-		//devStatus[statusNum] = 0; /* Altrimenti status condivisi! */
-	//} else {
-		//lock(semKey);
-		//state_t *oldProcess = (cpuid == 0)? (state_t *)SYSBK_OLDAREA : &areas[cpuid][SYSBK_OLDAREA_INDEX];
-		//semd_t *semaphore = getSemd(semKey);
-		//semaphore->s_value -= 1;
-		//copyState(oldProcess, &(currentProcess[cpuid]->p_s));
-		//insertBlocked(semKey, currentProcess[cpuid]);
-		//free(semKey);
-		//LDST(&(scheduler_states[cpuid]));
-	//}
+	int semKey = GET_TERM_SEM(intline,dnum,read);
+	if (devStatus[statusNum] != 0){
+		debug(11,11);
+		OLDAREA->reg_v0 = devStatus[statusNum];
+		copyState(OLDAREA, &(currentProcess[cpuid]->p_s));
+		devStatus[statusNum] = 0; /* Altrimenti status condivisi! */
+		LDST(&(currentProcess[cpuid]->p_s));
+	} else {
+		debug(22,22);
+		lock(semKey);
+		semd_t *semaphore = getSemd(semKey);
+		semaphore->s_value -= 1;
+		copyState(OLDAREA, &(currentProcess[cpuid]->p_s));
+		insertBlocked(semKey, currentProcess[cpuid]);
+		debug(888888,888888);
+		free(semKey);
+		LDST(&(scheduler_states[cpuid]));
+	}
+
+	//while(devStatus[statusNum] == 0)
+		//debug(33333,33333);
+	//debug(11, devStatus[statusNum]);
+	//OLDAREA->reg_v0 = devStatus[statusNum];
+	//copyState(OLDAREA, &(currentProcess[cpuid]->p_s));
+	//debug(66666, (currentProcess[cpuid]->p_s).reg_v0);
+	//devStatus[statusNum] = 0;
+
 }
 
 /* System Call #9  : Specify PRG State Vector

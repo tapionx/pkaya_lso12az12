@@ -17,18 +17,23 @@ void test1(){
 }
 
 void test2(){
+	setTIMER(999999999);
+	while(TRUE)
 	print("222222222222\n");
-	while(TRUE);
+	
 }
 
 void test3(){
+	setTIMER(999999999);
+	while(TRUE)
 	print("33333333\n");
-	while(TRUE);
+	
 }
 
 void test4(){
+	setTIMER(999999999);
+	while(TRUE)
 	print("4444444\n");
-	while(TRUE);	
 }
 
 
