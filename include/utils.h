@@ -29,6 +29,8 @@ char *itoa(int i);
 void printn(char* s, int n);
 
 void printn_mutex(char* s, int n);
+void stampaCodaMutex(int semKey);
+void stampaCodaHeadMutex(struct list_head *head);
 
 /* Trova l'id della CPU con minor workload in un array di procs counter */
 int minWorkloadCpu(int procs[], int size);

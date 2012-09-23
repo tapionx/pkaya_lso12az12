@@ -11,16 +11,20 @@
 #include "interrupt.h"
 #include "asl.e"
 
-void pltHandler(U32 cpuid){
+void pltHandler(U32 cpuid){ /* TESTATO */
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)INT_OLDAREA : &areas[getPRID()][INT_OLDAREA_INDEX];
 	/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
+	copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 	addReady(currentProcess[cpuid]);
 	/* ACK del PLT */
 	setTIMER(TIME_SLICE);
 	/* Richiamo lo scheduler */
-	scheduler();
+	LDST(&(scheduler_states[cpuid]));
 }
 
 void pctHandler(U32 cpuid){
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)INT_OLDAREA : &areas[getPRID()][INT_OLDAREA_INDEX];
+	copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 	/* Facciamo la V "speciale" che risveglia tutti i processi bloccati */
 	/* estraggo il puntatore al semaforo */
 	semd_t *pctsem = getSemd(PCT_SEM);
@@ -33,17 +37,18 @@ void pctHandler(U32 cpuid){
 	/* Rimetto il processo interrotto in ready */
 	addReady(currentProcess[cpuid]);
 	/* Richiamo lo scheduler */
-	scheduler();
+	LDST(&(scheduler_states[cpuid]));
 }
 
 void terminalHandler(U32 cpuid){
+	debug(44,44);
 	int line = INT_TERMINAL;
 	/* Calcolo il numero del device che ha generato l'interrupt */
 	int devNo = getDevNo(GET_PENDING_INT_BITMAP(line));
 	/* Calcoliamo l'inizio del registro del controller per scrivere/leggere sui suoi registri */
 	int devAddrBase = DEV_ADDR_BASE(line, devNo);
 	/* indice del semaforo da usare */
-	int termSemNo = GET_TERM_SEM(devNo, FALSE);
+	int termSemNo = GET_TERM_SEM(line, devNo, FALSE);
 	/* TODO: Bisogna stare attenti perché quando si chiama 	la 
 	 * funzione associata alla syscall (non SYSCALL!) non viene
 	 * aggiornato il currentProcess! Quindi quando lo si rimette in
@@ -54,7 +59,7 @@ void terminalHandler(U32 cpuid){
 	/* puntatore ai registri del device */	
 	termreg_t *fields = (termreg_t *)devAddrBase;
 	/* indice del vettore delle risposte associato al device */
-	int termStatusNo = GET_TERM_STATUS(devNo, FALSE);
+	int termStatusNo = GET_TERM_STATUS(line, devNo, FALSE);
 	semd_t *termSem = getSemd(termSemNo);
 	/* puntatore al primo processo bloccato sulla coda */
 	pcb_t *waitingProc = headBlocked(termSemNo);

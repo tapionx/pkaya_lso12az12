@@ -27,10 +27,10 @@ semd_t* getSemd(int key)
 int insertBlocked(int key, pcb_t *p)
 {
 	/* Non posso permettere l'inserimento di piu' di MAXPROC semafori */
-	if (key > NUM_SEMAPHORES || key < 0)
+	if (key > NUM_SEMAPHORES || key < 0 || p == NULL)
 		return TRUE;
     p->p_semkey = key;
-	list_add_tail(&(p->p_next), &(semd_table[key].s_procQ));
+	insertProcQ(&(semd_table[key].s_procQ), p);
     return FALSE;
 }  
 
@@ -61,7 +61,6 @@ pcb_t* outBlocked(pcb_t* p)
 	 * scheduler! */
     /* estraggo la chiave */
     int semKey = p->p_semkey;
-    lock(semKey);
 	/* estraggo il puntatore al semd */
     semd_t* pSem = getSemd(semKey);
     /* Se il semaforo non esiste nella ASL ritorno NULL */
@@ -82,12 +81,10 @@ pcb_t* outBlocked(pcb_t* p)
             list_del(cur);
             pSem->s_value--;
             /* ne ritorno l'indirizzo */
-            free(semKey);
             return p;
         }
     }
     /* se non c'è ritorno NULL */
-    free(semKey);
     return NULL;
 }
 

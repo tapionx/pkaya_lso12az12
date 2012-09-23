@@ -17,15 +17,18 @@ pcb_t *currentProcess[MAX_CPU]; /* Puntatore al processo correntemente in esecuz
 state_t areas[MAX_CPU][NUM_AREAS]; /* Aree reali per CPU > 0 */
 int locks[NUM_SEMAPHORES]; /* Variabili di condizione per CAS */
 state_t scheduler_states[MAX_CPU]; /* state_t dello scheduler */
-int pctInit = FALSE; /* Lo Pseudo Clock Timer è stato inizializzato? */
+int pctInit; /* Lo Pseudo Clock Timer è stato inizializzato? */
 U32 devStatus; /* Status in output dei vari device (solo uno perché solo il terminale è usato) */
 
 /* Processo di test */
 extern void p2test();
 
 /** L'esecuzione del kernel inizia da qui */
-int main(){
-		
+int main(){	
+	
+	/* Interval Timer inizialmente non settato */
+	pctInit = FALSE;
+	
 	int cpuid, area, lockno; /* Iteratori */
 
 	/***************************** INIZIALIZZAZIONE DEI LOCK */
@@ -85,13 +88,13 @@ int main(){
 	
 	/*****************************  INIZIALIZZAZIONE DEGLI SCHEDULER */
 	/* Inizializzo la ready queue */
-	mkEmptyProcQ(&(readyQueue)); 
+	mkEmptyProcQ(&(readyQueue));
 	for(cpuid=0;cpuid<NUM_CPU;cpuid++){
 		STST(&(scheduler_states[cpuid]));
-		scheduler_states[cpuid].reg_sp = RAMTOP-(cpuid*FRAME_SIZE);
+		scheduler_states[cpuid].reg_sp = SFRAMES_START-(cpuid*FRAME_SIZE);
 		scheduler_states[cpuid].pc_epc = scheduler_states[cpuid].reg_t9 = (memaddr)scheduler;
 		/* Il TIMER e' disabilitato durante l'esecuzione dello scheduler */
-		scheduler_states[cpuid].status = SCHEDULER_STATUS|STATUS_IEp|STATUS_LINE_1|STATUS_LINE_2;
+		scheduler_states[cpuid].status = SCHEDULER_STATUS;
 	}
 	
 	
@@ -101,42 +104,51 @@ int main(){
 	//STST(&(p2->p_s));
 	//p2->p_s.pc_epc = p2->p_s.reg_t9 = (memaddr)p2test;
 	//p2->p_s.reg_sp = PFRAMES_START;
-	//p2->p_s.status |= STATUS_IEp|STATUS_INT_UNMASKED;
+	//p2->p_s.status |= |STATUS_INT_UNMASKED;
 	//addReady(p2);
 	
+
 	/* Prova 1 */
 	pcb_t* prova1 = allocPcb();
 	STST(&(prova1->p_s));
 	prova1->p_s.pc_epc = prova1->p_s.reg_t9 = (memaddr)test1;
-	prova1->p_s.reg_sp = SFRAMES_START-NUM_CPU*FRAME_SIZE;
-	prova1->p_s.status |= STATUS_IEp|STATUS_INT_UNMASKED & ~(STATUS_LINE_7|STATUS_LINE_1|STATUS_LINE_2);
+	prova1->p_s.reg_sp = PFRAMES_START;
+	prova1->p_s.status = PROCESS_STATUS;
+	debug(0, prova1);
 	addReady(prova1);
+	
 	
 	/* Prova 2 */
 	pcb_t* prova2 = allocPcb();
 	STST(&(prova2->p_s));
 	prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
-	prova2->p_s.reg_sp = prova1->p_s.reg_sp-4*QPAGE;
-	prova2->p_s.status |= STATUS_IEp|STATUS_INT_UNMASKED & ~(STATUS_LINE_7|STATUS_LINE_1|STATUS_LINE_2);
-	//addReady(prova2);
+	prova2->p_s.reg_sp = PFRAMES_START-FRAME_SIZE;
+	prova2->p_s.status = PROCESS_STATUS;
+	debug(1, prova2);
+	addReady(prova2);
+	
 	
 	/* Prova 3 */
 	pcb_t* prova3 = allocPcb();
 	STST(&(prova3->p_s));
 	prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)test3;
-	prova3->p_s.reg_sp = prova1->p_s.reg_sp-6*QPAGE;
-	prova3->p_s.status |= STATUS_IEp|STATUS_INT_UNMASKED & ~(STATUS_LINE_7|STATUS_LINE_1|STATUS_LINE_2);
-	//addReady(prova3);
+	prova3->p_s.reg_sp = PFRAMES_START-2*FRAME_SIZE;
+	prova3->p_s.status = PROCESS_STATUS;
+	debug(2, prova3);
+	addReady(prova3);
+	
 	
 	/* Prova 4 */
 	pcb_t* prova4 = allocPcb();
 	STST(&(prova4->p_s));
 	prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)test4;
-	prova4->p_s.reg_sp = prova1->p_s.reg_sp-8*QPAGE;
-	prova4->p_s.status |= STATUS_IEp|STATUS_INT_UNMASKED & ~(STATUS_LINE_7|STATUS_LINE_1|STATUS_LINE_2);
-	//addReady(prova4);
-
-
+	prova4->p_s.reg_sp = PFRAMES_START-3*FRAME_SIZE;
+	prova4->p_s.status = PROCESS_STATUS;
+	debug(3, prova4);
+	addReady(prova4);
+	
+	
+	
 	/***************************** INIZIALIZZAZIONE DELLE CPU */
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], &areas[cpuid]);

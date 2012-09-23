@@ -100,53 +100,15 @@ int emptyProcQ(struct list_head *head)
 */
 void insertProcQ(struct list_head* head, pcb_t* p)
 {
-    /* Salvo la priorità di p */
-    int p_priority = p->priority;
-    struct list_head* pos;
-    /* Se la lista è vuota aggiungo l'elemento in coda (il list_for_each
-     * non verrebbe neanche iniziato) */
-    if (list_empty(head)){
-        list_add(&(p->p_next), head);
+	pcb_t *iterator;
+	
+	list_for_each_entry(iterator, head, p_next){
+		if (p->priority > iterator->priority){
+			list_add_tail(&(p->p_next), &(iterator->p_next));
+			return;
+		}
 	}
-    else
-        list_for_each(pos, head){ /* Inizia da head->next */
-            pcb_t* curPcb = container_of(pos, pcb_t, p_next);
-            /* Salvo la priorità dell'elemento corrente */
-            int cur_priority = curPcb->priority;
-            
-            /* Se la priorità di p è < di quella dell'elemento corrente
-             * e l'elemento successivo è la sentinella, devo forzatamente
-             * inserire p in coda dopo l'elemento corrente */
-            if (p_priority < cur_priority && list_next(pos) == head)
-            {
-                list_add(&(p->p_next), pos);
-                return; /* Non continuo il ciclo */
-            }
-            /* Se invece la priorità di p è > a quella dell'elemento 
-             * corrente lo aggiungo prima di lui */
-            if (p_priority > cur_priority)
-            {
-                list_add_tail(&(p->p_next), pos);
-                return; /* Non continuo il ciclo */
-            }
-            else { /* Caso priorità uguale, se ci sono più processi con
-            stessa priorità lo aggiungo alla fine di questi secondo 
-            politica fair FIFO */
-				/* Trovo la priorità del prossimo processo */
-				pcb_t *next = container_of(list_next(pos), pcb_t, p_next);
-				int next_priority = next->priority;
-				if (p_priority > next_priority || list_next(pos) == head){
-					list_add(&(p->p_next), pos);
-					return;
-				}
-			}
-              
-            /* Il caso rimanente è se l'elemento da inserire ha priorità
-             * minore di quello corrente ma non siamo giunti alla fine 
-             * della lista. Allora è necessario continuare a scandire 
-             * gli elementi finché non si trova una posizione utile per 
-             * l'inserimento ricadendo nei primi due casi */
-        }
+	list_add_tail(&(p->p_next), head);
 }
 
 

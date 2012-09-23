@@ -18,23 +18,17 @@ void int_handler(){
 	U32 cpuid = getPRID();
 	/* estraggo il puntatore allo state_t del processo interrotto 
 	 * (non è necessariamente quello che ha sollevato l'interrupt!) */
-	state_t *oldProcess = GET_OLD_INT();
-	/* Aggiorniamo il pcb corrente solo se necessario */
-	if (currentProcess[cpuid] != NULL){
-		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
-		addReady(currentProcess[cpuid]);
-	}
-	
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)INT_OLDAREA : &areas[getPRID()][INT_OLDAREA_INDEX];
 	
 	/* Capiamo da che linea proviene l'interrupt */
 	int line = 0;
 	for (line; line < NUM_LINES; line++){
-		/* Se abbiamo trovato la linea usciamo */
+		/* Se abbiamo trovato la linea interrompiamo la ricerca */
 		if (CAUSE_IP_GET(getCAUSE(), line)){
 			break;
 		}
 	}
-
+	
 	switch(line){
 		case INT_PLT: {
 			pltHandler(cpuid);
@@ -42,6 +36,7 @@ void int_handler(){
 		}
 		
 		case INT_TIMER: {
+			debug(34,34);
 			pctHandler(cpuid);
 			break;
 		}
@@ -68,7 +63,7 @@ void pgmtrap_handler(){
 	 
 	U32 cpuid = getPRID();
 	/* processo chiamante */
-	state_t *oldProcess = GET_OLD_PGMTRAP();
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)PGMTRAP_OLDAREA : &areas[getPRID()][PGMTRAP_OLDAREA_INDEX];
 	/* carico il processo corrente */
 	pcb_t *processoCorrente = currentProcess[cpuid];
 	/* controllo se il processo ha un handler custom */
@@ -96,7 +91,7 @@ void tlb_handler(){
 	 
 	U32 cpuid = getPRID();
 	/* processo chiamante */
-	state_t *oldProcess = GET_OLD_TLB();
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)TLB_OLDAREA : &areas[getPRID()][TLB_OLDAREA_INDEX];
 	/* carico il processo corrente */
 	pcb_t *processoCorrente = currentProcess[cpuid];
 	/* controllo se il processo ha un handler custom */
@@ -121,28 +116,26 @@ void sysbk_handler(){
 	/* recupero il numero della CPU attuale */
 	U32 cpuid = getPRID();
 	/* recupero il processo chiamante */
-	state_t *oldProcess = GET_OLD_SYSBK();
-	/* incremento il PC del processo chiamante, per evitare loop */
-	/* in questo caso non serve aggiornare anche t9 */
-	/* (pag 28, 3.7.2 Student Guide) */
-	copyState(oldProcess, &(currentProcess[cpuid]->p_s));
-	currentProcess[cpuid]->p_s.pc_epc += WORD_SIZE;
-	/* Aggiorno il pcb corrente */
-	//copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)SYSBK_OLDAREA : &areas[getPRID()][SYSBK_OLDAREA_INDEX];
+	/* Incremento il PC del processo chiamante, per evitare loop,
+	 * e in questo caso non serve aggiornare anche t9!
+	 * (pag 28, 3.7.2 Student Guide) */
+	oldProcess->pc_epc += WORD_SIZE;
+
 	/* recupero i parametri della SYSCALL dalla oldProcess */
-	U32 *num_syscall = &(currentProcess[cpuid]->p_s.reg_a0);
-	U32 *arg1 		 =  &(currentProcess[cpuid]->p_s.reg_a1);
-	U32 *arg2		 =  &(currentProcess[cpuid]->p_s.reg_a2);
-	U32 *arg3		 =  &(currentProcess[cpuid]->p_s.reg_a3);
+	U32 *num_syscall = &(oldProcess->reg_a0);
+	U32 *arg1 		 =  &(oldProcess->reg_a1);
+	U32 *arg2		 =  &(oldProcess->reg_a2);
+	U32 *arg3		 =  &(oldProcess->reg_a3);
 	
 	/* recupero lo stato (kernel-mode o user-mode) */
-	U32 *old_status = &(currentProcess[cpuid]->p_s.status);
+	U32 *old_status = &(oldProcess->status);
 
 	/* recupero la causa (tipo di eccezione sollevato) */
-	U32 *old_cause = &(currentProcess[cpuid]->p_s.cause);
+	U32 *old_cause = &(oldProcess->cause);
 	
 	/* se il processo era in kernel mode */
-	if( (*old_status & STATUS_KUc) == 0 )
+	if( (*old_status & STATUS_KUp) == 0 )
 	{
 		/* controllo se il processo non ha un handler custom */
 		if(currentProcess[cpuid]->custom_handlers[SYSBK_NEWAREA_INDEX] == NULL)

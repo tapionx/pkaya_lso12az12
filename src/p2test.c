@@ -54,8 +54,6 @@ typedef U32 cpu_t;
 #define CAUSEMASK		0xFF
 #define VMOFF 			0xF8FFFFFF
 
-#define QPAGE			1024
-
 #define KUPBITON		0x8
 #define KUPBITOFF		0xFFFFFFF7
 

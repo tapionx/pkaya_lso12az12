@@ -17,7 +17,7 @@ int create_process(state_t *statep, int priority)
 {
 	U32 cpuid = getPRID();
 	/* recupero il processo chiamante */
-	state_t *oldProcess = GET_OLD_SYSBK();
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)SYSBK_OLDAREA : &areas[getPRID()][SYSBK_OLDAREA_INDEX];
 	/* ottengo il processo corrente */
 	pcb_t *processoCorrente = currentProcess[cpuid];
 	/* alloco un nuovo processo */
@@ -53,7 +53,7 @@ int create_brother(state_t *statep, int priority)
 {
 	U32 cpuid = getPRID();
 	/* recupero il processo chiamante */
-	state_t *oldProcess = GET_OLD_SYSBK();
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)SYSBK_OLDAREA : &areas[getPRID()][SYSBK_OLDAREA_INDEX];
 	/* ottengo il processo corrente */
 	pcb_t *processoCorrente = currentProcess[cpuid];
 	/* alloco un nuovo processo */
@@ -105,14 +105,20 @@ void terminate_process()
  * il primo processo in coda sul semaforo va in esecuzione
  */
 void verhogen(int semKey){
+	
 	lock(semKey);
+	int cpuid = getPRID();
 	semd_t *semaphore = getSemd(semKey);
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)SYSBK_OLDAREA : &areas[getPRID()][SYSBK_OLDAREA_INDEX];
 	semaphore->s_value += 1;
-	pcb_t *toWake = removeBlocked(semKey);
-	if (toWake != NULL){
-		addReady(toWake); // sveglio il prossimo
+	if (semaphore->s_value <= 0){
+		pcb_t *toWake = removeBlocked(semKey);
+		if (toWake != NULL){
+			addReady(toWake); // sveglio il prossimo
+		}
 	}
 	free(semKey);
+	LDST(oldProcess);
 }
 
 /* System Call #5  : Passeren
@@ -120,15 +126,22 @@ void verhogen(int semKey){
  * il processo che ha chiamato la syscall si mette in attesa
  */
 void passeren(int semKey){
+	
 	lock(semKey);
 	int cpuid = getPRID();
+	state_t *oldProcess = (getPRID() == 0)? (state_t *)SYSBK_OLDAREA : &areas[getPRID()][SYSBK_OLDAREA_INDEX];
 	semd_t *semaphore = getSemd(semKey);
 	semaphore->s_value -= 1;
 	if (semaphore->s_value < 0){
+		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 		insertBlocked(semKey, currentProcess[cpuid]);
+		free(semKey);
 		LDST(&(scheduler_states[cpuid]));
+	} else {
+		free(semKey);
+		LDST(oldProcess);
 	}
-	free(semKey);
+	
 }
 
 /* System Call #6  : Get CPU Time
@@ -164,11 +177,11 @@ void wait_clock()
 int wait_io(int intline, int dnum, int read)
 {
 	/* calcolo il numero del semaforo da usare */
-	int semKey = GET_TERM_SEM(dnum, read);
+	int semKey = GET_TERM_SEM(intline, dnum, read);
 	U32 cpuid = getPRID();
 	passeren(semKey);
 	/* calcolo indice del vettore delle risposte */
-	int statusNum = GET_TERM_STATUS(dnum, read);
+	int statusNum = GET_TERM_STATUS(intline, dnum, read);
 	/* Se la P non era bloccante (interrupt anticipato!) ritorno il valore */
 	return devStatus;
 }
