@@ -13,9 +13,11 @@
 
 void pltHandler(U32 cpuid){ /* TESTATO */
 	state_t *oldProcess = (getPRID() == 0)? (state_t *)INT_OLDAREA : &areas[getPRID()][INT_OLDAREA_INDEX];
-	/* Non c'è bisogno di mutua esclusione esplicita dato che la addReady già la include! */
-	copyState(oldProcess, &(currentProcess[cpuid]->p_s));
-	addReady(currentProcess[cpuid]);
+	/* Se l'interrupt non è stato generato durante la fase di scheduling */
+	if (currentProcess[cpuid] != NULL){
+		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+		addReady(currentProcess[cpuid]);
+	}
 	/* ACK del PLT */
 	setTIMER(TIME_SLICE);
 	/* Richiamo lo scheduler */
@@ -24,7 +26,6 @@ void pltHandler(U32 cpuid){ /* TESTATO */
 
 void pctHandler(U32 cpuid){
 	state_t *oldProcess = (getPRID() == 0)? (state_t *)INT_OLDAREA : &areas[getPRID()][INT_OLDAREA_INDEX];
-	copyState(oldProcess, &(currentProcess[cpuid]->p_s));
 	/* Facciamo la V "speciale" che risveglia tutti i processi bloccati */
 	/* estraggo il puntatore al semaforo */
 	semd_t *pctsem = getSemd(PCT_SEM);
@@ -35,7 +36,10 @@ void pctHandler(U32 cpuid){
 	/* setto di nuovo il PCT a 100ms */
 	SET_IT(SCHED_PSEUDO_CLOCK);
 	/* Rimetto il processo interrotto in ready */
-	addReady(currentProcess[cpuid]);
+	if (currentProcess[cpuid] != NULL){
+		copyState(oldProcess, &(currentProcess[cpuid]->p_s));
+		addReady(currentProcess[cpuid]);
+	}
 	/* Richiamo lo scheduler */
 	LDST(&(scheduler_states[cpuid]));
 }

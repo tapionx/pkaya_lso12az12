@@ -19,7 +19,6 @@ void int_handler(){
 	/* estraggo il puntatore allo state_t del processo interrotto 
 	 * (non è necessariamente quello che ha sollevato l'interrupt!) */
 	state_t *oldProcess = (getPRID() == 0)? (state_t *)INT_OLDAREA : &areas[getPRID()][INT_OLDAREA_INDEX];
-	
 	/* Capiamo da che linea proviene l'interrupt */
 	int line = 0;
 	for (line; line < NUM_LINES; line++){
@@ -28,7 +27,6 @@ void int_handler(){
 			break;
 		}
 	}
-	
 	switch(line){
 		case INT_PLT: {
 			pltHandler(cpuid);
@@ -36,7 +34,6 @@ void int_handler(){
 		}
 		
 		case INT_TIMER: {
-			debug(34,34);
 			pctHandler(cpuid);
 			break;
 		}

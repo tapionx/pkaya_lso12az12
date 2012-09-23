@@ -114,7 +114,7 @@ int main(){
 	prova1->p_s.pc_epc = prova1->p_s.reg_t9 = (memaddr)test1;
 	prova1->p_s.reg_sp = PFRAMES_START;
 	prova1->p_s.status = PROCESS_STATUS;
-	debug(0, prova1);
+	//~ debug(0, prova1);
 	addReady(prova1);
 	
 	
@@ -124,7 +124,7 @@ int main(){
 	prova2->p_s.pc_epc = prova2->p_s.reg_t9 = (memaddr)test2;
 	prova2->p_s.reg_sp = PFRAMES_START-FRAME_SIZE;
 	prova2->p_s.status = PROCESS_STATUS;
-	debug(1, prova2);
+	//~ debug(1, prova2);
 	addReady(prova2);
 	
 	
@@ -134,7 +134,7 @@ int main(){
 	prova3->p_s.pc_epc = prova3->p_s.reg_t9 = (memaddr)test3;
 	prova3->p_s.reg_sp = PFRAMES_START-2*FRAME_SIZE;
 	prova3->p_s.status = PROCESS_STATUS;
-	debug(2, prova3);
+	//~ debug(2, prova3);
 	addReady(prova3);
 	
 	
@@ -144,7 +144,7 @@ int main(){
 	prova4->p_s.pc_epc = prova4->p_s.reg_t9 = (memaddr)test4;
 	prova4->p_s.reg_sp = PFRAMES_START-3*FRAME_SIZE;
 	prova4->p_s.status = PROCESS_STATUS;
-	debug(3, prova4);
+	//~ debug(3, prova4);
 	addReady(prova4);
 	
 	

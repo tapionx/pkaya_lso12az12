@@ -62,6 +62,7 @@ void scheduler(){
 	}
 	free(SCHEDULER_SEMLOCK);
 	WAIT();
+	devStatus = 0;
 	/* BUG: La prima volta dopo la WAIT non va nell'int_handler ma ritorna
 	 * nel main. Per evitare questo comportamento si utilizza un dummyProcess
 	 * il cui unico compito è quello di catturare gli interrupt la prima
