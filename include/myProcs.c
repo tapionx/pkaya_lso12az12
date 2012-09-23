@@ -12,24 +12,24 @@
 
 void test1(){
 	while(TRUE)
-	print("111111111111\n");
+	print("1111\n");
 }
 
 void test2(){
 	while(TRUE)
-	print("222222222222\n");
+	print("22222222\n");
 	
 }
 
 void test3(){
 	while(TRUE)
-	print("33333333\n");
+	print("333333333333\n");
 	
 }
 
 void test4(){
 	while(TRUE)
-	print("4444444\n");
+	print("4444444444444444\n");
 }
 
 

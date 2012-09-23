@@ -20,10 +20,47 @@ state_t scheduler_states[NUM_CPU]; /* state_t dello scheduler */
 int pctInit = FALSE; /* Lo Pseudo Clock Timer è stato inizializzato? */
 U32 devStatus[MAX_DEVICES] = {0}; /* Status in output dei vari device */
 
+/* Processo di test */
+extern void p2test();
+
 /** L'esecuzione del kernel inizia da qui */
 int main(){
 
+
+	U32 process_status = 0;
+	process_status |= STATUS_IEc;
+	process_status |= STATUS_IEp;
+	process_status |= STATUS_IEo;
+	process_status |= STATUS_INT_UNMASKED;
+	process_status &= ~STATUS_VMc;
+	process_status &= ~STATUS_VMp;
+	process_status &= ~STATUS_VMo;
+	process_status &= ~STATUS_KUc;
+	process_status &= ~STATUS_KUp;
+	process_status &= ~STATUS_KUo;
+	process_status |= 0x08000000;
+	
+	debug(1,process_status);
+	debug(1,PROCESS_STATUS);
 		
+		
+	U32 exception_status = 0;
+	exception_status &= ~STATUS_IEc;
+	exception_status &= ~STATUS_IEp;
+	exception_status &= ~STATUS_IEo;
+	exception_status &= ~STATUS_INT_UNMASKED;
+	exception_status &= ~STATUS_VMc;
+	exception_status &= ~STATUS_VMp;
+	exception_status &= ~STATUS_VMo;
+	exception_status &= ~STATUS_KUc;
+	exception_status &= ~STATUS_KUp;
+	exception_status &= ~STATUS_KUo;
+	exception_status &= ~0x08000000;
+	
+	debug(1,exception_status);
+	debug(1,EXCEPTION_STATUS);
+	
+			
 	int cpuid, area, lockno; /* Iteratori */
 
 	/** INIZIALIZZAZIONE DEI LOCK */
@@ -121,10 +158,19 @@ int main(){
 		prova4->p_s.reg_sp = PFRAMES_START-8*QPAGE;
 		prova4->p_s.status = prova4->p_s.status | PROCESS_STATUS;
 	
-	addReady(prova1);
-	addReady(prova2);
-	addReady(prova3);
-	addReady(prova4);
+	//addReady(prova1);
+	//addReady(prova2);
+	//addReady(prova3);
+	//addReady(prova4);
+	
+///* P2 test */
+pcb_t* p2 = allocPcb();
+STST(&(p2->p_s));
+p2->p_s.pc_epc = p2->p_s.reg_t9 = (memaddr)p2test;
+p2->p_s.reg_sp = PFRAMES_START;
+p2->p_s.status |= STATUS_IEp|STATUS_INT_UNMASKED;
+addReady(p2);	
+	
 	
 	for(cpuid=1;cpuid<NUM_CPU;cpuid++){
 		INITCPU(cpuid, &scheduler_states[cpuid], &areas[cpuid]);
@@ -132,7 +178,7 @@ int main(){
 	/* bisogna assicurarsi che tutte le altre CPU abbiano iniziato 
 	 * l'inizializzazione prima di poter dare il controllo allo scheduler 
 	 * anche per la CPU 0 */
-	 	
+	setTIMER(900);
 	LDST(&(scheduler_states[0]));
 	return 0;
 }

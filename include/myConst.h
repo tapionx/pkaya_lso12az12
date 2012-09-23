@@ -8,7 +8,7 @@
 /* TODO: trovare  modo di leggere num CPU da emulatore ma potendolo
  * usare come costante (ad esempio per dimensionare gli array) */
 #define NCPU_ADDR 0x10000500
-#define NUM_CPU 4
+#define NUM_CPU 2
 /* #define NUM_CPU (int)*(int*)NCPU_ADDR	 */
 
 #define TIME_SCALE BUS_TIMESCALE
@@ -38,8 +38,11 @@
 #define TIME_SLICE 100*SCHED_TIME_SLICE*(*(memaddr *)BUS_TIMESCALE) /* espresso in ms, 1ms = BUS_TIMESCALE*1000 clock_ticks */
 
 /* Costanti di utilità */
-#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED) & ~(STATUS_VMp) // TODO Riabilitare interrupt terminali per gestirli correttamente!
-#define EXCEPTION_STATUS (PROCESS_STATUS & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp))
+#define PROCESS_STATUS 0x0800ff04
+#define EXCEPTION_STATUS 0x08000000
+
+//#define PROCESS_STATUS (STATUS_IEp|STATUS_TE|STATUS_INT_UNMASKED) & ~(STATUS_VMp) // TODO Riabilitare interrupt terminali per gestirli correttamente!
+//#define EXCEPTION_STATUS (PROCESS_STATUS & ~(STATUS_IEp|STATUS_INT_UNMASKED|STATUS_VMp))
 //#define PROCESS_STATUS (STATUS_TE)
 #define STATUS_TE 0x08000000 /* PLT */
 #define STATUS_LINE_7 0x8000 // TERMINAL
